@@ -1,6 +1,9 @@
 sudo: false
 language: c
  
+# Only build tags
+if: tag IS present
+
 addons:
   apt:
     packages:
