@@ -49,7 +49,7 @@ end
 
 -- Handle the initialization of values from nil to 0 first time addon is loaded.
 function CTT:ADDON_LOADED()
-    if GetAddOnMetadata("CombatTimeTracker", "Version") == "2.0.2" and cttMenuOptions == nil then
+    if GetAddOnMetadata("CombatTimeTracker", "Version") == "2.0.3" and cttMenuOptions == nil then
         CTT_PopUpMessage()
     end
     if longestMin == nil then

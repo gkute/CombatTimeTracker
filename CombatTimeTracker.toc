@@ -1,6 +1,6 @@
 ## Interface: 80100
 ## Title: |cffff930fCombat Time Tracker|r
-## Version: 2.0.2
+## Version: 2.0.3
 ## Notes: Simply starts and stops the timer when engaged in combat.
 ## Author: Bowtiesphd
 ## OptionalDeps: Ace3
