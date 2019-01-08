@@ -81,7 +81,6 @@ function CTT:ADDON_LOADED()
         -- rest of the code here
         if UnitAffectingCombat("player") or bossEncounter then
             --CTT:Print(cttElapsedSeconds)
-            --updateStopwatchGui()
             local times = GetTime() - time
             local time = cttElapsedSeconds
             totalSeconds = floor(time)
