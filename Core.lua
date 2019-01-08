@@ -45,7 +45,7 @@ end
 
 -- Handle the initialization of values from nil to 0 first time addon is loaded.
 function CTT:ADDON_LOADED()
-    if GetAddOnMetadata("CombatTimeTracker", "Version") == "2.0.3" and cttMenuOptions == nil then
+    if GetAddOnMetadata("CombatTimeTracker", "Version") == "2.0.5" and cttMenuOptions == nil then
         CTT_PopUpMessage()
     end
     if longestMin == nil then
@@ -159,12 +159,14 @@ function CTT:Encounter_End(...)
         local index = table.getn(fightLogs)
         fightLogs[index][6] = true
         fightLogs[index][7] = totalSeconds
-        CTT:Print(L["You have successfully killed "] .. fightLogs[index][2] .. " " .. L["after"] .. " " .. minutes .. ":" .. seconds .. ".")
+        --CTT:Print(L["You have successfully killed "] .. fightLogs[index][2] .. " " .. L["after"] .. " " .. minutes .. ":" .. seconds .. ".")
+        CTT_DisplayResultsBosses(fightLogs[index][2], true)
     else
         local index = table.getn(fightLogs)
         fightLogs[index][7] = totalSeconds
         cttMenuOptions.timeValues = {hours, minutes, seconds, totalSeconds}
-        CTT:Print(L["You have wiped on "] .. fightLogs[index][2] .. L["after"] .. " " .. minutes .. ":" .. seconds ..".")
+        --CTT:Print(L["You have wiped on "] .. fightLogs[index][2] .. L["after"] .. " " .. minutes .. ":" .. seconds ..".")
+        CTT_DisplayResultsBosses(fightLogs[index][2], false)
     end
 end
 
@@ -267,7 +269,29 @@ function CTT_DisplayResults(newRecord)
         if newRecord then
             CTT:Print(L["New Record! Fight ended in "] .. "(HH:MM:SS): " .. cttMenuOptions.timeValues[1] .. ":" .. cttMenuOptions.timeValues[2] .. ":" .. cttMenuOptions.timeValues[3] .. "!")
         else
-            CTT:Print(L["Fight ended in "] .. "(HHMM:SS): " .. cttMenuOptions.timeValues[1] .. ":" .. cttMenuOptions.timeValues[2] .. ":" .. cttMenuOptions.timeValues[3] .. ".")
+            CTT:Print(L["Fight ended in "] .. "(HH:MM:SS): " .. cttMenuOptions.timeValues[1] .. ":" .. cttMenuOptions.timeValues[2] .. ":" .. cttMenuOptions.timeValues[3] .. ".")
+        end
+    end
+end
+
+function CTT_DisplayResultsBosses(bossEncounter, wasAKill)
+    if cttMenuOptions.dropdownValue == 1 then
+        if wasAKill then
+            CTT:Print(L["You have successfully killed "] .. bossEncounter .. " " .. L["after"] .. " " .. totalSeconds .. " " .. L["seconds"] .. "!")
+        else
+            CTT:Print(L["You have wiped on "] .. bossEncounter .. L["after"] .. " " .. totalSeconds ..".")
+        end
+    elseif cttMenuOptions.dropdownValue == 2 then
+        if wasAKill then
+            CTT:Print(L["You have successfully killed "] .. bossEncounter .. " " .. L["after"] .. " " .. minutes .. ":" .. seconds .. "!")
+        else
+            CTT:Print(L["You have wiped on "] .. bossEncounter .. " " .. L["after"] .. " " .. minutes .. ":" .. seconds .. ".")
+        end
+    else
+        if wasAKill then
+            CTT:Print(L["You have successfully killed "] .. bossEncounter .. " " .. L["after"] .. " " .. hours .. ":" .. minutes .. ":" .. seconds .. ".")
+        else
+            CTT:Print(L["You have wiped on "] .. bossEncounter .. " " .. L["after"] .. " " .. hours .. ":" .. minutes .. ":" .. seconds .. ".")
         end
     end
 end
