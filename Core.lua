@@ -33,10 +33,6 @@ function CTT:OnInitialize()
     LSM.RegisterCallback(self, "LibSharedMedia_Registered", "UpdateUsedMedia")
 end
 
-function CTT:OnDisable()
-    -- Called when the addon is disabled
-end
-
 function CTT:UpdateUsedMedia(event, mediatype, key)
     fontTableOptions = LSM:List("font")
     for k,v in pairs(fontTableOptions) do
