@@ -1,0 +1,7 @@
+enable-nolib-creation: no
+ 
+externals:
+  libs/LibStub: svn://svn.wowace.com/wow/libstub/mainline/tags/1.0
+  libs/Wasabi:
+    url: git://github.com/p3lim-wow/Wasabi
+    tag: latest

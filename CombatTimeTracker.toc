@@ -1,0 +1,15 @@
+## Interface: 80100
+## Title: |cffff930fCombat Time Tracker|r
+## Version: 2.0.2
+## Notes: Simply starts and stops the timer when engaged in combat.
+## Author: Bowtiesphd
+## OptionalDeps: Ace3
+## X-Embeds: Ace3
+## X-Curse-Project-ID: 305012
+
+## SavedVariablesPerCharacter: longestMin, longestSec, cttMenuOptions, fightLogs, cttTextFormatOptions
+
+embeds.xml
+Locales\Locales.xml
+Stopwatch.xml
+Core.lua
