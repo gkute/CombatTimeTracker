@@ -1,3 +1,4 @@
+[![Build Status](https://travis-ci.com/gkute/CombatTimeTracker.svg?branch=master)](https://travis-ci.com/gkute/CombatTimeTracker)
 # Combat Time Tracker
 
 ## Features:
