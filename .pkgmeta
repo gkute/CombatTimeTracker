@@ -1,1 +1,7 @@
+package-as:CombatTimeTracker
 enable-nolib-creation: no
+
+ignore:
+    - LICENSE
+
+manual-changelog: CHANGELOG.txt

@@ -3,6 +3,47 @@ CTT = LibStub("AceAddon-3.0"):NewAddon("CTT", "AceConsole-3.0", "AceEvent-3.0")
 -- grab localization if available
 local L = LibStub("AceLocale-3.0"):GetLocale("cttTranslations")
 
+-- db for storing minimap stuff using aceDB
+local defaultSavedVars = {
+	global = {
+		minimap = {
+			hide = false,
+		},
+	},
+}
+db = LibStub("AceDB-3.0"):New("cttDB", defaultSavedVars).global
+local icon = LibStub("LibDBIcon-1.0")
+
+-- libDBIcon for minimap button
+local cttLBD = LibStub("LibDataBroker-1.1"):NewDataObject("CombatTimeTracker", {
+	type = "data source",
+	text = "Combat Time Tracker",
+	icon = "Interface\\Icons\\inv_belt_armor_waistoftime_d_01",
+    OnClick = function(button, buttonPressed)
+        if buttonPressed == "RightButton" then
+            if db.minimap.lock then
+                icon:Unlock("CombatTimeTracker")
+            else
+                icon:Lock("CombatTimeTracker")
+            end
+        elseif buttonPressed == "MiddleButton" then
+            icon:Hide("CombatTimeTracker")
+            db.minimap.hide = true
+            cttMenuOptions.minimapIconCheckButton = true
+            CTT.menu.minimapIconCheckButton:SetValue(true)
+        else
+            CTT_ToggleMenu()
+        end
+    end,
+    OnTooltipShow = function(tooltip)
+		if not tooltip or not tooltip.AddLine then return end
+		tooltip:AddLine("|cffff930fCombat Time Tracker|r")
+        tooltip:AddLine("Click to open Options Menu")
+        tooltip:AddLine("Middle-Click to hide minimap Button")
+        tooltip:AddLine("Right-click to lock Minimap Button")
+    end,
+})
+
 -- extra Ace libs
 local AceGUI = LibStub("AceGUI-3.0")
 local LSM = LibStub("LibSharedMedia-3.0")
@@ -32,6 +73,7 @@ end
 function CTT:OnInitialize()
     self:RegisterChatCommand('ctt', 'SlashCommands')
     LSM.RegisterCallback(self, "LibSharedMedia_Registered", "UpdateUsedMedia")
+	icon:Register("CombatTimeTracker", cttLBD, db.minimap)
 end
 
 -- function to get the position of morpheus font
@@ -50,6 +92,7 @@ function CTT:ADDON_LOADED()
     if GetAddOnMetadata("CombatTimeTracker", "Version") == "2.0.5" and cttMenuOptions == nil then
         CTT_PopUpMessage()
     end
+    
     if longestMin == nil then
         longestMin = 0
     end
@@ -495,6 +538,17 @@ function CTT_BackDropSliderDone(widget, event, value)
     cttMenuOptions.backDropAlphaSlider = value
 end
 
+function CTT_MinimapIconCheckButton(widget, event, value)
+    cttMenuOptions.minimapIconCheckButton = value
+    if cttMenuOptions.minimapIconCheckButton then
+        db.minimap.hide = true
+        icon:Hide("CombatTimeTracker")
+    else
+        db.minimap.hide = false
+        icon:Show("CombatTimeTracker")
+    end
+end
+
 -- create options menu
 function CTT:CreateOptionsMenu()
     -- main menu frame
@@ -525,6 +579,23 @@ function CTT:CreateOptionsMenu()
     lockFrameCheckButton:SetCallback("OnValueChanged",CTT_LockFrameCheckBoxState)
     menu:AddChild(lockFrameCheckButton)
     menu.lockFrameCheckButton = lockFrameCheckButton
+
+    local minimapIconCheckButton = AceGUI:Create("CheckBox")
+    minimapIconCheckButton:SetLabel("Hide Minimap")
+    minimapIconCheckButton:SetWidth(100)
+    minimapIconCheckButton:SetHeight(22)
+    minimapIconCheckButton:SetType("checkbox")
+    minimapIconCheckButton:ClearAllPoints()
+    if cttMenuOptions.minimapIconCheckButton then 
+        minimapIconCheckButton:SetValue(cttMenuOptions.minimapIconCheckButton)
+    else
+        minimapIconCheckButton:SetValue(false)
+    end
+    minimapIconCheckButton:SetPoint("CENTER", menu.frame, "CENTER",6,0)
+    --minimapIconCheckButton:SetCallBack("OnValueChanged", CTT_MinimapIconCheckButton)
+    minimapIconCheckButton:SetCallback("OnValueChanged",CTT_MinimapIconCheckButton)
+    menu:AddChild(minimapIconCheckButton)
+    menu.minimapIconCheckButton = minimapIconCheckButton
 
     -- color picker
     local textColorPicker = AceGUI:Create("ColorPicker")

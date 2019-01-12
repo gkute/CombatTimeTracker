@@ -1,4 +1,4 @@
 ##Changelog:
-###v2.0.8
-* added support to handle milisecond counting
-* fixed possible issues in donwloading the addon from twitch client.
+###v2.1.5
+* added more locale support, more to come
+* added a minimap button to help aid in first time use
