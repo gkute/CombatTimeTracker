@@ -34,6 +34,7 @@ function CTT:OnInitialize()
     LSM.RegisterCallback(self, "LibSharedMedia_Registered", "UpdateUsedMedia")
 end
 
+-- function to get the position of morpheus font
 function CTT:UpdateUsedMedia(event, mediatype, key)
     fontTableOptions = LSM:List("font")
     for k,v in pairs(fontTableOptions) do
