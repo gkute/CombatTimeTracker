@@ -15,6 +15,7 @@ local hours = "00"
 local minutes = "00"
 local seconds = "00"
 local totalSeconds = "00"
+local miliseconds = "00"
 local fontDropDownMorpheus = 0
 local cttElapsedSeconds = 0
 
@@ -64,7 +65,10 @@ function CTT:ADDON_LOADED()
         cttMenuOptions.timeTrackerSize = {100,40}
         cttMenuOptions.textFrameSizeSlider = 0
         cttMenuOptions.backDropAlphaSlider = 1
-        cttMenuOptions.timeValues = {"00","00","00","00"}
+        cttMenuOptions.timeValues = {"00","00","00","00","00"}
+    end
+    if table.getn(cttMenuOptions.timeValues) ~= 5 then
+        cttMenuOptions.timeValues = {"00","00","00","00","00"}
     end
     if cttTextFormatOptions == nil or table.getn(cttTextFormatOptions) > 1 then
         cttTextFormatOptions = {"(SS)", "(MM:SS)", "(HH:MM:SS)"}
@@ -72,12 +76,12 @@ function CTT:ADDON_LOADED()
     if fightLogs == nil then
         fightLogs = {}
     end
-    cttStopwatchGui.elapsed = .125
+    cttStopwatchGui.elapsed = .05
     cttStopwatchGui:SetScript("OnUpdate", function(self, elapsed)
         cttElapsedSeconds = cttElapsedSeconds + elapsed
         self.elapsed = self.elapsed - elapsed
         if self.elapsed > 0 then return end
-        self.elapsed = 0.125
+        self.elapsed = 0.05
         -- rest of the code here
         if UnitAffectingCombat("player") or bossEncounter then
             --CTT:Print(cttElapsedSeconds)
@@ -87,7 +91,7 @@ function CTT:ADDON_LOADED()
             hours = floor(time/3600)
             minutes = floor((time-floor(time/3600)*3600)/60)
             seconds = floor(time-floor(time/3600)*3600-floor((time-floor(time/3600)*3600)/60)*60)
-            -- mili = floor((time-floor(time/3600)*3600-floor((time-floor(time/3600)*3600)/60)*60-floor(time-floor(time/3600)*3600-floor((time-floor(time/3600)*3600)/60)*60))*100)
+            miliseconds = floor((time-floor(time/3600)*3600-floor((time-floor(time/3600)*3600)/60)*60-floor(time-floor(time/3600)*3600-floor((time-floor(time/3600)*3600)/60)*60))*100)
 
             if seconds < 10 then
                 --local temp = tostring(seconds)
@@ -105,8 +109,12 @@ function CTT:ADDON_LOADED()
                 --local temp = tostring(totalSeconds)
                 totalSeconds = "0" .. totalSeconds
             end
+            if miliseconds < 10 then
+                miliseconds = "0" .. miliseconds
+            end
+
             --cttMenuOptions.timeValues = {hours, minutes, seconds, tonumber(string.format("%02.f", math.floor(times)))}
-            CTT_UpdateText(hours, minutes, seconds, cttMenuOptions.dropdownValue, 1)
+            CTT_UpdateText(hours, minutes, seconds, miliseconds, cttMenuOptions.dropdownValue, 1)
         end
     end)
 end
@@ -132,7 +140,7 @@ end
 function CTT:Encounter_Start(...)
     bossEncounter = true
     local arg1, arg2, arg3, arg4, arg5 = ...
-    CTT:Print(L["Encounter Started!"])
+    --CTT:Print(L["Encounter Started!"])
     local members = {}
     local numMembers = GetNumGroupMembers()
     if numMembers > 1 then
@@ -153,7 +161,7 @@ end
 -- Hook function into ENOUNTER_END to handle storing the data after a fight ends.
 function CTT:Encounter_End(...)
     bossEncounter = false
-    CTT:Print(L["Encounter Ended!"])
+    --CTT:Print(L["Encounter Ended!"])
     local args = select(6, ...)
     if args == 1 then
         local index = table.getn(fightLogs)
@@ -164,7 +172,7 @@ function CTT:Encounter_End(...)
     else
         local index = table.getn(fightLogs)
         fightLogs[index][7] = totalSeconds
-        cttMenuOptions.timeValues = {hours, minutes, seconds, totalSeconds}
+        cttMenuOptions.timeValues = {hours, minutes, seconds, totalSeconds, miliseconds}
         --CTT:Print(L["You have wiped on "] .. fightLogs[index][2] .. L["after"] .. " " .. minutes .. ":" .. seconds ..".")
         CTT_DisplayResultsBosses(fightLogs[index][2], false)
     end
@@ -191,9 +199,10 @@ function CTT:PLAYER_ENTERING_WORLD()
         minutes = cttMenuOptions.timeValues[2]
         seconds = cttMenuOptions.timeValues[3]
         totalSeconds = cttMenuOptions.timeValues[4]
-        CTT_UpdateText(cttMenuOptions.timeValues[1], cttMenuOptions.timeValues[2], cttMenuOptions.timeValues[3], cttMenuOptions.dropdownValue,1)
+        miliseconds = cttMenuOptions.timeValues[5]
+        CTT_UpdateText(cttMenuOptions.timeValues[1], cttMenuOptions.timeValues[2], cttMenuOptions.timeValues[3], cttMenuOptions.timeValues[5], cttMenuOptions.dropdownValue,1)
     else
-        CTT_UpdateText("00","00","00",1,1)
+        CTT_UpdateText("00","00","00","00",1,1)
     end
 end
 
@@ -203,7 +212,7 @@ function CTT:PLAYER_REGEN_DISABLED()
         time = GetTime()
         cttElapsedSeconds = 0
         cttStopwatchGui:Show()
-        self:Print(L["Entering Combat!"])
+        --self:Print(L["Entering Combat!"])
     else
         return
     end
@@ -212,8 +221,8 @@ end
 -- Handle the stopwatch when leaving combat.
 function CTT:PLAYER_REGEN_ENABLED()
     if not bossEncounter then
-        self:Print(L["Leaving Combat!"])
-        cttMenuOptions.timeValues = {hours, minutes, seconds, totalSeconds}
+        --self:Print(L["Leaving Combat!"])
+        cttMenuOptions.timeValues = {hours, minutes, seconds, totalSeconds, miliseconds}
         local min = 0
         local sec = 0
         local temp = GetTime() - time
@@ -255,9 +264,9 @@ end
 function CTT_DisplayResults(newRecord)
     if cttMenuOptions.dropdownValue == 1 then
         if newRecord then 
-            CTT:Print(L["New Record! Fight ended in "] .. cttMenuOptions.timeValues[4] .. " " .. L["seconds"] .. "!")
+            CTT:Print(L["New Record! Fight ended in "] .. cttMenuOptions.timeValues[4] .. "." .. cttMenuOptions.timeValues[5] .. " " .. L["seconds"] .. "!")
         else
-            CTT:Print(L["Fight ended in "] .. cttMenuOptions.timeValues[4] .. " " .. L["seconds"] .. ".")
+            CTT:Print(L["Fight ended in "] .. cttMenuOptions.timeValues[4] .. "." .. cttMenuOptions.timeValues[5] .. " ".. L["seconds"] .. ".")
         end
     elseif cttMenuOptions.dropdownValue == 2 then
         if newRecord then
@@ -297,20 +306,20 @@ function CTT_DisplayResultsBosses(bossEncounter, wasAKill)
 end
 
 -- function to update the text on the tracker frame
-function CTT_UpdateText(hours, minutes, seconds, textFormat, fontUpdate)
+function CTT_UpdateText(hours, minutes, seconds, miliseconds, textFormat, fontUpdate)
     if fontUpdate == 2 then
         cttStopwatchGuiTimeText:SetText("")
     end
     if textFormat == 1 then
         if cttMenuOptions.timeValues then
-            cttStopwatchGuiTimeText:SetText(totalSeconds)
+            cttStopwatchGuiTimeText:SetText(totalSeconds .. "." .. miliseconds)
         else
-            cttStopwatchGuiTimeText:SetText(seconds)
+            cttStopwatchGuiTimeText:SetText(seconds .. "." .. miliseconds)
         end
     elseif textFormat == 2 then
-        cttStopwatchGuiTimeText:SetText(minutes .. ":" .. seconds)
+        cttStopwatchGuiTimeText:SetText(minutes .. ":" .. seconds .. "." .. miliseconds)
     else
-        cttStopwatchGuiTimeText:SetText(hours .. ":" .. minutes .. ":" .. seconds)
+        cttStopwatchGuiTimeText:SetText(hours .. ":" .. minutes .. ":" .. seconds .. "." .. miliseconds)
     end
 end
 
@@ -332,7 +341,7 @@ function CTT:SlashCommands(input)
         CTT:Print("=================================")
     elseif command == "reset" then
         cttMenuOptions.timeValues = {"00","00","00","00"}
-        CTT_UpdateText(cttMenuOptions.timeValues[1], cttMenuOptions.timeValues[2], cttMenuOptions.timeValues[3], cttMenuOptions.dropdownValue,1)
+        CTT_UpdateText(cttMenuOptions.timeValues[1], cttMenuOptions.timeValues[2], cttMenuOptions.timeValues[3], cttMenuOptions.timeValues[5],cttMenuOptions.dropdownValue,1)
 		CTT:Print(L["Stopwatch has been reset!"])
 	elseif command == "show" then
         cttStopwatchGui:Show()
@@ -347,7 +356,7 @@ function CTT:SlashCommands(input)
         cttMenuOptions.dropdownValue = 1
         CTT.menu.textStyleDropDown:SetText(cttTextFormatOptions[cttMenuOptions.dropdownValue])
         CTT.menu.textStyleDropDown:SetValue(1)
-        cttMenuOptions.timeValues = {"00","00","00","00"}
+        cttMenuOptions.timeValues = {"00","00","00","00","00"}
         cttMenuOptions.lockFrameCheckButton = true
         CTT.menu.lockFrameCheckButton:SetValue(true)
         cttMenuOptions.fontVal = 16
@@ -363,7 +372,7 @@ function CTT:SlashCommands(input)
         cttMenuOptions.fontPickerDropDown = false
         CTT_SetTrackerSizeOnLogin()
         cttStopwatchGuiTimeText:SetTextColor(255,255,255)
-        CTT_UpdateText(cttMenuOptions.timeValues[1], cttMenuOptions.timeValues[2], cttMenuOptions.timeValues[3], cttMenuOptions.dropdownValue,1)
+        CTT_UpdateText(cttMenuOptions.timeValues[1], cttMenuOptions.timeValues[2], cttMenuOptions.timeValues[3], cttMenuOptions.timeValues[5], cttMenuOptions.dropdownValue,1)
         CTT:Print(L["Combat Time Tracker has been reset to default settings!"])
     elseif command == "longest" then
         CTT:Print("Your longest fight took (MM:SS): "..longestMin..":"..longestSec..".")
@@ -382,13 +391,17 @@ end
 
 -- function to toggle the options menu
 function CTT_ToggleMenu()
-    if not CTT.menu then CTT:CreateOptionsMenu() end
-    if CTT.menu:IsShown() then
-        CTT.menu:Hide()
-        CTT:Print(L["Options menu hidden, for other commands use /ctt help!"])
+    if UnitAffectingCombat("player") or bossEncounter then
+        CTT:Print("Options menu cannot be loaded while in combat, try again after combat has ended!")
     else
-        CTT.menu:Show()
-        CTT:Print(L["Options menu loaded, for other commands use /ctt help!"])
+        if not CTT.menu then CTT:CreateOptionsMenu() end
+        if CTT.menu:IsShown() then
+            CTT.menu:Hide()
+            CTT:Print(L["Options menu hidden, for other commands use /ctt help!"])
+        else
+            CTT.menu:Show()
+            CTT:Print(L["Options menu loaded, for other commands use /ctt help!"])
+        end
     end
 end
 
@@ -410,7 +423,7 @@ end
 
 function CTT_DropdownState(widget, event, key, checked)
     cttMenuOptions.dropdownValue = key
-    CTT_UpdateText(cttMenuOptions.timeValues[1], cttMenuOptions.timeValues[2], cttMenuOptions.timeValues[3], cttMenuOptions.dropdownValue,1)
+    CTT_UpdateText(cttMenuOptions.timeValues[1], cttMenuOptions.timeValues[2], cttMenuOptions.timeValues[3], cttMenuOptions.timeValues[5], cttMenuOptions.dropdownValue,1)
 end
 
 -- function to handle the sliding of the slider, this fires anytime the slider moves
@@ -464,7 +477,7 @@ function CTT_FontPickerDropDownState(widget, event, key, checked)
         cttStopwatchGuiTimeText:SetFont(cttMenuOptions.fontName,cttMenuOptions.fontVal)
         cttStopwatchGui:Hide()
         cttStopwatchGui:Show()
-        CTT_UpdateText(cttMenuOptions.timeValues[1], cttMenuOptions.timeValues[2], cttMenuOptions.timeValues[3], cttMenuOptions.dropdownValue, 2)
+        CTT_UpdateText(cttMenuOptions.timeValues[1], cttMenuOptions.timeValues[2], cttMenuOptions.timeValues[3], cttMenuOptions.timeValues[5], cttMenuOptions.dropdownValue, 2)
     end
 end
 
