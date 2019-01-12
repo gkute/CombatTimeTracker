@@ -284,6 +284,7 @@ function CTT_DisplayResults(newRecord)
     end
 end
 
+-- function to fix display results on a boss encounter ending
 function CTT_DisplayResultsBosses(bossEncounter, wasAKill)
     if cttMenuOptions.dropdownValue == 1 then
         if wasAKill then
