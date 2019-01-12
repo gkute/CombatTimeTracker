@@ -271,15 +271,15 @@ function CTT_DisplayResults(newRecord)
         end
     elseif cttMenuOptions.dropdownValue == 2 then
         if newRecord then
-            CTT:Print(L["New Record! Fight ended in "] .. "(MM:SS): " .. cttMenuOptions.timeValues[2] .. ":" .. cttMenuOptions.timeValues[3] .. "!")
+            CTT:Print(L["New Record! Fight ended in "] .. "(MM:SS.MS): " .. cttMenuOptions.timeValues[2] .. ":" .. cttMenuOptions.timeValues[3] .. "." .. cttMenuOptions.timeValues[5] .. "!")
         else
-            CTT:Print(L["Fight ended in "] .. "(MM:SS): " .. cttMenuOptions.timeValues[2] .. ":" .. cttMenuOptions.timeValues[3] .. ".")
+            CTT:Print(L["Fight ended in "] .. "(MM:SS.MS): " .. cttMenuOptions.timeValues[2] .. ":" .. cttMenuOptions.timeValues[3] .. "." .. cttMenuOptions.timeValues[5] .. ".")
         end
     else
         if newRecord then
-            CTT:Print(L["New Record! Fight ended in "] .. "(HH:MM:SS): " .. cttMenuOptions.timeValues[1] .. ":" .. cttMenuOptions.timeValues[2] .. ":" .. cttMenuOptions.timeValues[3] .. "!")
+            CTT:Print(L["New Record! Fight ended in "] .. "(HH:MM:SS.MS): " .. cttMenuOptions.timeValues[1] .. ":" .. cttMenuOptions.timeValues[2] .. ":" .. cttMenuOptions.timeValues[3] .. "." .. cttMenuOptions.timeValues[5] .. "!")
         else
-            CTT:Print(L["Fight ended in "] .. "(HH:MM:SS): " .. cttMenuOptions.timeValues[1] .. ":" .. cttMenuOptions.timeValues[2] .. ":" .. cttMenuOptions.timeValues[3] .. ".")
+            CTT:Print(L["Fight ended in "] .. "(HH:MM:SS.MS): " .. cttMenuOptions.timeValues[1] .. ":" .. cttMenuOptions.timeValues[2] .. ":" .. cttMenuOptions.timeValues[3] .. "." .. cttMenuOptions.timeValues[5] .. ".")
         end
     end
 end
@@ -287,21 +287,21 @@ end
 function CTT_DisplayResultsBosses(bossEncounter, wasAKill)
     if cttMenuOptions.dropdownValue == 1 then
         if wasAKill then
-            CTT:Print(L["You have successfully killed "] .. bossEncounter .. " " .. L["after"] .. " " .. totalSeconds .. " " .. L["seconds"] .. "!")
+            CTT:Print(L["You have successfully killed "] .. bossEncounter .. " " .. L["after"] .. " " .. totalSeconds .. "." .. miliseconds .. " " .. L["seconds"] .. "!")
         else
-            CTT:Print(L["You have wiped on "] .. bossEncounter .. L["after"] .. " " .. totalSeconds ..".")
+            CTT:Print(L["You have wiped on "] .. bossEncounter .. L["after"] .. " " .. totalSeconds .. "." .. miliseconds ..".")
         end
     elseif cttMenuOptions.dropdownValue == 2 then
         if wasAKill then
-            CTT:Print(L["You have successfully killed "] .. bossEncounter .. " " .. L["after"] .. " " .. minutes .. ":" .. seconds .. "!")
+            CTT:Print(L["You have successfully killed "] .. bossEncounter .. " " .. L["after"] .. " " .. minutes .. ":" .. seconds .. "." .. miliseconds .. "!")
         else
-            CTT:Print(L["You have wiped on "] .. bossEncounter .. " " .. L["after"] .. " " .. minutes .. ":" .. seconds .. ".")
+            CTT:Print(L["You have wiped on "] .. bossEncounter .. " " .. L["after"] .. " " .. minutes .. ":" .. seconds .. "." .. miliseconds .. ".")
         end
     else
         if wasAKill then
-            CTT:Print(L["You have successfully killed "] .. bossEncounter .. " " .. L["after"] .. " " .. hours .. ":" .. minutes .. ":" .. seconds .. ".")
+            CTT:Print(L["You have successfully killed "] .. bossEncounter .. " " .. L["after"] .. " " .. hours .. ":" .. minutes .. ":" .. seconds .. "." .. miliseconds .. ".")
         else
-            CTT:Print(L["You have wiped on "] .. bossEncounter .. " " .. L["after"] .. " " .. hours .. ":" .. minutes .. ":" .. seconds .. ".")
+            CTT:Print(L["You have wiped on "] .. bossEncounter .. " " .. L["after"] .. " " .. hours .. ":" .. minutes .. ":" .. seconds .. "." .. miliseconds .. ".")
         end
     end
 end
