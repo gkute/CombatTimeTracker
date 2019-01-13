@@ -1,4 +1,7 @@
 ##Changelog:
-###v2.1.5
-* added more locale support, more to come
-* added a minimap button to help aid in first time use
+###v2.1.6
+* Option to choose when the tracker loads:
+    * Dungeons Only
+    * Raids Only
+    * Dungeons and Raids Only
+    * Everywhere (selected by default)

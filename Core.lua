@@ -1,9 +1,23 @@
+-- Declare AceAddon
 CTT = LibStub("AceAddon-3.0"):NewAddon("CTT", "AceConsole-3.0", "AceEvent-3.0")
 
--- grab localization if available
-local L = LibStub("AceLocale-3.0"):GetLocale("cttTranslations")
 
--- db for storing minimap stuff using aceDB
+--|-------------------------|
+--| Variable Declarations   |
+--|-------------------------|
+
+local time = 0
+local fontTableOptions = {}
+local bossEncounter = false
+local loadOptionsAfterCombat = false
+local hours = "00"
+local minutes = "00"
+local seconds = "00"
+local totalSeconds = "00"
+local miliseconds = "00"
+local fontDropDownMorpheus = 0
+local cttElapsedSeconds = 0
+local db
 local defaultSavedVars = {
 	global = {
 		minimap = {
@@ -11,10 +25,41 @@ local defaultSavedVars = {
 		},
 	},
 }
-db = LibStub("AceDB-3.0"):New("cttDB", defaultSavedVars).global
-local icon = LibStub("LibDBIcon-1.0")
+local instanceTypes = {
+    "Dungeons Only", 
+    "Raids Only",
+    "Dungons and Raids Only", 
+    "Everywhere"
+}
+local instanceZones = {
+    "Atal'Dazar",
+    "Freehold",  
+    "King's Rest",
+    "Shrine of the Storm", 
+    "Siege of Boralus", 
+    "Temple of Sethraliss", 
+    "The Motherload!!", 
+    "The Underrot", 
+    "Tol Dagor", 
+    "Waycrest Manor"
+}
+local raidInstanceZones = {
+    "Uldir"
+}
+local raidInstanceSubZones = {
 
--- libDBIcon for minimap button
+}
+
+
+--|----------------------------|
+--| Ace Library Declarations   |
+--|----------------------------|
+
+local L = LibStub("AceLocale-3.0"):GetLocale("cttTranslations")
+local AceGUI = LibStub("AceGUI-3.0")
+local LSM = LibStub("LibSharedMedia-3.0")
+local db
+local icon = LibStub("LibDBIcon-1.0")
 local cttLBD = LibStub("LibDataBroker-1.1"):NewDataObject("CombatTimeTracker", {
 	type = "data source",
 	text = "Combat Time Tracker",
@@ -44,21 +89,10 @@ local cttLBD = LibStub("LibDataBroker-1.1"):NewDataObject("CombatTimeTracker", {
     end,
 })
 
--- extra Ace libs
-local AceGUI = LibStub("AceGUI-3.0")
-local LSM = LibStub("LibSharedMedia-3.0")
 
--- local values used throughout the addon
-local time = 0
-local fontTableOptions = {}
-local bossEncounter = false
-local hours = "00"
-local minutes = "00"
-local seconds = "00"
-local totalSeconds = "00"
-local miliseconds = "00"
-local fontDropDownMorpheus = 0
-local cttElapsedSeconds = 0
+--|----------------------|
+--| AceAddon Functions   |
+--|----------------------|
 
 function CTT:OnEnable()
     self:RegisterEvent("ADDON_LOADED")
@@ -67,23 +101,19 @@ function CTT:OnEnable()
     self:RegisterEvent("ENCOUNTER_START", "Encounter_Start")
     self:RegisterEvent("ENCOUNTER_END", "Encounter_End")
     self:RegisterEvent("PLAYER_ENTERING_WORLD")
+    self:RegisterEvent("ZONE_CHANGED")
+    self:RegisterEvent("ZONE_CHANGED_INDOORS")
+    self:RegisterEvent("ZONE_CHANGED_NEW_AREA")
 end
 
 -- Register slash commands for addon.
 function CTT:OnInitialize()
     self:RegisterChatCommand('ctt', 'SlashCommands')
     LSM.RegisterCallback(self, "LibSharedMedia_Registered", "UpdateUsedMedia")
-	icon:Register("CombatTimeTracker", cttLBD, db.minimap)
-end
-
--- function to get the position of morpheus font
-function CTT:UpdateUsedMedia(event, mediatype, key)
-    fontTableOptions = LSM:List("font")
-    for k,v in pairs(fontTableOptions) do
-        if v == "Morpheus" then
-            fontDropDownMorpheus = k
-            break
-        end
+    db = LibStub("AceDB-3.0"):New("cttDB", defaultSavedVars).global
+    icon:Register("CombatTimeTracker", cttLBD, db.minimap)
+    if not db.minimap.hide then
+        icon:Show("CombatTimeTracker")
     end
 end
 
@@ -92,7 +122,7 @@ function CTT:ADDON_LOADED()
     if GetAddOnMetadata("CombatTimeTracker", "Version") == "2.0.5" and cttMenuOptions == nil then
         CTT_PopUpMessage()
     end
-    
+
     if longestMin == nil then
         longestMin = 0
     end
@@ -163,93 +193,6 @@ function CTT:ADDON_LOADED()
     end)
 end
 
--- display a popup message
-function CTT_PopUpMessage()
-    StaticPopupDialogs["NEW_VERSION"] = {
-        text = "Combat Time Tracker has been updated, the tracker needs to be reset.",
-        button1 = "Reset Now",
-        button2 = "Reset Later",
-        OnAccept = function()
-            ReloadUI()
-        end,
-        timeout = 0,
-        whileDead = true,
-        hideOnEscape = true,
-        preferredIndex = 3,
-    }
-    StaticPopup_Show ("NEW_VERSION")
-end
-
--- Hook function into ENCOUNTER_START to handle getting the data stored.
-function CTT:Encounter_Start(...)
-    bossEncounter = true
-    local arg1, arg2, arg3, arg4, arg5 = ...
-    --CTT:Print(L["Encounter Started!"])
-    local members = {}
-    local numMembers = GetNumGroupMembers()
-    if numMembers > 1 then
-        for i=1,GetNumGroupMembers(),1 do
-            members[i] = select(1, GetRaidRosterInfo(i))
-        end
-    else
-        members = {UnitName("player")}
-    end
-
-    CTT:Print(members[1])
-    table.insert(fightLogs, {arg2, arg3, arg4, arg5, members, false})
-    time = GetTime()
-    cttElapsedSeconds = 0
-    cttStopwatchGui:Show()
-end
-
--- Hook function into ENOUNTER_END to handle storing the data after a fight ends.
-function CTT:Encounter_End(...)
-    bossEncounter = false
-    --CTT:Print(L["Encounter Ended!"])
-    local args = select(6, ...)
-    if args == 1 then
-        local index = table.getn(fightLogs)
-        fightLogs[index][6] = true
-        fightLogs[index][7] = totalSeconds
-        --CTT:Print(L["You have successfully killed "] .. fightLogs[index][2] .. " " .. L["after"] .. " " .. minutes .. ":" .. seconds .. ".")
-        CTT_DisplayResultsBosses(fightLogs[index][2], true)
-    else
-        local index = table.getn(fightLogs)
-        fightLogs[index][7] = totalSeconds
-        cttMenuOptions.timeValues = {hours, minutes, seconds, totalSeconds, miliseconds}
-        --CTT:Print(L["You have wiped on "] .. fightLogs[index][2] .. L["after"] .. " " .. minutes .. ":" .. seconds ..".")
-        CTT_DisplayResultsBosses(fightLogs[index][2], false)
-    end
-end
-
--- event function to handle persistence on the settings of the tracker when the player enters the world
-function CTT:PLAYER_ENTERING_WORLD()
-    --CTT:Print(GetAddOnMetadata("CombatTimeTracker", "Version"))
-    if cttMenuOptions.timeTrackerSize then
-        CTT_SetTrackerSizeOnLogin()
-    end
-    if cttMenuOptions.textColorPicker then
-        cttStopwatchGuiTimeText:SetTextColor(cttMenuOptions.textColorPicker[1], cttMenuOptions.textColorPicker[2], cttMenuOptions.textColorPicker[3], cttMenuOptions.textColorPicker[4])
-    else
-        cttStopwatchGuiTimeText:SetTextColor(255,255,255)
-    end
-    if cttMenuOptions.lockFrameCheckButton then
-        cttStopwatchGui:EnableMouse(false)
-    else
-        cttStopwatchGui:EnableMouse(true)
-    end
-    if cttMenuOptions.timeValues then
-        hours = cttMenuOptions.timeValues[1]
-        minutes = cttMenuOptions.timeValues[2]
-        seconds = cttMenuOptions.timeValues[3]
-        totalSeconds = cttMenuOptions.timeValues[4]
-        miliseconds = cttMenuOptions.timeValues[5]
-        CTT_UpdateText(cttMenuOptions.timeValues[1], cttMenuOptions.timeValues[2], cttMenuOptions.timeValues[3], cttMenuOptions.timeValues[5], cttMenuOptions.dropdownValue,1)
-    else
-        CTT_UpdateText("00","00","00","00",1,1)
-    end
-end
-
 -- Handle the stopwatch when entering combat.
 function CTT:PLAYER_REGEN_DISABLED()
     if not bossEncounter then
@@ -265,6 +208,10 @@ end
 -- Handle the stopwatch when leaving combat.
 function CTT:PLAYER_REGEN_ENABLED()
     if not bossEncounter then
+        if loadOptionsAfterCombat then
+            CTT_ToggleMenu()
+            loadOptionsAfterCombat = false
+        end
         --self:Print(L["Leaving Combat!"])
         cttMenuOptions.timeValues = {hours, minutes, seconds, totalSeconds, miliseconds}
         local min = 0
@@ -302,6 +249,260 @@ function CTT:PLAYER_REGEN_ENABLED()
     else
         return 
     end
+end
+
+-- Hook function into ENCOUNTER_START to handle getting the data stored.
+function CTT:Encounter_Start(...)
+    bossEncounter = true
+    local arg1, arg2, arg3, arg4, arg5 = ...
+    --CTT:Print(L["Encounter Started!"])
+    local members = {}
+    local numMembers = GetNumGroupMembers()
+    if numMembers > 1 then
+        for i=1,GetNumGroupMembers(),1 do
+            members[i] = select(1, GetRaidRosterInfo(i))
+        end
+    else
+        members = {UnitName("player")}
+    end
+
+    CTT:Print(members[1])
+    table.insert(fightLogs, {arg2, arg3, arg4, arg5, members, false})
+    time = GetTime()
+    cttElapsedSeconds = 0
+    cttStopwatchGui:Show()
+end
+
+-- Hook function into ENOUNTER_END to handle storing the data after a fight ends.
+function CTT:Encounter_End(...)
+    bossEncounter = false
+    if loadOptionsAfterCombat then 
+        loadOptionsAfterCombat = false
+        CTT_ToggleMenu()
+    end
+    --CTT:Print(L["Encounter Ended!"])
+    local args = select(6, ...)
+    if args == 1 then
+        local index = table.getn(fightLogs)
+        fightLogs[index][6] = true
+        fightLogs[index][7] = totalSeconds
+        --CTT:Print(L["You have successfully killed "] .. fightLogs[index][2] .. " " .. L["after"] .. " " .. minutes .. ":" .. seconds .. ".")
+        CTT_DisplayResultsBosses(fightLogs[index][2], true)
+    else
+        local index = table.getn(fightLogs)
+        fightLogs[index][7] = totalSeconds
+        cttMenuOptions.timeValues = {hours, minutes, seconds, totalSeconds, miliseconds}
+        --CTT:Print(L["You have wiped on "] .. fightLogs[index][2] .. L["after"] .. " " .. minutes .. ":" .. seconds ..".")
+        CTT_DisplayResultsBosses(fightLogs[index][2], false)
+    end
+end
+
+
+-- event function to handle persistence on the settings of the tracker when the player enters the world
+function CTT:PLAYER_ENTERING_WORLD()
+    --CTT:Print(GetAddOnMetadata("CombatTimeTracker", "Version"))
+    CTT_InstanceTypeDisplay()
+    if cttMenuOptions.timeTrackerSize then
+        CTT_SetTrackerSizeOnLogin()
+    end
+    if cttMenuOptions.textColorPicker then
+        cttStopwatchGuiTimeText:SetTextColor(cttMenuOptions.textColorPicker[1], cttMenuOptions.textColorPicker[2], cttMenuOptions.textColorPicker[3], cttMenuOptions.textColorPicker[4])
+    else
+        cttStopwatchGuiTimeText:SetTextColor(255,255,255)
+    end
+    if cttMenuOptions.lockFrameCheckButton then
+        cttStopwatchGui:EnableMouse(false)
+    else
+        cttStopwatchGui:EnableMouse(true)
+    end
+    if cttMenuOptions.timeValues then
+        hours = cttMenuOptions.timeValues[1]
+        minutes = cttMenuOptions.timeValues[2]
+        seconds = cttMenuOptions.timeValues[3]
+        totalSeconds = cttMenuOptions.timeValues[4]
+        miliseconds = cttMenuOptions.timeValues[5]
+        CTT_UpdateText(cttMenuOptions.timeValues[1], cttMenuOptions.timeValues[2], cttMenuOptions.timeValues[3], cttMenuOptions.timeValues[5], cttMenuOptions.dropdownValue,1)
+    else
+        CTT_UpdateText("00","00","00","00",1,1)
+    end
+end
+
+function CTT:ZONE_CHANGED()
+    self:Print("Zone_Changed: " .. GetRealZoneText())
+    self:Print("Zone_Changed: " .. GetSubZoneText())
+end
+
+function CTT:ZONE_CHANGED_INDOORS()
+    self:Print("Zone_Changed_Indoors: " .. GetRealZoneText())
+    self:Print("Zone_Changed_Indoors: " .. GetSubZoneText())
+end
+
+function CTT:ZONE_CHANGED_NEW_AREA()
+    self:Print("Zone_Changed_New_Area: " .. GetRealZoneText())
+    CTT_InstanceTypeDisplay(cttMenuOptions.instanceType) 
+end
+
+
+-- function to get the position of morpheus font
+function CTT:UpdateUsedMedia(event, mediatype, key)
+    fontTableOptions = LSM:List("font")
+    for k,v in pairs(fontTableOptions) do
+        if v == "Morpheus" then
+            fontDropDownMorpheus = k
+            break
+        end
+    end
+end
+
+-- Slash Command function
+function CTT:SlashCommands(input)
+    input = string.lower(input)
+    local command,value,_ = strsplit(" ", input)
+    if command == "" then 
+        CTT_ToggleMenu()
+    elseif command == "help" then
+        CTT:Print("======== Combat Time Tracker ========")
+        CTT:Print(L["/ctt - to open the options menu!"])
+        CTT:Print(L["/ctt show - to show the tracker if hidden!"])
+        CTT:Print(L["/ctt hide - to hide the tracker if shown!"])
+        CTT:Print("/ctt reset - reset the time on the tracker(done automatically)!")
+        CTT:Print("/ctt longest - print longest fight!")
+        CTT:Print(L["/ctt lock -  to lock or unlock the window!"])
+        CTT:Print("/ctt resetfull - restore addon to default settings.")
+        CTT:Print("=================================")
+    elseif command == "reset" then
+        cttMenuOptions.timeValues = {"00","00","00","00"}
+        CTT_UpdateText(cttMenuOptions.timeValues[1], cttMenuOptions.timeValues[2], cttMenuOptions.timeValues[3], cttMenuOptions.timeValues[5],cttMenuOptions.dropdownValue,1)
+        CTT:Print(L["Stopwatch has been reset!"])
+    elseif command == "show" then
+        cttStopwatchGui:Show()
+        CTT:Print(L["Stopwatch is now being shown!"])
+    elseif command == "hide" then
+        cttStopwatchGui:Hide()
+        CTT:Print(L["Stopwatch is now being hidden!"])
+    elseif command == "resetfull" then
+        longestMin = 0
+        longestSec = 0
+        fightLogs = {}
+        cttMenuOptions.dropdownValue = 1
+        CTT.menu.textStyleDropDown:SetText(cttTextFormatOptions[cttMenuOptions.dropdownValue])
+        CTT.menu.textStyleDropDown:SetValue(1)
+        cttMenuOptions.timeValues = {"00","00","00","00","00"}
+        cttMenuOptions.lockFrameCheckButton = true
+        CTT.menu.lockFrameCheckButton:SetValue(true)
+        cttMenuOptions.fontVal = 16
+        cttMenuOptions.fontName = "Fonts\\MORPHEUS_CYR.TTF"
+        CTT.menu.fontPickerDropDown:SetText("Morpheus")
+        cttMenuOptions.timeTrackerSize = {100,40}
+        cttMenuOptions.textColorPicker = {1,1,1,1}
+        CTT.menu.textColorPicker:SetColor(255,255,255)
+        cttMenuOptions.textFrameSizeSlider = 0
+        CTT.menu.textFrameSizeSlider:SetValue(0)
+        cttMenuOptions.backDropAlphaSlider = 1
+        CTT.menu.backDropAlphaSlider:SetValue(1)
+        cttMenuOptions.fontPickerDropDown = false
+        CTT_SetTrackerSizeOnLogin()
+        cttStopwatchGuiTimeText:SetTextColor(255,255,255)
+        CTT_UpdateText(cttMenuOptions.timeValues[1], cttMenuOptions.timeValues[2], cttMenuOptions.timeValues[3], cttMenuOptions.timeValues[5], cttMenuOptions.dropdownValue,1)
+        CTT:Print(L["Combat Time Tracker has been reset to default settings!"])
+    elseif command == "longest" then
+        CTT:Print("Your longest fight took (MM:SS): "..longestMin..":"..longestSec..".")
+    elseif command == "lock" then
+        if cttMenuOptions.lockFrameCheckButton then
+            cttMenuOptions.lockFrameCheckButton = false
+            cttStopwatchGui:EnableMouse(true)
+            CTT:Print(L["Tracker has been unlocked!"])
+        else
+            cttMenuOptions.lockFrameCheckButton = true
+            cttStopwatchGui:EnableMouse(false)
+            CTT:Print(L["Tracker has been locked!"])
+        end
+    end
+end
+
+
+--|--------------------------|
+--| Non AceAddon functions --|
+--|--------------------------|
+
+-- function to handle showing the tracker based on instance type settings
+function CTT_InstanceTypeDisplay(key)
+    local zone = GetRealZoneText()
+    local subZone = GetSubZoneText()
+
+    if key == 1 then
+        --Handle dungeons
+        for k,v in pairs(instanceZones) do
+            if zone == v then
+                if not cttStopwatchGui:IsShown() then
+                    cttStopwatchGui:Show()
+                end
+                break
+            else
+                cttStopwatchGui:Hide()
+            end
+        end
+    elseif key == 2 then
+        -- handle raid stuff
+        for k,v in pairs(raidInstanceZones) do
+            if zone == v then
+                if not cttStopwatchGui:IsShown() then
+                    cttStopwatchGui:Show()
+                end
+                break
+            else
+                cttStopwatchGui:Hide()
+            end
+        end
+    elseif key == 3 then
+        -- handle both dungeon and raid stuff
+
+        --Handle dungeons
+        for k,v in pairs(instanceZones) do
+            if zone == v then
+                if not cttStopwatchGui:IsShown() then
+                    cttStopwatchGui:Show()
+                end
+                return
+            else
+                cttStopwatchGui:Hide()
+            end
+        end
+        -- handle raid stuff
+        for k,v in pairs(raidInstanceZones) do
+            if zone == v then
+                if not cttStopwatchGui:IsShown() then
+                    cttStopwatchGui:Show()
+                end
+                return
+            else
+                cttStopwatchGui:Hide()
+            end
+        end
+    else
+        -- always show
+        if not cttStopwatchGui:IsShown() then
+            cttStopwatchGui:Show()
+        end
+        return
+    end
+end
+
+-- display a popup message
+function CTT_PopUpMessage()
+    StaticPopupDialogs["NEW_VERSION"] = {
+        text = "Combat Time Tracker has been updated, the tracker needs to be reset.",
+        button1 = "Reset Now",
+        button2 = "Reset Later",
+        OnAccept = function()
+            ReloadUI()
+        end,
+        timeout = 0,
+        whileDead = true,
+        hideOnEscape = true,
+        preferredIndex = 3,
+    }
+    StaticPopup_Show ("NEW_VERSION")
 end
 
 -- function to display results on ecounter end or regen enabled
@@ -368,75 +569,15 @@ function CTT_UpdateText(hours, minutes, seconds, miliseconds, textFormat, fontUp
     end
 end
 
--- Slash Command function
-function CTT:SlashCommands(input)
-	input = string.lower(input)
-    local command,value,_ = strsplit(" ", input)
-    if command == "" then 
-        CTT_ToggleMenu()
-	elseif command == "help" then
-        CTT:Print("======== Combat Time Tracker ========")
-        CTT:Print(L["/ctt - to open the options menu!"])
-        CTT:Print(L["/ctt show - to show the tracker if hidden!"])
-        CTT:Print(L["/ctt hide - to hide the tracker if shown!"])
-        CTT:Print("/ctt reset - reset the time on the tracker(done automatically)!")
-        CTT:Print("/ctt longest - print longest fight!")
-        CTT:Print(L["/ctt lock -  to lock or unlock the window!"])
-        CTT:Print("/ctt resetfull - restore addon to default settings.")
-        CTT:Print("=================================")
-    elseif command == "reset" then
-        cttMenuOptions.timeValues = {"00","00","00","00"}
-        CTT_UpdateText(cttMenuOptions.timeValues[1], cttMenuOptions.timeValues[2], cttMenuOptions.timeValues[3], cttMenuOptions.timeValues[5],cttMenuOptions.dropdownValue,1)
-		CTT:Print(L["Stopwatch has been reset!"])
-	elseif command == "show" then
-        cttStopwatchGui:Show()
-		CTT:Print(L["Stopwatch is now being shown!"])
-    elseif command == "hide" then
-        cttStopwatchGui:Hide()
-        CTT:Print(L["Stopwatch is now being hidden!"])
-    elseif command == "resetfull" then
-        longestMin = 0
-        longestSec = 0
-        fightLogs = {}
-        cttMenuOptions.dropdownValue = 1
-        CTT.menu.textStyleDropDown:SetText(cttTextFormatOptions[cttMenuOptions.dropdownValue])
-        CTT.menu.textStyleDropDown:SetValue(1)
-        cttMenuOptions.timeValues = {"00","00","00","00","00"}
-        cttMenuOptions.lockFrameCheckButton = true
-        CTT.menu.lockFrameCheckButton:SetValue(true)
-        cttMenuOptions.fontVal = 16
-        cttMenuOptions.fontName = "Fonts\\MORPHEUS_CYR.TTF"
-        CTT.menu.fontPickerDropDown:SetText("Morpheus")
-        cttMenuOptions.timeTrackerSize = {100,40}
-        cttMenuOptions.textColorPicker = {1,1,1,1}
-        CTT.menu.textColorPicker:SetColor(255,255,255)
-        cttMenuOptions.textFrameSizeSlider = 0
-        CTT.menu.textFrameSizeSlider:SetValue(0)
-        cttMenuOptions.backDropAlphaSlider = 1
-        CTT.menu.backDropAlphaSlider:SetValue(1)
-        cttMenuOptions.fontPickerDropDown = false
-        CTT_SetTrackerSizeOnLogin()
-        cttStopwatchGuiTimeText:SetTextColor(255,255,255)
-        CTT_UpdateText(cttMenuOptions.timeValues[1], cttMenuOptions.timeValues[2], cttMenuOptions.timeValues[3], cttMenuOptions.timeValues[5], cttMenuOptions.dropdownValue,1)
-        CTT:Print(L["Combat Time Tracker has been reset to default settings!"])
-    elseif command == "longest" then
-        CTT:Print("Your longest fight took (MM:SS): "..longestMin..":"..longestSec..".")
-    elseif command == "lock" then
-        if cttMenuOptions.lockFrameCheckButton then
-            cttMenuOptions.lockFrameCheckButton = false
-            cttStopwatchGui:EnableMouse(true)
-            CTT:Print(L["Tracker has been unlocked!"])
-        else
-            cttMenuOptions.lockFrameCheckButton = true
-            cttStopwatchGui:EnableMouse(false)
-            CTT:Print(L["Tracker has been locked!"])
-        end
-    end
-end
+
+--|-----------------------|
+--| AceGUI Options Menu --|
+--|-----------------------|
 
 -- function to toggle the options menu
 function CTT_ToggleMenu()
     if UnitAffectingCombat("player") or bossEncounter then
+        loadOptionsAfterCombat = true
         CTT:Print("Options menu cannot be loaded while in combat, try again after combat has ended!")
     else
         if not CTT.menu then CTT:CreateOptionsMenu() end
@@ -549,6 +690,20 @@ function CTT_MinimapIconCheckButton(widget, event, value)
     end
 end
 
+function CTT_InstanceTypeDropDown(widget, event, key, checked)
+    local zone = GetRealZoneText()
+    cttMenuOptions.instanceType = key
+    if key ~= 4 then
+        CTT_InstanceTypeDisplay(key)
+    else
+        if cttStopwatchGui:IsShown() then
+            return
+        else
+            cttStopwatchGui:Show()
+        end
+    end
+end
+
 -- create options menu
 function CTT:CreateOptionsMenu()
     -- main menu frame
@@ -556,14 +711,14 @@ function CTT:CreateOptionsMenu()
     menu:SetTitle("Combat Time Tracker Options")
     menu:SetStatusText("v"..GetAddOnMetadata("CombatTimeTracker", "Version"))
     menu:SetWidth(250)
-    menu:SetHeight(300)
+    menu:SetHeight(350)
     menu:SetLayout("Flow")
     menu:Hide()
     CTT.menu = menu
 
     CTT_menu = menu.frame
-    menu.frame:SetMaxResize(250, 300)
-    menu.frame:SetMinResize(250,300)
+    menu.frame:SetMaxResize(250, 350)
+    menu.frame:SetMinResize(250, 350)
     menu.frame:SetFrameStrata("HIGH")
     menu.frame:SetFrameLevel(1)
 
@@ -671,4 +826,29 @@ function CTT:CreateOptionsMenu()
     fontPickerDropDown:SetCallback("OnValueChanged", CTT_FontPickerDropDownState)
     menu:AddChild(fontPickerDropDown)
     menu.fontPickerDropDown = fontPickerDropDown
+
+    local instanceType = AceGUI:Create("Dropdown")
+    instanceType:SetLabel("Show Tracker When?")
+    instanceType:SetWidth(150)
+    instanceType:SetMultiselect(false)
+    instanceType:ClearAllPoints()
+    instanceType:SetList(instanceTypes)
+    --TODO add conditionals to display the menu text as needed once list is made
+    if cttMenuOptions.instanceType then
+        instanceType:SetText(instanceTypes[cttMenuOptions.instanceType])
+        instanceType:SetValue(cttMenuOptions.instanceType)
+    else
+        instanceType:SetText(instanceType[4])
+        instanceType:SetValue(4)
+    end
+    instanceType:SetPoint("LEFT", menu.frame, "LEFT", 6, 0)
+    instanceType:SetCallback("OnValueChanged", CTT_InstanceTypeDropDown)
+    menu:AddChild(instanceType)
+    menu.instanceType = instanceType
 end
+
+--|-----------------------|
+--| AceGUI Raid Bosses  --|
+--|-----------------------|
+
+--Coming Soon
