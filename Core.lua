@@ -198,7 +198,7 @@ function CTT:PLAYER_REGEN_DISABLED()
     if not bossEncounter then
         time = GetTime()
         cttElapsedSeconds = 0
-        cttStopwatchGui:Show()
+        CTT_InstanceTypeDisplay(cttMenuOptions.instanceType)
         --self:Print(L["Entering Combat!"])
     else
         return
@@ -266,11 +266,10 @@ function CTT:Encounter_Start(...)
         members = {UnitName("player")}
     end
 
-    CTT:Print(members[1])
     table.insert(fightLogs, {arg2, arg3, arg4, arg5, members, false})
     time = GetTime()
     cttElapsedSeconds = 0
-    cttStopwatchGui:Show()
+    CTT_InstanceTypeDisplay(cttMenuOptions.instanceType)
 end
 
 -- Hook function into ENOUNTER_END to handle storing the data after a fight ends.
@@ -329,21 +328,21 @@ end
 
 function CTT:ZONE_CHANGED()
     --@debug@
-    self:Print("Zone_Changed: " .. GetRealZoneText())
-    self:Print("Zone_Changed: " .. GetSubZoneText())
+    --self:Print("Zone_Changed: " .. GetRealZoneText())
+    --self:Print("Zone_Changed: " .. GetSubZoneText())
     --@end-debug@
 end
 
 function CTT:ZONE_CHANGED_INDOORS()
     --@debug@
-    self:Print("Zone_Changed_Indoors: " .. GetRealZoneText())
-    self:Print("Zone_Changed_Indoors: " .. GetSubZoneText())
+    --self:Print("Zone_Changed_Indoors: " .. GetRealZoneText())
+    --self:Print("Zone_Changed_Indoors: " .. GetSubZoneText())
     --@end-debug@
 end
 
 function CTT:ZONE_CHANGED_NEW_AREA()
     --@debug@
-    self:Print("Zone_Changed_New_Area: " .. GetRealZoneText())
+    --self:Print("Zone_Changed_New_Area: " .. GetRealZoneText())
     --@end-debug@
     CTT_InstanceTypeDisplay(cttMenuOptions.instanceType) 
 end
@@ -667,8 +666,8 @@ function CTT_FontPickerDropDownState(widget, event, key, checked)
         cttStopwatchGui:SetHeight(cttMenuOptions.timeTrackerSize[2])
         cttStopwatchGuiTimeText:SetSize(cttMenuOptions.timeTrackerSize[1], cttMenuOptions.timeTrackerSize[2])
         cttStopwatchGuiTimeText:SetFont(cttMenuOptions.fontName,cttMenuOptions.fontVal)
-        cttStopwatchGui:Hide()
-        cttStopwatchGui:Show()
+        -- cttStopwatchGui:Hide()
+        -- cttStopwatchGui:Show()
         CTT_UpdateText(cttMenuOptions.timeValues[1], cttMenuOptions.timeValues[2], cttMenuOptions.timeValues[3], cttMenuOptions.timeValues[5], cttMenuOptions.dropdownValue, 2)
     end
 end
