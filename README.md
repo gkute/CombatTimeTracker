@@ -11,11 +11,15 @@
 * Option to resize the tracker(within reason).
 * Option to select which font to use for the text.
 * Option to change the backdrop opacity.
+* Option to choose when the tracker loads:
+    * Dungeons Only
+    * Raids Only
+    * Dungeons and Raids Only
+    * Everywhere (selected by default)
 
 ## Coming Soon:
-* Adding more locale support.
-* Add support to view fight logs in game.
-* Add support to display longest fight in different formats.
+* Finish locale support
+* Add support to view fight logs in game
 
 ## Slash Commands:
 
