@@ -1,6 +1,6 @@
 ## Interface: 80100
 ## Title: |cffff930fCombat Time Tracker|r
-## Version: 2.1.6.02
+## Version: 2.1.6.03
 ## Notes: Fully automatic custom stopwatch to keep track of time spent in combat.
 ## Author: Bowtiesphd
 ## OptionalDeps: Ace3
