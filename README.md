@@ -1,4 +1,5 @@
 [![Build Status](https://travis-ci.com/gkute/CombatTimeTracker.svg?branch=master)](https://travis-ci.com/gkute/CombatTimeTracker)
+[![CombatTimeTracker on Discord](https://img.shields.io/badge/discord-CombatTimeTracker-blue.svg)](https://discord.gg/37CUxNn)
 # Combat Time Tracker
 
 ## Features:
@@ -32,8 +33,10 @@
 * /ctt hide - hides the tracker if it's visible
 * /ctt longest - prints out the longest recorded fight
 
+### Contact Me:
+To report a problem please use the following link to join my discord server.  Then go to the Combat Time Tracker section in discord and post in the bug-reports.
+To request a feature, please use the follow link to join my discord server and post in the ctt-feature-requests.
+* [Discord](https://discord.gg/37CUxNn)
+
 ### Special Thanks:
 * Schmitzkatze for translations
-
-### Contact Me:
-* [Discord](https://discord.gg/37CUxNn)
