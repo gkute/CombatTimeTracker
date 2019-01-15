@@ -1,7 +1,3 @@
 ##Changelog:
-###v2.1.6
-* Option to choose when the tracker loads:
-    * Dungeons Only
-    * Raids Only
-    * Dungeons and Raids Only
-    * Everywhere (selected by default)
+###v2.1.6.03
+* minor bug fixes
