@@ -6,6 +6,7 @@ externals:
  CombatTimeTracker/Libs/AceConfig-3.0: https://repos.wowace.com/wow/ace3/trunk/AceConfig-3.0
  CombatTimeTracker/Libs/AceAddon-3.0: https://repos.wowace.com/wow/ace3/trunk/AceAddon-3.0
  CombatTimeTracker/Libs/AceBucket-3.0: https://repos.wowace.com/wow/ace3/trunk/AceBucket-3.0
+ CombatTimeTracker/Libs/AceLocale-3.0: https://repos.wowace.com/wow/ace3/trunk/AceLocale-3.0
  CombatTimeTracker/Libs/AceDB-3.0: https://repos.wowace.com/wow/ace3/AceDB-3.0
  CombatTimeTracker/Libs/AceConsole-3.0: https://repos.wowace.com/wow/ace3/trunk/AceConsole-3.0
  CombatTimeTracker/Libs/AceGUI-3.0: https://repos.wowace.com/wow/ace3/trunk/AceGUI-3.0
