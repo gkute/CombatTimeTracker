@@ -44,10 +44,17 @@ local instanceZones = {
     "Waycrest Manor"
 }
 local raidInstanceZones = {
-    "Uldir"
+    "Uldir",
+    "Battle of Dazar'alor"
 }
 local raidInstanceSubZones = {
 
+}
+local difficultyList = {
+    "LFR",
+    "Normal",
+    "Heroic",
+    "Mythic"
 }
 
 
@@ -140,6 +147,7 @@ function CTT:ADDON_LOADED()
         cttMenuOptions.textFrameSizeSlider = 0
         cttMenuOptions.backDropAlphaSlider = 1
         cttMenuOptions.timeValues = {"00","00","00","00","00"}
+        cttMenuOptions.difficultyDropDown = 1
     end
     if table.getn(cttMenuOptions.timeValues) ~= 5 then
         cttMenuOptions.timeValues = {"00","00","00","00","00"}
@@ -289,7 +297,7 @@ function CTT:Encounter_End(...)
         CTT_DisplayResultsBosses(fightLogs[index][2], true)
     else
         local index = table.getn(fightLogs)
-        fightLogs[index][7] = totalSeconds
+        fightLogs[index][7] = {hours, minutes, seconds, totalSeconds, miliseconds}
         cttMenuOptions.timeValues = {hours, minutes, seconds, totalSeconds, miliseconds}
         --CTT:Print(L["You have wiped on "] .. fightLogs[index][2] .. L["after"] .. " " .. minutes .. ":" .. seconds ..".")
         CTT_DisplayResultsBosses(fightLogs[index][2], false)
@@ -709,24 +717,26 @@ function CTT_InstanceTypeDropDown(widget, event, key, checked)
     end
 end
 
--- create options menu
-function CTT:CreateOptionsMenu()
-    -- main menu frame
-    local menu = AceGUI:Create("Frame")
-    menu:SetTitle("Combat Time Tracker Options")
-    menu:SetStatusText("v"..GetAddOnMetadata("CombatTimeTracker", "Version"))
-    menu:SetWidth(250)
-    menu:SetHeight(350)
-    menu:SetLayout("Flow")
-    menu:Hide()
-    CTT.menu = menu
+function CTT_DifficultyDropDown(widget, event, key, checked)
+    cttMenuOptions.difficultyDropDown = key
+    if key == 1 then
+        -- TODO LFR times
+    elseif key == 2 then
+        -- TODO normal times
+    elseif key == 3 then
+        -- TODO heroic times
+    else
+        -- TODO mythic times
+    end
+end
 
-    CTT_menu = menu.frame
-    menu.frame:SetMaxResize(250, 350)
-    menu.frame:SetMinResize(250, 350)
-    menu.frame:SetFrameStrata("HIGH")
-    menu.frame:SetFrameLevel(1)
+--|-----------------------|
+--| AceGUI Raid Bosses  --|
+--|-----------------------|
 
+
+--function that draws the widgets for the first tab
+local function DrawGroup1(container)
     -- frame lock button
     local lockFrameCheckButton = AceGUI:Create("CheckBox")
     lockFrameCheckButton:SetLabel(L["Lock"])
@@ -735,10 +745,10 @@ function CTT:CreateOptionsMenu()
     lockFrameCheckButton:SetType("checkbox")
     lockFrameCheckButton:ClearAllPoints()
     if cttMenuOptions.lockFrameCheckButton then lockFrameCheckButton:SetValue(cttMenuOptions.lockFrameCheckButton)end
-    lockFrameCheckButton:SetPoint("TOPLEFT", menu.frame, "TOPLEFT",6, 0)
+    lockFrameCheckButton:SetPoint("TOPLEFT", container.tab, "TOPLEFT",6, 0)
     lockFrameCheckButton:SetCallback("OnValueChanged",CTT_LockFrameCheckBoxState)
-    menu:AddChild(lockFrameCheckButton)
-    menu.lockFrameCheckButton = lockFrameCheckButton
+    container:AddChild(lockFrameCheckButton)
+    container.lockFrameCheckButton = lockFrameCheckButton
 
     local minimapIconCheckButton = AceGUI:Create("CheckBox")
     minimapIconCheckButton:SetLabel("Hide Minimap")
@@ -751,11 +761,11 @@ function CTT:CreateOptionsMenu()
     else
         minimapIconCheckButton:SetValue(false)
     end
-    minimapIconCheckButton:SetPoint("CENTER", menu.frame, "CENTER",6,0)
+    minimapIconCheckButton:SetPoint("CENTER", container.tab, "CENTER",6,0)
     --minimapIconCheckButton:SetCallBack("OnValueChanged", CTT_MinimapIconCheckButton)
     minimapIconCheckButton:SetCallback("OnValueChanged",CTT_MinimapIconCheckButton)
-    menu:AddChild(minimapIconCheckButton)
-    menu.minimapIconCheckButton = minimapIconCheckButton
+    container:AddChild(minimapIconCheckButton)
+    container.minimapIconCheckButton = minimapIconCheckButton
 
     -- color picker
     local textColorPicker = AceGUI:Create("ColorPicker")
@@ -766,10 +776,10 @@ function CTT:CreateOptionsMenu()
     end
     textColorPicker:SetLabel(L["Text Color"])
     textColorPicker:ClearAllPoints()
-    textColorPicker:SetPoint("TOPLEFT", menu.frame, "TOPLEFT", 6, 0)
+    textColorPicker:SetPoint("TOPLEFT", container.tab, "TOPLEFT", 6, 0)
     textColorPicker:SetCallback("OnValueConfirmed", CTT_ColorPickerConfirmed)
-    menu:AddChild(textColorPicker)
-    menu.textColorPicker = textColorPicker
+    container:AddChild(textColorPicker)
+    container.textColorPicker = textColorPicker
 
     -- different text options
     local textStyleDropDown = AceGUI:Create("Dropdown")
@@ -780,10 +790,10 @@ function CTT:CreateOptionsMenu()
     textStyleDropDown:SetList(cttTextFormatOptions)
     textStyleDropDown:SetText(cttTextFormatOptions[cttMenuOptions.dropdownValue])
     textStyleDropDown:SetValue(cttMenuOptions.dropdownValue)
-    textStyleDropDown:SetPoint("LEFT", menu.frame, "LEFT", 6, 0)
+    textStyleDropDown:SetPoint("LEFT", container.tab, "LEFT", 6, 0)
     textStyleDropDown:SetCallback("OnValueChanged", CTT_DropdownState)
-    menu:AddChild(textStyleDropDown)
-    menu.textStyleDropDown = textStyleDropDown
+    container:AddChild(textStyleDropDown)
+    container.textStyleDropDown = textStyleDropDown
 
     -- slider for changing the size of the tracker and text
     local textFrameSizeSlider = AceGUI:Create("Slider")
@@ -793,11 +803,11 @@ function CTT:CreateOptionsMenu()
     if cttMenuOptions.textFrameSizeSlider then textFrameSizeSlider:SetValue(cttMenuOptions.textFrameSizeSlider) end
     textFrameSizeSlider:SetSliderValues(0,1,.01)
     textFrameSizeSlider:ClearAllPoints()
-    textFrameSizeSlider:SetPoint("LEFT", menu.frame, "LEFT", 6, 0)
+    textFrameSizeSlider:SetPoint("LEFT", container.tab, "LEFT", 6, 0)
     textFrameSizeSlider:SetCallback("OnValueChanged", CTT_ResizeFrameSliderUpdater)
     textFrameSizeSlider:SetCallback("OnMouseUp", CTT_ResizeFrameSliderDone)
-    menu:AddChild(textFrameSizeSlider)
-    menu.textFrameSizeSlider = textFrameSizeSlider
+    container:AddChild(textFrameSizeSlider)
+    container.textFrameSizeSlider = textFrameSizeSlider
 
     -- Slider for the opacity of the backdrop and/or border
     local backDropAlphaSlider = AceGUI:Create("Slider")
@@ -807,11 +817,11 @@ function CTT:CreateOptionsMenu()
     if cttMenuOptions.backDropAlphaSlider then backDropAlphaSlider:SetValue(cttMenuOptions.backDropAlphaSlider) else backDropAlphaSlider:SetValue(1) end
     backDropAlphaSlider:SetSliderValues(0,1,.01)
     backDropAlphaSlider:ClearAllPoints()
-    backDropAlphaSlider:SetPoint("LEFT", menu.frame, "LEFT", 6, 0)
+    backDropAlphaSlider:SetPoint("LEFT", container.tab, "LEFT", 6, 0)
     backDropAlphaSlider:SetCallback("OnValueChanged", CTT_BackDropSliderOnValueChanged)
     backDropAlphaSlider:SetCallback("OnMouseUp", CTT_BackDropSliderDone)
-    menu:AddChild(backDropAlphaSlider)
-    menu.backDropAlphaSlider = backDropAlphaSlider
+    container:AddChild(backDropAlphaSlider)
+    container.backDropAlphaSlider = backDropAlphaSlider
 
     -- Dropdown for different font options
     local fontPickerDropDown = AceGUI:Create("Dropdown")
@@ -827,11 +837,12 @@ function CTT:CreateOptionsMenu()
         fontPickerDropDown:SetText("Morpheus")
         fontPickerDropDown:SetValue(fontDropDownMorpheus)
     end
-    fontPickerDropDown:SetPoint("LEFT", menu.frame, "LEFT", 6, 0)
+    fontPickerDropDown:SetPoint("LEFT", container.tab, "LEFT", 6, 0)
     fontPickerDropDown:SetCallback("OnValueChanged", CTT_FontPickerDropDownState)
-    menu:AddChild(fontPickerDropDown)
-    menu.fontPickerDropDown = fontPickerDropDown
+    container:AddChild(fontPickerDropDown)
+    container.fontPickerDropDown = fontPickerDropDown
 
+    -- Dropdown for different options to show the tracker
     local instanceType = AceGUI:Create("Dropdown")
     instanceType:SetLabel("Show Tracker When?")
     instanceType:SetWidth(150)
@@ -846,14 +857,175 @@ function CTT:CreateOptionsMenu()
         instanceType:SetText(instanceType[4])
         instanceType:SetValue(4)
     end
-    instanceType:SetPoint("LEFT", menu.frame, "LEFT", 6, 0)
+    instanceType:SetPoint("LEFT", container.tab, "LEFT", 6, 0)
     instanceType:SetCallback("OnValueChanged", CTT_InstanceTypeDropDown)
-    menu:AddChild(instanceType)
-    menu.instanceType = instanceType
+    container:AddChild(instanceType)
+    container.instanceType = instanceType
+end
+    
+-- function that draws the widgets for the second tab
+local function DrawGroup2(container)
+    -- obj:SetPoint(point, relativeFrame, relativePoint, ofsx, ofsy);
+    -- obj:SetPoint(point, relativeFrame, relativePoint);
+    -- obj:SetPoint(point, ofsx, ofsy);
+    -- obj:SetPoint(point);
+    -- negative ofsx goes left, positive goes right
+    -- negative ofsy goes down, positive goes up
+
+    -- drop down menu (to load difficulty into the window)
+    --@debug@
+    -- local difficultyDropDown = AceGUI:Create("Dropdown")
+    -- difficultyDropDown:SetLabel(" Instance Difficulty")
+    -- difficultyDropDown:SetWidth(150)
+    -- difficultyDropDown:SetMultiselect(false)
+    -- difficultyDropDown:ClearAllPoints()
+    -- difficultyDropDown:SetList(difficultyList)
+    -- if cttMenuOptions.difficultyDropDown then
+    --     difficultyDropDown:SetText(difficultyList[cttMenuOptions.difficultyDropDown])
+    --     difficultyDropDown:SetValue(cttMenuOptions.difficultyDropDown)
+    -- else
+    --     difficultyDropDown:SetText(difficultyDropDown[1])
+    --     difficultyDropDown:SetValue(1)
+    -- end
+    -- difficultyDropDown:SetPoint("LEFT", container.tab, "LEFT", 6, 0)
+    -- difficultyDropDown:SetCallback("OnValueChanged", CTT_DifficultyDropDown)
+    -- container:AddChild(difficultyDropDown)
+    -- container.difficultyDropDown = difficultyDropDown
+
+    -- local ChampionOfTheLight = AceGUI:Create("Label")
+    -- ChampionOfTheLight:SetText("Chamption of the Light best kill: ")
+    -- ChampionOfTheLight:SetFullWidth(true)
+    -- ChampionOfTheLight:SetFont("Fonts\\MORPHEUS_CYR.TTF", 18)
+    -- ChampionOfTheLight:ClearAllPoints()
+    -- ChampionOfTheLight:SetPoint("LEFT", container.tab, "LEFT", 6, 0)
+    -- container:AddChild(ChampionOfTheLight)
+    -- container.ChampionOfTheLight = ChampionOfTheLight
+
+    -- local CoLLFR = AceGUI:Create("Label")
+    -- CoLLFR:SetText("LFR: ")
+    -- CoLLFR:SetColor(255,255,0)
+    -- CoLLFR:SetFont("Fonts\\MORPHEUS_CYR.TTF", 12)
+    -- CoLLFR:SetWidth(35)
+    -- CoLLFR:ClearAllPoints()
+    -- CoLLFR:SetPoint("LEFT", container.tab, "LEFT", 6, 10)
+    -- container:AddChild(CoLLFR)
+    -- container.CoLLFR = CoLLFR
+
+    -- local CoLLFRTime = AceGUI:Create("Label")
+    -- CoLLFRTime:SetText("01:45.55")
+    -- CoLLFRTime:SetColor(255,255,0)
+    -- CoLLFRTime:SetFont("Fonts\\MORPHEUS_CYR.TTF", 12)
+    -- CoLLFRTime:ClearAllPoints()
+    -- CoLLFRTime:SetPoint("LEFT", container.tab, "CENTER", 10, 0)
+    -- container:AddChild(CoLLFRTime)
+    -- container.CoLLFRTime = CoLLFRTime
+
+
+    -- local GrongTheJungleLord = AceGUI:Create("Label")
+    -- GrongTheJungleLord:SetText("Grong, the Jungle Lord best kill: ")
+    -- GrongTheJungleLord:SetFullWidth(true)
+    -- GrongTheJungleLord:SetFont("Fonts\\MORPHEUS_CYR.TTF", 18)
+    -- container:AddChild(GrongTheJungleLord)
+    -- container.GrongTheJungleLord = GrongTheJungleLord
+
+    -- local JadefireMasters = AceGUI:Create("Label")
+    -- JadefireMasters:SetText("Jadefire Masters best kill: ")
+    -- JadefireMasters:SetFullWidth(true)
+    -- JadefireMasters:SetFont("Fonts\\MORPHEUS_CYR.TTF", 18)
+    -- container:AddChild(JadefireMasters)
+    -- container.JadefireMasters = JadefireMasters
+
+    -- local Opulence = AceGUI:Create("Label")
+    -- Opulence:SetText("Opulence best kill: ")
+    -- Opulence:SetFullWidth(true)
+    -- Opulence:SetFont("Fonts\\MORPHEUS_CYR.TTF", 18)
+    -- container:AddChild(Opulence)
+    -- container.Opulence = Opulence
+
+    -- local ConclaveOfTheChosen = AceGUI:Create("Label")
+    -- ConclaveOfTheChosen:SetText("Conclave of the Chosen best kill: ")
+    -- ConclaveOfTheChosen:SetFullWidth(true)
+    -- ConclaveOfTheChosen:SetFont("Fonts\\MORPHEUS_CYR.TTF", 18)
+    -- container:AddChild(ConclaveOfTheChosen)
+    -- container.ConclaveOfTheChosen = ConclaveOfTheChosen
+
+    -- local KingRastakhan = AceGUI:Create("Label")
+    -- KingRastakhan:SetText("King Rastakhan best kill: ")
+    -- KingRastakhan:SetFullWidth(true)
+    -- KingRastakhan:SetFont("Fonts\\MORPHEUS_CYR.TTF", 18)
+    -- container:AddChild(KingRastakhan)
+    -- container.KingRastakhan = KingRastakhan
+
+    -- local HighTinkerMekkatorque = AceGUI:Create("Label")
+    -- HighTinkerMekkatorque:SetText("High Tinker Mekkatorque best kill: ")
+    -- HighTinkerMekkatorque:SetFullWidth(true)
+    -- HighTinkerMekkatorque:SetFont("Fonts\\MORPHEUS_CYR.TTF", 18)
+    -- container:AddChild(HighTinkerMekkatorque)
+    -- container.HighTinkerMekkatorque = HighTinkerMekkatorque
+
+    -- local StormwallBlockade = AceGUI:Create("Label")
+    -- StormwallBlockade:SetText("Stormwall Blockade best kill: ")
+    -- StormwallBlockade:SetFullWidth(true)
+    -- StormwallBlockade:SetFont("Fonts\\MORPHEUS_CYR.TTF", 18)
+    -- container:AddChild(StormwallBlockade)
+    -- container.StormwallBlockade = StormwallBlockade
+
+    -- local LadyJainaProudmoore = AceGUI:Create("Label")
+    -- LadyJainaProudmoore:SetText("Lady Jaina Proudmoore best kill: ")
+    -- LadyJainaProudmoore:SetFullWidth(true)
+    -- LadyJainaProudmoore:SetFont("Fonts\\MORPHEUS_CYR.TTF", 18)
+    -- container:AddChild(LadyJainaProudmoore)
+    -- container.LadyJainaProudmoore = LadyJainaProudmoore
+    --@end-debug@
+
+    local nondebug = AceGUI:Create("Label")
+    nondebug:SetText("Coming Soon")
+    nondebug:SetFullWidth(true)
+    nondebug:SetFont("Fonts\\MORPHEUS_CYR.TTF", 18)
+    nondebug:ClearAllPoints()
+    nondebug:SetPoint("CENTER", container.tab, "CENTER", 6, 0)
+    container:AddChild(nondebug)
+    container.nondebug = nondebug
+
+
 end
 
---|-----------------------|
---| AceGUI Raid Bosses  --|
---|-----------------------|
+local function SelectGroup(container, event, group)
+    container:ReleaseChildren()
+    if group == "options" then
+    DrawGroup1(container)
+    elseif group == "fightlogs" then
+    DrawGroup2(container)
+    end
+end
+function CTT:CreateOptionsMenu()
+    -- main menu frame
+    local menu = AceGUI:Create("Frame")
+    menu:SetTitle("Combat Time Tracker Options")
+    menu:SetStatusText("v"..GetAddOnMetadata("CombatTimeTracker", "Version"))
+    menu:SetWidth(500)
+    menu:SetHeight(500)
+    menu:SetLayout("Fill")
+    -- menu:SetCallBack("OnGroupSelected", CTT_SelectGroup)
+    menu:Hide()
+    CTT.menu = menu
 
---Coming Soon
+    CTT_menu = menu.frame
+    menu.frame:SetMaxResize(500, 500)
+    menu.frame:SetMinResize(500, 500)
+    menu.frame:SetFrameStrata("HIGH")
+    menu.frame:SetFrameLevel(1)
+
+    -- Create the TabGroup
+    local tab =  AceGUI:Create("TabGroup")
+    tab:SetLayout("Flow")
+    -- Setup which tabs to show
+    tab:SetTabs({{text="Options", value="options"}, {text="BoD Records", value="fightlogs"}})
+    -- Register callback
+    tab:SetCallback("OnGroupSelected", SelectGroup)
+    -- Set initial Tab (this will fire the OnGroupSelected callback)
+    tab:SelectTab("options")
+    
+    -- add to the frame container
+    menu:AddChild(tab)
+end
