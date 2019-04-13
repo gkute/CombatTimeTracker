@@ -18,6 +18,7 @@ local miliseconds = "00"
 local fontDropDownMorpheus = 0
 local cttElapsedSeconds = 0
 local db
+local globalMenu
 local defaultSavedVars = {
 	global = {
 		minimap = {
@@ -46,6 +47,28 @@ local instanceZones = {
 local raidInstanceZones = {
     "Uldir",
     "Battle of Dazar'alor"
+}
+-- local BoDBosses = {
+--     "Champion of the Light",
+--     "Grong, the Jungle Lord",
+--     "Jadefire Masters",
+--     "Opulence",
+--     "Conclave of the Chosen",
+--     "King Rastakhan",
+--     "High Tinker Mekkatorque",
+--     "Stormwall Blockade",
+--     "Lady Jaina Proudmoore"
+-- }
+local BoDBosses = {
+    2265,
+    2263,
+    2266,
+    2271,
+    2268,
+    2272,
+    2276,
+    2280,
+    2281
 }
 local raidInstanceSubZones = {
 
@@ -126,7 +149,7 @@ end
 
 -- Handle the initialization of values from nil to 0 first time addon is loaded.
 function CTT:ADDON_LOADED()
-    if GetAddOnMetadata("CombatTimeTracker", "Version") == "2.0.5" and cttMenuOptions == nil then
+    if GetAddOnMetadata("CombatTimeTracker", "Version") == "2.2" and cttMenuOptions.uiReset then
         CTT_PopUpMessage()
     end
 
@@ -147,7 +170,10 @@ function CTT:ADDON_LOADED()
         cttMenuOptions.textFrameSizeSlider = 0
         cttMenuOptions.backDropAlphaSlider = 1
         cttMenuOptions.timeValues = {"00","00","00","00","00"}
-        cttMenuOptions.difficultyDropDown = 1
+        -- cttMenuOptions.difficultyDropDown = 1
+    end
+    if cttMenuOptions.uiReset == nil then 
+        cttMenuOptions.uiReset = true
     end
     if table.getn(cttMenuOptions.timeValues) ~= 5 then
         cttMenuOptions.timeValues = {"00","00","00","00","00"}
@@ -156,7 +182,17 @@ function CTT:ADDON_LOADED()
         cttTextFormatOptions = {"(SS)", "(MM:SS)", "(HH:MM:SS)"}
     end
     if fightLogs == nil then
-        fightLogs = {}
+        fightLogs = {
+            "--:--:--",
+            "--:--:--",
+            "--:--:--",
+            "--:--:--",
+            "--:--:--",
+            "--:--:--",
+            "--:--:--",
+            "--:--:--",
+            "--:--:--"
+        }
     end
     cttStopwatchGui.elapsed = .05
     cttStopwatchGui:SetScript("OnUpdate", function(self, elapsed)
@@ -264,17 +300,17 @@ function CTT:Encounter_Start(...)
     bossEncounter = true
     local arg1, arg2, arg3, arg4, arg5 = ...
     --CTT:Print(L["Encounter Started!"])
-    local members = {}
-    local numMembers = GetNumGroupMembers()
-    if numMembers > 1 then
-        for i=1,GetNumGroupMembers(),1 do
-            members[i] = select(1, GetRaidRosterInfo(i))
-        end
-    else
-        members = {UnitName("player")}
-    end
+    -- local members = {}
+    -- local numMembers = GetNumGroupMembers()
+    -- if numMembers > 1 then
+    --     for i=1,GetNumGroupMembers(),1 do
+    --         members[i] = select(1, GetRaidRosterInfo(i))
+    --     end
+    -- else
+    --     members = {UnitName("player")}
+    -- end
 
-    table.insert(fightLogs, {arg2, arg3, arg4, arg5, members, false})
+    --table.insert(fightLogs, {arg2, arg3, arg4, arg5, members, false})
     time = GetTime()
     cttElapsedSeconds = 0
     CTT_InstanceTypeDisplay(cttMenuOptions.instanceType)
@@ -288,19 +324,41 @@ function CTT:Encounter_End(...)
         CTT_ToggleMenu()
     end
     --CTT:Print(L["Encounter Ended!"])
-    local args = select(6, ...)
-    if args == 1 then
-        local index = table.getn(fightLogs)
-        fightLogs[index][6] = true
-        fightLogs[index][7] = totalSeconds
-        --CTT:Print(L["You have successfully killed "] .. fightLogs[index][2] .. " " .. L["after"] .. " " .. minutes .. ":" .. seconds .. ".")
-        CTT_DisplayResultsBosses(fightLogs[index][2], true)
+    local arg1, arg2, arg3, arg4, arg5, arg6 = ...
+    print(arg1)
+    print(arg2)
+    print(arg3)
+    print(arg4)
+    print(arg5)
+    print(arg6)
+    if arg6 == 1 then
+        --local index = table.getn(fightLogs)
+        --fightLogs[index][6] = true
+        --fightLogs[index][7] = totalSeconds
+        for k,v in pairs(BoDBosses) do
+            if v == arg2 then
+                local mins,secs = strsplit(":",fightLogs[k])
+                if secs < seconds then
+                    if (mins < minutes) or (mins == minutes) then
+                        local text = tostring(minutes..":"..seconds)
+                        fightLogs[k] = text
+                    end
+                else
+                    if mins < minutes then
+                        local text = tostring(minutes..":"..seconds)
+                        fightLogs[k] = text
+                    end
+                end
+                break
+            end
+        end
+        
+        CTT_DisplayResultsBosses(arg2, true)
     else
-        local index = table.getn(fightLogs)
-        fightLogs[index][7] = {hours, minutes, seconds, totalSeconds, miliseconds}
-        cttMenuOptions.timeValues = {hours, minutes, seconds, totalSeconds, miliseconds}
-        --CTT:Print(L["You have wiped on "] .. fightLogs[index][2] .. L["after"] .. " " .. minutes .. ":" .. seconds ..".")
-        CTT_DisplayResultsBosses(fightLogs[index][2], false)
+        --local index = table.getn(fightLogs)
+        --fightLogs[index][7] = {hours, minutes, seconds, totalSeconds, miliseconds}
+        --cttMenuOptions.timeValues = {hours, minutes, seconds, totalSeconds, miliseconds}
+        CTT_DisplayResultsBosses(arg2, false)
     end
 end
 
@@ -396,27 +454,18 @@ function CTT:SlashCommands(input)
     elseif command == "resetfull" then
         longestMin = 0
         longestSec = 0
-        fightLogs = {}
-        cttMenuOptions.dropdownValue = 1
-        CTT.menu.textStyleDropDown:SetText(cttTextFormatOptions[cttMenuOptions.dropdownValue])
-        CTT.menu.textStyleDropDown:SetValue(1)
-        cttMenuOptions.timeValues = {"00","00","00","00","00"}
-        cttMenuOptions.lockFrameCheckButton = true
-        CTT.menu.lockFrameCheckButton:SetValue(true)
-        cttMenuOptions.fontVal = 16
-        cttMenuOptions.fontName = "Fonts\\MORPHEUS_CYR.TTF"
-        CTT.menu.fontPickerDropDown:SetText("Morpheus")
-        cttMenuOptions.timeTrackerSize = {100,40}
-        cttMenuOptions.textColorPicker = {1,1,1,1}
-        CTT.menu.textColorPicker:SetColor(255,255,255)
-        cttMenuOptions.textFrameSizeSlider = 0
-        CTT.menu.textFrameSizeSlider:SetValue(0)
-        cttMenuOptions.backDropAlphaSlider = 1
-        CTT.menu.backDropAlphaSlider:SetValue(1)
-        cttMenuOptions.fontPickerDropDown = false
-        CTT_SetTrackerSizeOnLogin()
-        cttStopwatchGuiTimeText:SetTextColor(255,255,255)
-        CTT_UpdateText(cttMenuOptions.timeValues[1], cttMenuOptions.timeValues[2], cttMenuOptions.timeValues[3], cttMenuOptions.timeValues[5], cttMenuOptions.dropdownValue,1)
+        fightLogs = {
+            "--:--:--",
+            "--:--:--",
+            "--:--:--",
+            "--:--:--",
+            "--:--:--",
+            "--:--:--",
+            "--:--:--",
+            "--:--:--",
+            "--:--:--"
+        }
+        --CTT_SetupSavedVariables()
         CTT:Print(L["Combat Time Tracker has been reset to default settings!"])
     elseif command == "longest" then
         CTT:Print("Your longest fight took (MM:SS): "..longestMin..":"..longestSec..".")
@@ -437,6 +486,37 @@ end
 --|--------------------------|
 --| Non AceAddon functions --|
 --|--------------------------|
+
+-- function to setup the savedvariables
+function CTT_SetupSavedVariables()
+    --print(menu.textStyleDropDown)
+    -- cttMenuOptions.dropdownValue = 1
+    -- ctt.menu.tab.textStyleDropDown:SetText(cttTextFormatOptions[cttMenuOptions.dropdownValue])
+    -- CTT.menu.textStyleDropDown:SetValue(1)
+    -- cttMenuOptions.timeValues = {"00","00","00","00","00"}
+    -- cttMenuOptions.lockFrameCheckButton = true
+    -- CTT.menu.lockFrameCheckButton:SetValue(true)
+    -- cttMenuOptions.fontVal = 16
+    -- cttMenuOptions.fontName = "Fonts\\MORPHEUS_CYR.TTF"
+    -- CTT.menu.fontPickerDropDown:SetText("Morpheus")
+    -- cttMenuOptions.timeTrackerSize = {100,40}
+    -- cttMenuOptions.textColorPicker = {1,1,1,1}
+    -- CTT.menu.textColorPicker:SetColor(255,255,255)
+    -- cttMenuOptions.textFrameSizeSlider = 0
+    -- CTT.menu.textFrameSizeSlider:SetValue(0)
+    -- cttMenuOptions.backDropAlphaSlider = 1
+    -- CTT.menu.backDropAlphaSlider:SetValue(1)
+    -- cttMenuOptions.fontPickerDropDown = false
+    -- CTT_SetTrackerSizeOnLogin()
+    -- cttStopwatchGuiTimeText:SetTextColor(255,255,255)
+    -- CTT_UpdateText(cttMenuOptions.timeValues[1], cttMenuOptions.timeValues[2], cttMenuOptions.timeValues[3], cttMenuOptions.timeValues[5], cttMenuOptions.dropdownValue,1)
+end
+
+-- function to update the kill times in fightlogs
+function CTT_SetBoDKillTimes(bossNameKilled,totalSeconds)
+
+end
+
 
 -- function to handle showing the tracker based on instance type settings
 function CTT_InstanceTypeDisplay(key)
@@ -504,10 +584,22 @@ end
 -- display a popup message
 function CTT_PopUpMessage()
     StaticPopupDialogs["NEW_VERSION"] = {
-        text = "Combat Time Tracker has been updated, the tracker needs to be reset.",
+        text = "Combat Time Tracker has been updated, the tracker needs to be reset to work properly!",
         button1 = "Reset Now",
         button2 = "Reset Later",
         OnAccept = function()
+            fightLogs = {
+                "--:--:--",
+                "--:--:--",
+                "--:--:--",
+                "--:--:--",
+                "--:--:--",
+                "--:--:--",
+                "--:--:--",
+                "--:--:--",
+                "--:--:--"
+            }
+            cttMenuOptions.uiReset = false
             ReloadUI()
         end,
         timeout = 0,
@@ -581,6 +673,19 @@ function CTT_UpdateText(hours, minutes, seconds, miliseconds, textFormat, fontUp
         cttStopwatchGuiTimeText:SetText(hours .. ":" .. minutes .. ":" .. seconds .. "." .. miliseconds)
     end
 end
+
+function CTT_UpdateMenuTexts(container)
+    container.CoLTime:SetText(fightLogs[1])
+    container.GrongTime:SetText(fightLogs[2])
+    container.MonksTime:SetText(fightLogs[3])
+    container.OpulenceTime:SetText(fightLogs[4])
+    container.CouncilTime:SetText(fightLogs[5])
+    container.KingTime:SetText(fightLogs[6])
+    container.MekkaTime:SetText(fightLogs[7])
+    container.StormwallTime:SetText(fightLogs[8])
+    container.IceBitchTime:SetText(fightLogs[9])
+end
+
 
 
 --|-----------------------|
@@ -717,17 +822,41 @@ function CTT_InstanceTypeDropDown(widget, event, key, checked)
     end
 end
 
-function CTT_DifficultyDropDown(widget, event, key, checked)
-    cttMenuOptions.difficultyDropDown = key
-    if key == 1 then
-        -- TODO LFR times
-    elseif key == 2 then
-        -- TODO normal times
-    elseif key == 3 then
-        -- TODO heroic times
-    else
-        -- TODO mythic times
-    end
+-- function CTT_DifficultyDropDown(widget, event, key, checked)
+--     cttMenuOptions.difficultyDropDown = key
+--     if key == 1 then
+--         -- TODO LFR times
+--     elseif key == 2 then
+--         -- TODO normal times
+--     elseif key == 3 then
+--         -- TODO heroic times
+--     else
+--         -- TODO mythic times
+--     end
+-- end
+
+function CTT_DefaultButtonOnClick()
+    --print(ctt.menu.textStyleDropDown)
+    -- cttMenuOptions.dropdownValue = 1
+    -- ctt.menu.tab.textStyleDropDown:SetText(cttTextFormatOptions[cttMenuOptions.dropdownValue])
+    -- CTT.menu.textStyleDropDown:SetValue(1)
+    -- cttMenuOptions.timeValues = {"00","00","00","00","00"}
+    -- cttMenuOptions.lockFrameCheckButton = true
+    -- CTT.menu.lockFrameCheckButton:SetValue(true)
+    -- cttMenuOptions.fontVal = 16
+    -- cttMenuOptions.fontName = "Fonts\\MORPHEUS_CYR.TTF"
+    -- CTT.menu.fontPickerDropDown:SetText("Morpheus")
+    -- cttMenuOptions.timeTrackerSize = {100,40}
+    -- cttMenuOptions.textColorPicker = {1,1,1,1}
+    -- CTT.menu.textColorPicker:SetColor(255,255,255)
+    -- cttMenuOptions.textFrameSizeSlider = 0
+    -- CTT.menu.textFrameSizeSlider:SetValue(0)
+    -- cttMenuOptions.backDropAlphaSlider = 1
+    -- CTT.menu.backDropAlphaSlider:SetValue(1)
+    -- cttMenuOptions.fontPickerDropDown = false
+    -- CTT_SetTrackerSizeOnLogin()
+    -- cttStopwatchGuiTimeText:SetTextColor(255,255,255)
+    -- CTT_UpdateText(cttMenuOptions.timeValues[1], cttMenuOptions.timeValues[2], cttMenuOptions.timeValues[3], cttMenuOptions.timeValues[5], cttMenuOptions.dropdownValue,1)
 end
 
 --|-----------------------|
@@ -861,6 +990,15 @@ local function DrawGroup1(container)
     instanceType:SetCallback("OnValueChanged", CTT_InstanceTypeDropDown)
     container:AddChild(instanceType)
     container.instanceType = instanceType
+
+    -- local default = AceGUI:Create("Button")
+    -- default:SetText("Reset Full")
+    -- default:SetWidth(100)
+    -- default:ClearAllPoints()
+    -- default:SetPoint("BOTTOMLEFT", container.tab, "BOTTOMLEFT", 6, 0)
+    -- default:SetCallback("OnClick", CTT_DefaultButtonOnClick)
+    -- container:AddChild(default)
+    -- container.default = default
 end
     
 -- function that draws the widgets for the second tab
@@ -872,121 +1010,242 @@ local function DrawGroup2(container)
     -- negative ofsx goes left, positive goes right
     -- negative ofsy goes down, positive goes up
 
-    -- drop down menu (to load difficulty into the window)
-    --@debug@
-    -- local difficultyDropDown = AceGUI:Create("Dropdown")
-    -- difficultyDropDown:SetLabel(" Instance Difficulty")
-    -- difficultyDropDown:SetWidth(150)
-    -- difficultyDropDown:SetMultiselect(false)
-    -- difficultyDropDown:ClearAllPoints()
-    -- difficultyDropDown:SetList(difficultyList)
-    -- if cttMenuOptions.difficultyDropDown then
-    --     difficultyDropDown:SetText(difficultyList[cttMenuOptions.difficultyDropDown])
-    --     difficultyDropDown:SetValue(cttMenuOptions.difficultyDropDown)
-    -- else
-    --     difficultyDropDown:SetText(difficultyDropDown[1])
-    --     difficultyDropDown:SetValue(1)
-    -- end
-    -- difficultyDropDown:SetPoint("LEFT", container.tab, "LEFT", 6, 0)
-    -- difficultyDropDown:SetCallback("OnValueChanged", CTT_DifficultyDropDown)
-    -- container:AddChild(difficultyDropDown)
-    -- container.difficultyDropDown = difficultyDropDown
+    local CoL = AceGUI:Create("Label")
+    CoL:SetText("Champion of Light: ")
+    CoL:SetColor(255,255,0)
+    CoL:SetFont("Fonts\\MORPHEUS_CYR.TTF", 12)
+    CoL:SetWidth(112)
+    CoL:ClearAllPoints()
+    CoL:SetPoint("LEFT", container.tab, "LEFT", 6, 10)
+    container:AddChild(CoL)
+    container.CoL = CoL
 
-    -- local ChampionOfTheLight = AceGUI:Create("Label")
-    -- ChampionOfTheLight:SetText("Chamption of the Light best kill: ")
-    -- ChampionOfTheLight:SetFullWidth(true)
-    -- ChampionOfTheLight:SetFont("Fonts\\MORPHEUS_CYR.TTF", 18)
-    -- ChampionOfTheLight:ClearAllPoints()
-    -- ChampionOfTheLight:SetPoint("LEFT", container.tab, "LEFT", 6, 0)
-    -- container:AddChild(ChampionOfTheLight)
-    -- container.ChampionOfTheLight = ChampionOfTheLight
+    local CoLTime = AceGUI:Create("Label")
+    CoLTime:SetText(fightLogs[1])
+    CoLTime:SetColor(255,255,0)
+    CoLTime:SetFont("Fonts\\MORPHEUS_CYR.TTF", 12)
+    CoLTime:ClearAllPoints()
+    CoLTime:SetPoint("LEFT", container.tab, "CENTER", 10, 0)
+    container:AddChild(CoLTime)
+    container.CoLTime = CoLTime
 
-    -- local CoLLFR = AceGUI:Create("Label")
-    -- CoLLFR:SetText("LFR: ")
-    -- CoLLFR:SetColor(255,255,0)
-    -- CoLLFR:SetFont("Fonts\\MORPHEUS_CYR.TTF", 12)
-    -- CoLLFR:SetWidth(35)
-    -- CoLLFR:ClearAllPoints()
-    -- CoLLFR:SetPoint("LEFT", container.tab, "LEFT", 6, 10)
-    -- container:AddChild(CoLLFR)
-    -- container.CoLLFR = CoLLFR
+    local separator1 = AceGUI:Create("Label")
+    separator1:SetFullWidth(true)
+    separator1:SetText(" ")
+    separator1:ClearAllPoints()
+    separator1:SetPoint("LEFT", container.tab, "LEFT", 6, 10)
+    container:AddChild(separator1)
+    container.separator1 = separator1
 
-    -- local CoLLFRTime = AceGUI:Create("Label")
-    -- CoLLFRTime:SetText("01:45.55")
-    -- CoLLFRTime:SetColor(255,255,0)
-    -- CoLLFRTime:SetFont("Fonts\\MORPHEUS_CYR.TTF", 12)
-    -- CoLLFRTime:ClearAllPoints()
-    -- CoLLFRTime:SetPoint("LEFT", container.tab, "CENTER", 10, 0)
-    -- container:AddChild(CoLLFRTime)
-    -- container.CoLLFRTime = CoLLFRTime
+    local Grong = AceGUI:Create("Label")
+    Grong:SetText("Grong: ")
+    Grong:SetColor(255,255,0)
+    Grong:SetFont("Fonts\\MORPHEUS_CYR.TTF", 12)
+    Grong:SetWidth(112)
+    Grong:ClearAllPoints()
+    Grong:SetPoint("LEFT", container.tab, "LEFT", 6, 10)
+    container:AddChild(Grong)
+    container.Grong = Grong
 
+    local GrongTime = AceGUI:Create("Label")
+    GrongTime:SetText(fightLogs[2])
+    GrongTime:SetColor(255,255,0)
+    GrongTime:SetFont("Fonts\\MORPHEUS_CYR.TTF", 12)
+    GrongTime:ClearAllPoints()
+    GrongTime:SetPoint("LEFT", container.tab, "CENTER", 10, 0)
+    container:AddChild(GrongTime)
+    container.GrongTime = GrongTime
 
-    -- local GrongTheJungleLord = AceGUI:Create("Label")
-    -- GrongTheJungleLord:SetText("Grong, the Jungle Lord best kill: ")
-    -- GrongTheJungleLord:SetFullWidth(true)
-    -- GrongTheJungleLord:SetFont("Fonts\\MORPHEUS_CYR.TTF", 18)
-    -- container:AddChild(GrongTheJungleLord)
-    -- container.GrongTheJungleLord = GrongTheJungleLord
+    local separator2 = AceGUI:Create("Label")
+    separator2:SetFullWidth(true)
+    separator2:SetText(" ")
+    separator2:ClearAllPoints()
+    separator2:SetPoint("LEFT", container.tab, "LEFT", 6, 10)
+    container:AddChild(separator2)
+    container.separator2 = separator2
 
-    -- local JadefireMasters = AceGUI:Create("Label")
-    -- JadefireMasters:SetText("Jadefire Masters best kill: ")
-    -- JadefireMasters:SetFullWidth(true)
-    -- JadefireMasters:SetFont("Fonts\\MORPHEUS_CYR.TTF", 18)
-    -- container:AddChild(JadefireMasters)
-    -- container.JadefireMasters = JadefireMasters
+    local Monks = AceGUI:Create("Label")
+    Monks:SetText("Jadefire Masters: ")
+    Monks:SetColor(255,255,0)
+    Monks:SetFont("Fonts\\MORPHEUS_CYR.TTF", 12)
+    Monks:SetWidth(112)
+    Monks:ClearAllPoints()
+    Monks:SetPoint("LEFT", container.tab, "LEFT", 6, 10)
+    container:AddChild(Monks)
+    container.Monks = Monks
 
-    -- local Opulence = AceGUI:Create("Label")
-    -- Opulence:SetText("Opulence best kill: ")
-    -- Opulence:SetFullWidth(true)
-    -- Opulence:SetFont("Fonts\\MORPHEUS_CYR.TTF", 18)
-    -- container:AddChild(Opulence)
-    -- container.Opulence = Opulence
+    local MonksTime = AceGUI:Create("Label")
+    MonksTime:SetText(fightLogs[3])
+    MonksTime:SetColor(255,255,0)
+    MonksTime:SetFont("Fonts\\MORPHEUS_CYR.TTF", 12)
+    MonksTime:ClearAllPoints()
+    MonksTime:SetPoint("LEFT", container.tab, "CENTER", 10, 0)
+    container:AddChild(MonksTime)
+    container.MonksTime = MonksTime
 
-    -- local ConclaveOfTheChosen = AceGUI:Create("Label")
-    -- ConclaveOfTheChosen:SetText("Conclave of the Chosen best kill: ")
-    -- ConclaveOfTheChosen:SetFullWidth(true)
-    -- ConclaveOfTheChosen:SetFont("Fonts\\MORPHEUS_CYR.TTF", 18)
-    -- container:AddChild(ConclaveOfTheChosen)
-    -- container.ConclaveOfTheChosen = ConclaveOfTheChosen
+    local separator3 = AceGUI:Create("Label")
+    separator3:SetFullWidth(true)
+    separator3:SetText(" ")
+    separator3:ClearAllPoints()
+    separator3:SetPoint("LEFT", container.tab, "LEFT", 6, 10)
+    container:AddChild(separator3)
+    container.separator3 = separator3
 
-    -- local KingRastakhan = AceGUI:Create("Label")
-    -- KingRastakhan:SetText("King Rastakhan best kill: ")
-    -- KingRastakhan:SetFullWidth(true)
-    -- KingRastakhan:SetFont("Fonts\\MORPHEUS_CYR.TTF", 18)
-    -- container:AddChild(KingRastakhan)
-    -- container.KingRastakhan = KingRastakhan
+    local Opulence = AceGUI:Create("Label")
+    Opulence:SetText("Opulence: ")
+    Opulence:SetColor(255,255,0)
+    Opulence:SetFont("Fonts\\MORPHEUS_CYR.TTF", 12)
+    Opulence:SetWidth(112)
+    Opulence:ClearAllPoints()
+    Opulence:SetPoint("LEFT", container.tab, "LEFT", 6, 10)
+    container:AddChild(Opulence)
+    container.Opulence = Opulence
 
-    -- local HighTinkerMekkatorque = AceGUI:Create("Label")
-    -- HighTinkerMekkatorque:SetText("High Tinker Mekkatorque best kill: ")
-    -- HighTinkerMekkatorque:SetFullWidth(true)
-    -- HighTinkerMekkatorque:SetFont("Fonts\\MORPHEUS_CYR.TTF", 18)
-    -- container:AddChild(HighTinkerMekkatorque)
-    -- container.HighTinkerMekkatorque = HighTinkerMekkatorque
+    local OpulenceTime = AceGUI:Create("Label")
+    OpulenceTime:SetText(fightLogs[4])
+    OpulenceTime:SetColor(255,255,0)
+    OpulenceTime:SetFont("Fonts\\MORPHEUS_CYR.TTF", 12)
+    OpulenceTime:ClearAllPoints()
+    OpulenceTime:SetPoint("LEFT", container.tab, "CENTER", 10, 0)
+    container:AddChild(OpulenceTime)
+    container.OpulenceTime = OpulenceTime
 
-    -- local StormwallBlockade = AceGUI:Create("Label")
-    -- StormwallBlockade:SetText("Stormwall Blockade best kill: ")
-    -- StormwallBlockade:SetFullWidth(true)
-    -- StormwallBlockade:SetFont("Fonts\\MORPHEUS_CYR.TTF", 18)
-    -- container:AddChild(StormwallBlockade)
-    -- container.StormwallBlockade = StormwallBlockade
+    local separator4 = AceGUI:Create("Label")
+    separator4:SetFullWidth(true)
+    separator4:SetText(" ")
+    separator4:ClearAllPoints()
+    separator4:SetPoint("LEFT", container.tab, "LEFT", 6, 10)
+    container:AddChild(separator4)
+    container.separator4 = separator4
 
-    -- local LadyJainaProudmoore = AceGUI:Create("Label")
-    -- LadyJainaProudmoore:SetText("Lady Jaina Proudmoore best kill: ")
-    -- LadyJainaProudmoore:SetFullWidth(true)
-    -- LadyJainaProudmoore:SetFont("Fonts\\MORPHEUS_CYR.TTF", 18)
-    -- container:AddChild(LadyJainaProudmoore)
-    -- container.LadyJainaProudmoore = LadyJainaProudmoore
-    --@end-debug@
+    local Council = AceGUI:Create("Label")
+    Council:SetText("Conclave of the Chosen: ")
+    Council:SetColor(255,255,0)
+    Council:SetFont("Fonts\\MORPHEUS_CYR.TTF", 12)
+    Council:SetWidth(112)
+    Council:ClearAllPoints()
+    Council:SetPoint("LEFT", container.tab, "LEFT", 6, 10)
+    container:AddChild(Council)
+    container.Grong = Council
 
-    local nondebug = AceGUI:Create("Label")
-    nondebug:SetText("Coming Soon")
-    nondebug:SetFullWidth(true)
-    nondebug:SetFont("Fonts\\MORPHEUS_CYR.TTF", 18)
-    nondebug:ClearAllPoints()
-    nondebug:SetPoint("CENTER", container.tab, "CENTER", 6, 0)
-    container:AddChild(nondebug)
-    container.nondebug = nondebug
+    local CouncilTime = AceGUI:Create("Label")
+    CouncilTime:SetText(fightLogs[5])
+    CouncilTime:SetColor(255,255,0)
+    CouncilTime:SetFont("Fonts\\MORPHEUS_CYR.TTF", 12)
+    CouncilTime:ClearAllPoints()
+    CouncilTime:SetPoint("LEFT", container.tab, "CENTER", 10, 0)
+    container:AddChild(CouncilTime)
+    container.CouncilTime = CouncilTime
 
+    local separator5 = AceGUI:Create("Label")
+    separator5:SetFullWidth(true)
+    separator5:SetText(" ")
+    separator5:ClearAllPoints()
+    separator5:SetPoint("LEFT", container.tab, "LEFT", 6, 10)
+    container:AddChild(separator5)
+    container.separator5 = separator5
+
+    local King = AceGUI:Create("Label")
+    King:SetText("King Rastakhan: ")
+    King:SetColor(255,255,0)
+    King:SetFont("Fonts\\MORPHEUS_CYR.TTF", 12)
+    King:SetWidth(112)
+    King:ClearAllPoints()
+    King:SetPoint("LEFT", container.tab, "LEFT", 6, 10)
+    container:AddChild(King)
+    container.King = King
+
+    local KingTime = AceGUI:Create("Label")
+    KingTime:SetText(fightLogs[6])
+    KingTime:SetColor(255,255,0)
+    KingTime:SetFont("Fonts\\MORPHEUS_CYR.TTF", 12)
+    KingTime:ClearAllPoints()
+    KingTime:SetPoint("LEFT", container.tab, "CENTER", 10, 0)
+    container:AddChild(KingTime)
+    container.KingTime = KingTime
+
+    local separator6 = AceGUI:Create("Label")
+    separator6:SetFullWidth(true)
+    separator6:SetText(" ")
+    separator6:ClearAllPoints()
+    separator6:SetPoint("LEFT", container.tab, "LEFT", 6, 10)
+    container:AddChild(separator6)
+    container.separator6 = separator6
+
+    local Mekka = AceGUI:Create("Label")
+    Mekka:SetText("High Tinker Mekkatorque: ")
+    Mekka:SetColor(255,255,0)
+    Mekka:SetFont("Fonts\\MORPHEUS_CYR.TTF", 12)
+    Mekka:SetWidth(112)
+    Mekka:ClearAllPoints()
+    Mekka:SetPoint("LEFT", container.tab, "LEFT", 6, 10)
+    container:AddChild(Mekka)
+    container.Mekka = Mekka
+
+    local MekkaTime = AceGUI:Create("Label")
+    MekkaTime:SetText(fightLogs[7])
+    MekkaTime:SetColor(255,255,0)
+    MekkaTime:SetFont("Fonts\\MORPHEUS_CYR.TTF", 12)
+    MekkaTime:ClearAllPoints()
+    MekkaTime:SetPoint("LEFT", container.tab, "CENTER", 10, 0)
+    container:AddChild(MekkaTime)
+    container.MekkaTime = MekkaTime
+
+    local separator7 = AceGUI:Create("Label")
+    separator7:SetFullWidth(true)
+    separator7:SetText(" ")
+    separator7:ClearAllPoints()
+    separator7:SetPoint("LEFT", container.tab, "LEFT", 6, 10)
+    container:AddChild(separator7)
+    container.separator7 = separator7
+
+    local Stormwall = AceGUI:Create("Label")
+    Stormwall:SetText("Stormwall Blockade: ")
+    Stormwall:SetColor(255,255,0)
+    Stormwall:SetFont("Fonts\\MORPHEUS_CYR.TTF", 12)
+    Stormwall:SetWidth(112)
+    Stormwall:ClearAllPoints()
+    Stormwall:SetPoint("LEFT", container.tab, "LEFT", 6, 10)
+    container:AddChild(Stormwall)
+    container.Stormwall = Stormwall
+
+    local StormwallTime = AceGUI:Create("Label")
+    StormwallTime:SetText(fightLogs[8])
+    StormwallTime:SetColor(255,255,0)
+    StormwallTime:SetFont("Fonts\\MORPHEUS_CYR.TTF", 12)
+    StormwallTime:ClearAllPoints()
+    StormwallTime:SetPoint("LEFT", container.tab, "CENTER", 10, 0)
+    container:AddChild(StormwallTime)
+    container.StormwallTime = StormwallTime
+
+    local separator8 = AceGUI:Create("Label")
+    separator8:SetFullWidth(true)
+    separator8:SetText(" ")
+    separator8:ClearAllPoints()
+    separator8:SetPoint("LEFT", container.tab, "LEFT", 6, 10)
+    container:AddChild(separator8)
+    container.separator8 = separator8
+
+    local IceBitch = AceGUI:Create("Label")
+    IceBitch:SetText("Lady Jaina Proudmoore: ")
+    IceBitch:SetColor(255,255,0)
+    IceBitch:SetFont("Fonts\\MORPHEUS_CYR.TTF", 12)
+    IceBitch:SetWidth(112)
+    IceBitch:ClearAllPoints()
+    IceBitch:SetPoint("LEFT", container.tab, "LEFT", 6, 10)
+    container:AddChild(IceBitch)
+    container.IceBitch = IceBitch
+
+    local IceBitchTime = AceGUI:Create("Label")
+    IceBitchTime:SetText(fightLogs[9])
+    IceBitchTime:SetColor(255,255,0)
+    IceBitchTime:SetFont("Fonts\\MORPHEUS_CYR.TTF", 12)
+    IceBitchTime:ClearAllPoints()
+    IceBitchTime:SetPoint("LEFT", container.tab, "CENTER", 10, 0)
+    container:AddChild(IceBitchTime)
+    container.IceBitchTime = IceBitchTime
+
+    CTT_UpdateMenuTexts(container)
 
 end
 
@@ -1028,4 +1287,5 @@ function CTT:CreateOptionsMenu()
     
     -- add to the frame container
     menu:AddChild(tab)
+    menu.tab = tab
 end
