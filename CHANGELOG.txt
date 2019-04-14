@@ -1,3 +1,3 @@
 ##Changelog:
 ###v2.2
-* Added support for tracking BoD fights(future work to track different difficulties)
+* minor bug fix on a lua error

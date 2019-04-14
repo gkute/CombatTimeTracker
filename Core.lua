@@ -149,7 +149,7 @@ end
 
 -- Handle the initialization of values from nil to 0 first time addon is loaded.
 function CTT:ADDON_LOADED()
-    if GetAddOnMetadata("CombatTimeTracker", "Version") == "2.2" and cttMenuOptions.uiReset then
+    if GetAddOnMetadata("CombatTimeTracker", "Version") == "2.3" and cttMenuOptions.uiReset then
         CTT_PopUpMessage()
     end
 
@@ -183,15 +183,15 @@ function CTT:ADDON_LOADED()
     end
     if fightLogs == nil then
         fightLogs = {
-            "--:--:--",
-            "--:--:--",
-            "--:--:--",
-            "--:--:--",
-            "--:--:--",
-            "--:--:--",
-            "--:--:--",
-            "--:--:--",
-            "--:--:--"
+            "00:00",
+            "00:00",
+            "00:00",
+            "00:00",
+            "00:00",
+            "00:00",
+            "00:00",
+            "00:00",
+            "00:00"
         }
     end
     cttStopwatchGui.elapsed = .05
@@ -338,13 +338,13 @@ function CTT:Encounter_End(...)
         for k,v in pairs(BoDBosses) do
             if v == arg2 then
                 local mins,secs = strsplit(":",fightLogs[k])
-                if secs < seconds then
-                    if (mins < minutes) or (mins == minutes) then
+                if tonumber(secs) < tonumber(seconds) then
+                    if (tonumber(mins) < tonumber(minutes)) or (tonumber(mins) == tonumber(minutes)) then
                         local text = tostring(minutes..":"..seconds)
                         fightLogs[k] = text
                     end
                 else
-                    if mins < minutes then
+                    if tonumber(mins) < tonumber(minutes) then
                         local text = tostring(minutes..":"..seconds)
                         fightLogs[k] = text
                     end
@@ -455,15 +455,15 @@ function CTT:SlashCommands(input)
         longestMin = 0
         longestSec = 0
         fightLogs = {
-            "--:--:--",
-            "--:--:--",
-            "--:--:--",
-            "--:--:--",
-            "--:--:--",
-            "--:--:--",
-            "--:--:--",
-            "--:--:--",
-            "--:--:--"
+            "00:00",
+            "00:00",
+            "00:00",
+            "00:00",
+            "00:00",
+            "00:00",
+            "00:00",
+            "00:00",
+            "00:00"
         }
         --CTT_SetupSavedVariables()
         CTT:Print(L["Combat Time Tracker has been reset to default settings!"])
@@ -589,15 +589,15 @@ function CTT_PopUpMessage()
         button2 = "Reset Later",
         OnAccept = function()
             fightLogs = {
-                "--:--:--",
-                "--:--:--",
-                "--:--:--",
-                "--:--:--",
-                "--:--:--",
-                "--:--:--",
-                "--:--:--",
-                "--:--:--",
-                "--:--:--"
+                "00:00",
+                "00:00",
+                "00:00",
+                "00:00",
+                "00:00",
+                "00:00",
+                "00:00",
+                "00:00",
+                "00:00"
             }
             cttMenuOptions.uiReset = false
             ReloadUI()
