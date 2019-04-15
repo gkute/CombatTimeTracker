@@ -1,3 +1,4 @@
 ##Changelog:
-###v2.2
-* minor bug fix on a lua error
+###v2.4
+* Now tracks boss kills for BoD on all difficulties!
+* Minor bug fixes
