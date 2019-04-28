@@ -311,12 +311,20 @@ function CTT:Encounter_End(...)
     end
     --CTT:Print(L["Encounter Ended!"])
     local arg1, arg2, arg3, arg4, arg5, arg6 = ...
+    local diffIDKey = 0
     -- print(arg1)
     -- print(arg2)
     -- print(arg3)
     -- print(arg4)
     -- print(arg5)
     -- print(arg6)
+    if arg4 == 14 then 
+        diffIDKey = 9
+    elseif arg4 == 15 then
+        diffIDKey = 18 
+    elseif arg4 == 16 then 
+        diffIDKey = 27
+    end
     if arg6 == 1 then
         --local index = table.getn(fightLogs)
         --fightLogs[index][6] = true
@@ -327,12 +335,12 @@ function CTT:Encounter_End(...)
                 if tonumber(secs) < tonumber(seconds) then
                     if (tonumber(mins) < tonumber(minutes)) or (tonumber(mins) == tonumber(minutes)) then
                         local text = tostring(minutes..":"..seconds)
-                        fightLogs[k*cttMenuOptions.difficultyDropDown] = text
+                        fightLogs[diffIDKey + k] = text
                     end
                 else
                     if tonumber(mins) < tonumber(minutes) then
                         local text = tostring(minutes..":"..seconds)
-                        fightLogs[k*cttMenuOptions.difficultyDropDown] = text
+                        fightLogs[diffIDKey + k] = text
                     end
                 end
                 break
