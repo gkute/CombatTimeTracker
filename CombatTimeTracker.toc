@@ -1,13 +1,13 @@
 ## Interface: 80100
 ## Title: Combat |cffff930fTime Tracker|r
-## Version: 2.4.1
+## Version: 2.5.01
 ## Notes: Fully automatic custom stopwatch to keep track of time spent in combat.
 ## Author: Bowtiesphd
 ## OptionalDeps: Ace3
 ## X-Embeds: Ace3
 ## X-Curse-Project-ID: 305012
 
-## SavedVariablesPerCharacter: longestMin, longestSec, cttMenuOptions, fightLogs, cttTextFormatOptions
+## SavedVariablesPerCharacter: longestMin, longestSec, cttMenuOptions, fightLogs, cttTextFormatOptions, cosFightLogs, tepFightLogs
 ## SavedVariables: cttDB
 
 embeds.xml

@@ -1,3 +1,4 @@
 ##Changelog:
-###v2.4.1
-* Minor Bug Fixes
+###v2.5.01
+* Updates for 8.2
+* Minor bug fixes
