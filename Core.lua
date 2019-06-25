@@ -970,7 +970,7 @@ function CTT_DifficultyDropDown(widget, event, key, checked)
 end
 
 function CTT_cosDifficultyDropDown(widget, event, key, checked)
-    cttMenuOptions.difficultyDropDown = key
+    cttMenuOptions.difficultyDropDown2 = key
     if key == 1 then
         -- TODO LFR times
         CTT_CoSUpdateMenuTexts(menu.tab,key)
@@ -987,7 +987,7 @@ function CTT_cosDifficultyDropDown(widget, event, key, checked)
 end
 
 function CTT_tepDifficultyDropDown(widget, event, key, checked)
-    cttMenuOptions.difficultyDropDown = key
+    cttMenuOptions.difficultyDropDown3 = key
     if key == 1 then
         -- TODO LFR times
         CTT_tepUpdateMenuTexts(menu.tab,key)
