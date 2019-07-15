@@ -571,8 +571,9 @@ function CTT:SlashCommands(input)
     --@debug@
     elseif command == "debug" then
         CallSimulateBossKill()
-    end
     --@end-debug@
+    end
+    
 end
 
 
