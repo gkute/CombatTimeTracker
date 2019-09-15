@@ -27,7 +27,6 @@ externals:
 enable-nolib-creation: no
 
 ignore:
-    - LICENSE
     - Libs
 
 manual-changelog: CHANGELOG.txt
