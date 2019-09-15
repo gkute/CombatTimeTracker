@@ -384,16 +384,16 @@ function CTT:Encounter_End(...)
         for k,v in pairs(CoSBosses) do
             if v == arg2 then
                 if arg4 == 14 then 
-                    diffIDKey = 9
+                    diffIDKey = 2
                 elseif arg4 == 15 then
-                    diffIDKey = 18 
+                    diffIDKey = 4 
                 elseif arg4 == 16 then 
-                    diffIDKey = 27
+                    diffIDKey = 6
                 end
                 local mins,secs = strsplit(":",CoSFightLogs[k + diffIDKey])
                 if (mins =="00" and secs == "00") then
                     local text = tostring(minutes..":"..seconds)
-                    fightLogs[diffIDKey + k] = text
+                    CoSFightLogs[diffIDKey + k] = text
                 else
                     if tonumber(seconds) < tonumber(secs) then
                         if (tonumber(minutes) <= tonumber(mins)) then
@@ -414,11 +414,11 @@ function CTT:Encounter_End(...)
         for k,v in pairs(TEPBosses) do
             if v == arg2 then
                 if arg4 == 14 then 
-                    diffIDKey = 9
+                    diffIDKey = 8
                 elseif arg4 == 15 then
-                    diffIDKey = 18 
+                    diffIDKey = 16 
                 elseif arg4 == 16 then 
-                    diffIDKey = 27
+                    diffIDKey = 24
                 end
                 local mins,secs = strsplit(":",tepFightLogs[k + diffIDKey])
                 if (mins =="00" and secs == "00") then
@@ -1804,55 +1804,55 @@ function SimulateBossKill(arg6,arg2,arg3,arg4,testSec,testMin,savedSec,savedMin)
             end
         end
 
-        -- for k,v in pairs(CoSBosses) do
-        --     if v == arg2 then
-        --         if arg4 == 14 then 
-        --             diffIDKey = 9
-        --         elseif arg4 == 15 then
-        --             diffIDKey = 18 
-        --         elseif arg4 == 16 then 
-        --             diffIDKey = 27
-        --         end
-        --         local mins,secs = strsplit(":",CoSFightLogs[k + diffIDKey])
-        --         if tonumber(seconds) < tonumber(secs) then
-        --             if (tonumber(minutes) < tonumber(mins)) or (tonumber(minutes) == tonumber(mins)) then
-        --                 local text = tostring(minutes..":"..seconds)
-        --                 CoSFightLogs[diffIDKey + k] = text
-        --             end
-        --         else
-        --             if tonumber(minutes) < tonumber(mins) then
-        --                 local text = tostring(minutes..":"..seconds)
-        --                 CoSFightLogs[diffIDKey + k] = text
-        --             end
-        --         end
-        --         break
-        --     end
-        -- end
+        for k,v in pairs(CoSBosses) do
+            if v == arg2 then
+                if arg4 == 14 then 
+                    diffIDKey = 9
+                elseif arg4 == 15 then
+                    diffIDKey = 18 
+                elseif arg4 == 16 then 
+                    diffIDKey = 27
+                end
+                local mins,secs = strsplit(":",CoSFightLogs[k + diffIDKey])
+                if tonumber(seconds) < tonumber(secs) then
+                    if (tonumber(minutes) < tonumber(mins)) or (tonumber(minutes) == tonumber(mins)) then
+                        local text = tostring(minutes..":"..seconds)
+                        CoSFightLogs[diffIDKey + k] = text
+                    end
+                else
+                    if tonumber(minutes) < tonumber(mins) then
+                        local text = tostring(minutes..":"..seconds)
+                        CoSFightLogs[diffIDKey + k] = text
+                    end
+                end
+                break
+            end
+        end
 
-        -- for k,v in pairs(TEPBosses) do
-        --     if v == arg2 then
-        --         if arg4 == 14 then 
-        --             diffIDKey = 9
-        --         elseif arg4 == 15 then
-        --             diffIDKey = 18 
-        --         elseif arg4 == 16 then 
-        --             diffIDKey = 27
-        --         end
-        --         local mins,secs = strsplit(":",tepFightLogs[k + diffIDKey])
-        --         if tonumber(secs) < tonumber(seconds) then
-        --             if (tonumber(mins) < tonumber(minutes)) or (tonumber(mins) == tonumber(minutes)) then
-        --                 local text = tostring(minutes..":"..seconds)
-        --                 tepFightLogs[diffIDKey + k] = text
-        --             end
-        --         else
-        --             if tonumber(mins) < tonumber(minutes) then
-        --                 local text = tostring(minutes..":"..seconds)
-        --                 tepFightLogs[diffIDKey + k] = text
-        --             end
-        --         end
-        --         break
-        --     end
-        -- end
+        for k,v in pairs(TEPBosses) do
+            if v == arg2 then
+                if arg4 == 14 then 
+                    diffIDKey = 9
+                elseif arg4 == 15 then
+                    diffIDKey = 18 
+                elseif arg4 == 16 then 
+                    diffIDKey = 27
+                end
+                local mins,secs = strsplit(":",tepFightLogs[k + diffIDKey])
+                if tonumber(secs) < tonumber(seconds) then
+                    if (tonumber(mins) < tonumber(minutes)) or (tonumber(mins) == tonumber(minutes)) then
+                        local text = tostring(minutes..":"..seconds)
+                        tepFightLogs[diffIDKey + k] = text
+                    end
+                else
+                    if tonumber(mins) < tonumber(minutes) then
+                        local text = tostring(minutes..":"..seconds)
+                        tepFightLogs[diffIDKey + k] = text
+                    end
+                end
+                break
+            end
+        end
         
         CTT_DisplayResultsBosses(arg3, true)
     else
@@ -1879,7 +1879,7 @@ function CallSimulateBossKill()
     CTT:Print("Test 4 starting: ")
     SimulateBossKill(1, 2263, "Grong", 14, 50, 5, 50, 5)
     CTT:Print("Test 5 starting: ")
-    SimulateBossKill(1, 2263, "Grong", 14, 50, 5, "00", "00")
+    SimulateBossKill(1, 2263, "Orgoza", 14, 50, 5, "00", "00")
 end
 
 --@end-debug@
