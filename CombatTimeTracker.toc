@@ -5,7 +5,7 @@
 ## Interface: 11302
 #@end-non-retail@
 ## Title: Combat |cffff930fTime Tracker|r
-## Version: 2.5.07
+## Version: 2.5.09
 ## Notes: Fully automatic custom stopwatch to keep track of time spent in combat.
 ## Author: Bowtiesphd
 ## OptionalDeps: Ace3
