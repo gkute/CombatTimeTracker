@@ -28,6 +28,8 @@ enable-nolib-creation: no
 ignore:
     - LICENSE
     - Libs
+    - .pkgmeta
+    - .travis.yml
 
 manual-changelog: CHANGELOG.txt
 
