@@ -31,7 +31,5 @@ ignore:
     - .pkgmeta
     - .travis.yml
 
-manual-changelog: CHANGELOG.txt
-
 move-folders:
  CombatTimeTracker/CombatTimeTracker: CombatTimeTracker

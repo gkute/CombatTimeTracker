@@ -78,14 +78,14 @@ local CoSBosses = {
 
 local TEPBosses = {
 -- 8 bosses
-    2352,
-    2347,
-    2353,
-    2354,
-    2351,
-    2359,
-    2349,
-    2361
+    2298,
+    2289,
+    2305,
+    2304,
+    2303,
+    2311,
+    2293,
+    2299
 }
 
 local difficultyList = {
@@ -1771,6 +1771,7 @@ end
 function SimulateBossKill(arg6,arg2,arg3,arg4,testSec,testMin,savedSec,savedMin)
     local diffIDKey = 0
     if arg6 == 1 then
+        CTT:Print("Starting To Check BoD Bosses")
         for k,v in pairs(BoDBosses) do
             if v == arg2 then
                 if arg4 == 14 then 
@@ -1804,50 +1805,67 @@ function SimulateBossKill(arg6,arg2,arg3,arg4,testSec,testMin,savedSec,savedMin)
             end
         end
 
+        CTT:Print("Starting To Check COS Bosses")
         for k,v in pairs(CoSBosses) do
             if v == arg2 then
                 if arg4 == 14 then 
-                    diffIDKey = 9
+                    diffIDKey = 2
                 elseif arg4 == 15 then
-                    diffIDKey = 18 
+                    diffIDKey = 4 
                 elseif arg4 == 16 then 
-                    diffIDKey = 27
+                    diffIDKey = 6
                 end
-                local mins,secs = strsplit(":",CoSFightLogs[k + diffIDKey])
-                if tonumber(seconds) < tonumber(secs) then
-                    if (tonumber(minutes) < tonumber(mins)) or (tonumber(minutes) == tonumber(mins)) then
-                        local text = tostring(minutes..":"..seconds)
-                        CoSFightLogs[diffIDKey + k] = text
-                    end
+                if (savedMin=="00" and savedSec=="00") then
+                    --fightLogs[diffIDKey + k] = text
+                    CTT:Print("First Kill Recorded")
                 else
-                    if tonumber(minutes) < tonumber(mins) then
-                        local text = tostring(minutes..":"..seconds)
-                        CoSFightLogs[diffIDKey + k] = text
+                    local mins,secs = strsplit(":",fightLogs[k + diffIDKey])
+
+                    if tonumber(testSec) < tonumber(savedSec) then
+                        if (tonumber(testMin) <= tonumber(savedMin)) then
+                            CTT:Print("Seconds was lower.")
+                            local text = tostring(testMin..":"..testSec)
+                            CTT:Print("Fight was shorter because of seconds, recorded new fight of length: "..text)
+                        end
+                    elseif tonumber(testMin) < tonumber(savedMin) then
+                        CTT:Print("Minutes was lower.")
+                        local text = tostring(testMin..":"..testSec)
+                        CTT:Print("Fight was shorter because of minutes, recorded new fight of length: "..text)
+                    else
+                        CTT:Print("The new kill was slower than the saved kill.")
                     end
                 end
                 break
             end
         end
-
+        CTT:Print("Starting To Check TEP Bosses")
         for k,v in pairs(TEPBosses) do
             if v == arg2 then
                 if arg4 == 14 then 
-                    diffIDKey = 9
+                    diffIDKey = 8
                 elseif arg4 == 15 then
-                    diffIDKey = 18 
+                    diffIDKey = 16
                 elseif arg4 == 16 then 
-                    diffIDKey = 27
+                    diffIDKey = 24
                 end
-                local mins,secs = strsplit(":",tepFightLogs[k + diffIDKey])
-                if tonumber(secs) < tonumber(seconds) then
-                    if (tonumber(mins) < tonumber(minutes)) or (tonumber(mins) == tonumber(minutes)) then
-                        local text = tostring(minutes..":"..seconds)
-                        tepFightLogs[diffIDKey + k] = text
-                    end
+                if (savedMin=="00" and savedSec=="00") then
+                    --fightLogs[diffIDKey + k] = text
+                    CTT:Print("First Kill Recorded")
                 else
-                    if tonumber(mins) < tonumber(minutes) then
-                        local text = tostring(minutes..":"..seconds)
-                        tepFightLogs[diffIDKey + k] = text
+                    local mins,secs = strsplit(":",fightLogs[k + diffIDKey])
+
+                    if tonumber(testSec) < tonumber(savedSec) then
+                        if (tonumber(testMin) <= tonumber(savedMin)) then
+                            CTT:Print("Seconds was lower.")
+                            local text = tostring(testMin..":"..testSec)
+                            CTT:Print("Fight was shorter because of seconds, recorded new fight of length: "..text)
+                        end
+                    elseif tonumber(testMin) < tonumber(savedMin) then
+                        CTT:Print("Minutes was lower.")
+                        local text = tostring(testMin..":"..testSec)
+                        CTT:Print("Fight was shorter because of minutes, recorded new fight of length: "..text)
+                    else
+                        CTT:Print("The new kill was slower than the saved kill.")
                     end
                 end
                 break
@@ -1879,7 +1897,7 @@ function CallSimulateBossKill()
     CTT:Print("Test 4 starting: ")
     SimulateBossKill(1, 2263, "Grong", 14, 50, 5, 50, 5)
     CTT:Print("Test 5 starting: ")
-    SimulateBossKill(1, 2263, "Orgoza", 14, 50, 5, "00", "00")
+    SimulateBossKill(1, 2361, "Queen Azshara", 14, 50, 5, "00", "00")
 end
 
 --@end-debug@
