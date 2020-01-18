@@ -1,3 +1,3 @@
 ##Changelog:
 ###@project-version@
-* updating incorrect boss encounter id's
+* updating for 8.3
