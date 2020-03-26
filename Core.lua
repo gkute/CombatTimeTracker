@@ -51,7 +51,8 @@ local raidInstanceZones = {
     "Uldir",
     "Battle of Dazar'alor",
     "Crucible of Storms",
-    "The Eternal Palace"
+    "The Eternal Palace",
+    "Ny'alotha, the Waking City"
 }
 
 -- Get encounter ID's 
@@ -86,6 +87,10 @@ local TEPBosses = {
     2311,
     2293,
     2299
+}
+
+local NTWCBosses = {
+
 }
 
 local difficultyList = {
@@ -216,6 +221,21 @@ function CTT:ADDON_LOADED()
     if GetAddOnMetadata("CombatTimeTracker", "Version") >= "2.5" and cttMenuOptions.uiReset then
         CTT_PopUpMessage()
     end
+
+--     local i = 1
+--     while EJ_GetInstanceByIndex(i, true) do
+--     local instanceId, name = EJ_GetInstanceByIndex(i, true)
+--     print(instanceId, name)
+--     EJ_SelectInstance(instanceId)
+--     i = i+1
+    
+--     local j = 1
+--     while EJ_GetEncounterInfoByIndex(j, instanceId) do
+--         local _,_,_,_,_,_,id,_ = EJ_GetEncounterInfoByIndex(j, instanceId)
+--         print(id)
+--         j = j+1
+--     end
+-- end
 
     cttStopwatchGui.elapsed = .05
     cttStopwatchGui:SetScript("OnUpdate", function(self, elapsed)
@@ -1898,6 +1918,7 @@ function CallSimulateBossKill()
     SimulateBossKill(1, 2263, "Grong", 14, 50, 5, 50, 5)
     CTT:Print("Test 5 starting: ")
     SimulateBossKill(1, 2361, "Queen Azshara", 14, 50, 5, "00", "00")
+
 end
 
 --@end-debug@
