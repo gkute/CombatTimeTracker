@@ -33,6 +33,10 @@
 * /ctt hide - hides the tracker if it's visible
 * /ctt longest - prints out the longest recorded fight
 
+## Support Me:
+If you would like to give me some support please considering donating by becoming a patron.  All support helps!
+[![](https://c5.patreon.com/external/logo/become_a_patron_button@2x.png)](https://www.patreon.com/bePatron?u=6756557)
+
 ### Contact Me:
 To report a problem please use the following link to join my discord server.  Then go to the Combat Time Tracker section in discord and post in the bug-reports.
 To request a feature, please use the follow link to join my discord server and post in the ctt-feature-requests.
