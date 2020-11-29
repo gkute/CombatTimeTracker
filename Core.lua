@@ -1273,7 +1273,7 @@ function CTT:CreateOptionsMenu()
     -- main menu frame
     menu = AceGUI:Create("Frame")
     menu:SetTitle("Combat Time Tracker Options")
-    menu:SetStatusText("v"..GetAddOnMetadata("CombatTimeTracker", "Version"))
+    menu:SetStatusText(GetAddOnMetadata("CombatTimeTracker", "Version"))
     menu:SetWidth(500)
     menu:SetHeight(500)
     menu:SetLayout("Fill")
