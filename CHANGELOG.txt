@@ -1,6 +1,6 @@
 ##Changelog:
 ###@project-version@
-####Major Changes
+####Major Changes(s)
 * CTT Menu can be closed by pressing escape
 * CTT Menu tabs have received an update for a future feature to track Dungeons/Raids by expansion
 * CTT Now has the option to only function while in combat
