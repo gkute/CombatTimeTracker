@@ -31,29 +31,45 @@ local instanceTypes = {
     "Dungeons Only", 
     "Raids Only",
     "Dungons and Raids Only", 
-    "Everywhere"
+    "Everywhere",
+    "Combat Only"
 }
 
 local instanceZones = {
-    "Atal'Dazar",
-    "Freehold",  
-    "King's Rest",
-    "Shrine of the Storm", 
-    "Siege of Boralus", 
-    "Temple of Sethraliss", 
-    "The Motherload!!", 
-    "The Underrot", 
-    "Tol Dagor", 
-    "Waycrest Manor"
+    "De Other Side",
+    "Halls of Atonement",  
+    "Miss of Tirna Scithe",
+    "Plaguefall", 
+    "Sanguine Depths", 
+    "Spires of Ascension", 
+    "The Necrotic Wake", 
+    "Theater of Pain"
 }
 
+-- local instanceZones = {
+--     "Atal'Dazar",
+--     "Freehold",  
+--     "King's Rest",
+--     "Shrine of the Storm", 
+--     "Siege of Boralus", 
+--     "Temple of Sethraliss", 
+--     "The Motherload!!", 
+--     "The Underrot", 
+--     "Tol Dagor", 
+--     "Waycrest Manor"
+-- }
+
 local raidInstanceZones = {
-    "Uldir",
-    "Battle of Dazar'alor",
-    "Crucible of Storms",
-    "The Eternal Palace",
-    "Ny'alotha, the Waking City"
+    "Castle Nathria"
 }
+
+-- local raidInstanceZones = {
+--     "Uldir",
+--     "Battle of Dazar'alor",
+--     "Crucible of Storms",
+--     "The Eternal Palace",
+--     "Ny'alotha, the Waking City"
+-- }
 
 local backdropSettings = {
     bgFile = "Interface/Tooltips/UI-Tooltip-Background",
@@ -163,6 +179,7 @@ function CTT:OnEnable()
     self:RegisterEvent("ZONE_CHANGED")
     self:RegisterEvent("ZONE_CHANGED_INDOORS")
     self:RegisterEvent("ZONE_CHANGED_NEW_AREA")
+    self:RegisterEvent("PLAYER_TARGET_CHANGED")
 end
 
 -- Register slash commands for addon.
@@ -253,8 +270,10 @@ function CTT:ADDON_LOADED()
         if self.elapsed > 0 then return end
         self.elapsed = 0.05
         -- rest of the code here
+        -- print(cttStopwatchGuiTargetText:GetText())
         if UnitAffectingCombat("player") or bossEncounter then
             --CTT:Print(cttElapsedSeconds)
+            CTT_CheckForTarget()
             local times = GetTime() - time
             local time = cttElapsedSeconds
             totalSeconds = floor(time)
@@ -291,6 +310,7 @@ end
 
 -- Handle the stopwatch when entering combat.
 function CTT:PLAYER_REGEN_DISABLED()
+    if cttMenuOptions.instanceType == 5 and (not cttStopwatchGui:IsShown()) then cttStopwatchGui:Show() end
     if not bossEncounter then
         time = GetTime()
         cttElapsedSeconds = 0
@@ -303,6 +323,7 @@ end
 
 -- Handle the stopwatch when leaving combat.
 function CTT:PLAYER_REGEN_ENABLED()
+    if cttMenuOptions.instanceType == 5 and cttStopwatchGui:IsShown() then cttStopwatchGui:Hide() end
     if not bossEncounter then
         if loadOptionsAfterCombat then
             CTT_ToggleMenu()
@@ -349,6 +370,7 @@ end
 
 -- Hook function into ENCOUNTER_START to handle getting the data stored.
 function CTT:Encounter_Start(...)
+    if cttMenuOptions.instanceType == 5 and not cttStopwatchGui:IsShown() then cttStopwatchGui:Show() end
     bossEncounter = true
     local arg1, arg2, arg3, arg4, arg5 = ...
     --CTT:Print(L["Encounter Started!"])
@@ -370,6 +392,7 @@ end
 
 -- Hook function into ENOUNTER_END to handle storing the data after a fight ends.
 function CTT:Encounter_End(...)
+    if cttMenuOptions.instanceType == 5 and cttStopwatchGui:IsShown() then cttStopwatchGui:Hide() end
     bossEncounter = false
     if loadOptionsAfterCombat then 
         loadOptionsAfterCombat = false
@@ -483,7 +506,7 @@ end
 -- event function to handle persistence on the settings of the tracker when the player enters the world
 function CTT:PLAYER_ENTERING_WORLD()
     --CTT:Print(GetAddOnMetadata("CombatTimeTracker", "Version"))
-    CTT_InstanceTypeDisplay()
+    CTT_InstanceTypeDisplay(cttMenuOptions.instanceType)
     if cttMenuOptions.timeTrackerSize then
         CTT_SetTrackerSizeOnLogin()
     end
@@ -530,6 +553,10 @@ function CTT:ZONE_CHANGED_NEW_AREA()
     CTT_InstanceTypeDisplay(cttMenuOptions.instanceType) 
 end
 
+-- Handle Player Target Swaps
+function CTT:PLAYER_TARGET_CHANGED()
+    CTT_CheckForTarget()
+end
 
 -- function to get the position of morpheus font
 function CTT:UpdateUsedMedia(event, mediatype, key)
@@ -615,6 +642,28 @@ function CTT_CheckForReload()
     if table.getn(fightLogs) < 36 then cttMenuOptions.uiReset = true else cttMenuOptions.uiReset = false end
 end
 
+-- Function To check for players current target
+function CTT_CheckForTarget()
+    local target = GetUnitName("Target", false)
+    local raidMarkerIcon = target ~= nil and GetRaidTargetIndex("Target") or nil
+    if target ~= nil then
+        cttStopwatchGuiTargetText:SetText(target)
+        cttStopwatchGuiTargetText:Show()
+        if raidMarkerIcon ~= nil then
+            cttStopwatchGuiTargetIcon:SetTexture("Interface/TargetingFrame/UI-RaidTargetingIcon_"..raidMarkerIcon, true)
+            cttStopwatchGuiTargetIcon:Show()
+            cttStopwatchGuiTargetIcon2:SetTexture("Interface/TargetingFrame/UI-RaidTargetingIcon_"..raidMarkerIcon, true)
+            cttStopwatchGuiTargetIcon2:Show()
+        else
+            cttStopwatchGuiTargetIcon:Hide()
+            cttStopwatchGuiTargetIcon2:Hide()
+        end
+    else
+        cttStopwatchGuiTargetText:Hide()
+        if cttStopwatchGuiTargetIcon:IsShown() then cttStopwatchGuiTargetIcon:Hide() cttStopwatchGuiTargetIcon2:Hide() end
+    end
+end
+
 -- function to setup the savedvariables
 function CTT_SetupSavedVariables()
     --print(menu.textStyleDropDown)
@@ -694,6 +743,8 @@ function CTT_InstanceTypeDisplay(key)
                 cttStopwatchGui:Hide()
             end
         end
+    elseif key == 5 then
+        if not (UnitAffectingCombat("player") or bossEncounter) and cttStopwatchGui:IsShown() then cttStopwatchGui:Hide() end
     else
         -- always show
         if not cttStopwatchGui:IsShown() then
@@ -974,6 +1025,12 @@ function CTT_InstanceTypeDropDown(widget, event, key, checked)
     cttMenuOptions.instanceType = key
     if key ~= 4 then
         CTT_InstanceTypeDisplay(key)
+    elseif key == 5 then
+        if cttStopwatchGui:IsShown() then
+            return
+        else
+            cttStopwatchGui:Hide()
+        end
     else
         if cttStopwatchGui:IsShown() then
             return
@@ -1176,583 +1233,40 @@ local function OptionsMenu(container)
     -- container.default = default
 end
     
--- function that draws the widgets for the second tab
-local function BattleForDazaralor(container)
-    -- obj:SetPoint(point, relativeFrame, relativePoint, ofsx, ofsy);
-    -- obj:SetPoint(point, relativeFrame, relativePoint);
-    -- obj:SetPoint(point, ofsx, ofsy);
-    -- obj:SetPoint(point);
-    -- negative ofsx goes left, positive goes right
-    -- negative ofsy goes down, positive goes up
-
-    -- drop down menu (to load difficulty into the window)
-    local difficultyDropDown = AceGUI:Create("Dropdown")
-    difficultyDropDown:SetLabel(" Instance Difficulty")
-    difficultyDropDown:SetFullWidth(true)
-    difficultyDropDown:SetMultiselect(false)
-    difficultyDropDown:ClearAllPoints()
-    difficultyDropDown:SetList(difficultyList)
-    if cttMenuOptions.difficultyDropDown then
-        difficultyDropDown:SetText(difficultyList[cttMenuOptions.difficultyDropDown])
-        difficultyDropDown:SetValue(cttMenuOptions.difficultyDropDown)
-    else
-        difficultyDropDown:SetText(difficultyDropDown[1])
-        difficultyDropDown:SetValue(1)
-    end
-    difficultyDropDown:SetPoint("RIGHT", container.tab, "LEFT")
-    difficultyDropDown:SetCallback("OnValueChanged", CTT_DifficultyDropDown)
-    container:AddChild(difficultyDropDown)
-    container.difficultyDropDown = difficultyDropDown
-
-    local CoL = AceGUI:Create("Label")
-    CoL:SetText("Champion of Light: ")
-    CoL:SetColor(255,255,0)
-    CoL:SetFont("Fonts\\MORPHEUS_CYR.TTF", 12)
-    CoL:SetWidth(112)
-    CoL:ClearAllPoints()
-    CoL:SetPoint("LEFT", container.tab, "LEFT", 6, 10)
-    container:AddChild(CoL)
-    container.CoL = CoL
-
-    local CoLTime = AceGUI:Create("Label")
-    CoLTime:SetText(fightLogs[1])
-    CoLTime:SetColor(255,255,255)
-    CoLTime:SetFont("Fonts\\MORPHEUS_CYR.TTF", 16)
-    CoLTime:ClearAllPoints()
-    CoLTime:SetPoint("LEFT", container.tab, "CENTER", 10, 0)
-    container:AddChild(CoLTime)
-    container.CoLTime = CoLTime
-
-    local separator1 = AceGUI:Create("Label")
-    separator1:SetFullWidth(true)
-    separator1:SetText(" ")
-    separator1:ClearAllPoints()
-    separator1:SetPoint("LEFT", container.tab, "LEFT", 6, 10)
-    container:AddChild(separator1)
-    container.separator1 = separator1
-
-    local Grong = AceGUI:Create("Label")
-    Grong:SetText("Grong: ")
-    Grong:SetColor(255,255,0)
-    Grong:SetFont("Fonts\\MORPHEUS_CYR.TTF", 12)
-    Grong:SetWidth(112)
-    Grong:ClearAllPoints()
-    Grong:SetPoint("LEFT", container.tab, "LEFT", 6, 10)
-    container:AddChild(Grong)
-    container.Grong = Grong
-
-    local GrongTime = AceGUI:Create("Label")
-    GrongTime:SetText(fightLogs[2])
-    GrongTime:SetColor(255,255,255)
-    GrongTime:SetFont("Fonts\\MORPHEUS_CYR.TTF", 16)
-    GrongTime:ClearAllPoints()
-    GrongTime:SetPoint("LEFT", container.tab, "CENTER", 10, 0)
-    container:AddChild(GrongTime)
-    container.GrongTime = GrongTime
-
-    local separator2 = AceGUI:Create("Label")
-    separator2:SetFullWidth(true)
-    separator2:SetText(" ")
-    separator2:ClearAllPoints()
-    separator2:SetPoint("LEFT", container.tab, "LEFT", 6, 10)
-    container:AddChild(separator2)
-    container.separator2 = separator2
-
-    local Monks = AceGUI:Create("Label")
-    Monks:SetText("Jadefire Masters: ")
-    Monks:SetColor(255,255,0)
-    Monks:SetFont("Fonts\\MORPHEUS_CYR.TTF", 12)
-    Monks:SetWidth(112)
-    Monks:ClearAllPoints()
-    Monks:SetPoint("LEFT", container.tab, "LEFT", 6, 10)
-    container:AddChild(Monks)
-    container.Monks = Monks
-
-    local MonksTime = AceGUI:Create("Label")
-    MonksTime:SetText(fightLogs[3])
-    MonksTime:SetColor(255,255,255)
-    MonksTime:SetFont("Fonts\\MORPHEUS_CYR.TTF", 16)
-    MonksTime:ClearAllPoints()
-    MonksTime:SetPoint("LEFT", container.tab, "CENTER", 10, 0)
-    container:AddChild(MonksTime)
-    container.MonksTime = MonksTime
-
-    local separator3 = AceGUI:Create("Label")
-    separator3:SetFullWidth(true)
-    separator3:SetText(" ")
-    separator3:ClearAllPoints()
-    separator3:SetPoint("LEFT", container.tab, "LEFT", 6, 10)
-    container:AddChild(separator3)
-    container.separator3 = separator3
-
-    local Opulence = AceGUI:Create("Label")
-    Opulence:SetText("Opulence: ")
-    Opulence:SetColor(255,255,0)
-    Opulence:SetFont("Fonts\\MORPHEUS_CYR.TTF", 12)
-    Opulence:SetWidth(112)
-    Opulence:ClearAllPoints()
-    Opulence:SetPoint("LEFT", container.tab, "LEFT", 6, 10)
-    container:AddChild(Opulence)
-    container.Opulence = Opulence
-
-    local OpulenceTime = AceGUI:Create("Label")
-    OpulenceTime:SetText(fightLogs[4])
-    OpulenceTime:SetColor(255,255,255)
-    OpulenceTime:SetFont("Fonts\\MORPHEUS_CYR.TTF", 16)
-    OpulenceTime:ClearAllPoints()
-    OpulenceTime:SetPoint("LEFT", container.tab, "CENTER", 10, 0)
-    container:AddChild(OpulenceTime)
-    container.OpulenceTime = OpulenceTime
-
-    local separator4 = AceGUI:Create("Label")
-    separator4:SetFullWidth(true)
-    separator4:SetText(" ")
-    separator4:ClearAllPoints()
-    separator4:SetPoint("LEFT", container.tab, "LEFT", 6, 10)
-    container:AddChild(separator4)
-    container.separator4 = separator4
-
-    local Council = AceGUI:Create("Label")
-    Council:SetText("Conclave of the Chosen: ")
-    Council:SetColor(255,255,0)
-    Council:SetFont("Fonts\\MORPHEUS_CYR.TTF", 12)
-    Council:SetWidth(112)
-    Council:ClearAllPoints()
-    Council:SetPoint("LEFT", container.tab, "LEFT", 6, 10)
-    container:AddChild(Council)
-    container.Grong = Council
-
-    local CouncilTime = AceGUI:Create("Label")
-    CouncilTime:SetText(fightLogs[5])
-    CouncilTime:SetColor(255,255,255)
-    CouncilTime:SetFont("Fonts\\MORPHEUS_CYR.TTF", 16)
-    CouncilTime:ClearAllPoints()
-    CouncilTime:SetPoint("LEFT", container.tab, "CENTER", 10, 0)
-    container:AddChild(CouncilTime)
-    container.CouncilTime = CouncilTime
-
-    local separator5 = AceGUI:Create("Label")
-    separator5:SetFullWidth(true)
-    separator5:SetText(" ")
-    separator5:ClearAllPoints()
-    separator5:SetPoint("LEFT", container.tab, "LEFT", 6, 10)
-    container:AddChild(separator5)
-    container.separator5 = separator5
-
-    local King = AceGUI:Create("Label")
-    King:SetText("King Rastakhan: ")
-    King:SetColor(255,255,0)
-    King:SetFont("Fonts\\MORPHEUS_CYR.TTF", 12)
-    King:SetWidth(112)
-    King:ClearAllPoints()
-    King:SetPoint("LEFT", container.tab, "LEFT", 6, 10)
-    container:AddChild(King)
-    container.King = King
-
-    local KingTime = AceGUI:Create("Label")
-    KingTime:SetText(fightLogs[6])
-    KingTime:SetColor(255,255,255)
-    KingTime:SetFont("Fonts\\MORPHEUS_CYR.TTF", 16)
-    KingTime:ClearAllPoints()
-    KingTime:SetPoint("LEFT", container.tab, "CENTER", 10, 0)
-    container:AddChild(KingTime)
-    container.KingTime = KingTime
-
-    local separator6 = AceGUI:Create("Label")
-    separator6:SetFullWidth(true)
-    separator6:SetText(" ")
-    separator6:ClearAllPoints()
-    separator6:SetPoint("LEFT", container.tab, "LEFT", 6, 10)
-    container:AddChild(separator6)
-    container.separator6 = separator6
-
-    local Mekka = AceGUI:Create("Label")
-    Mekka:SetText("High Tinker Mekkatorque: ")
-    Mekka:SetColor(255,255,0)
-    Mekka:SetFont("Fonts\\MORPHEUS_CYR.TTF", 12)
-    Mekka:SetWidth(112)
-    Mekka:ClearAllPoints()
-    Mekka:SetPoint("LEFT", container.tab, "LEFT", 6, 10)
-    container:AddChild(Mekka)
-    container.Mekka = Mekka
-
-    local MekkaTime = AceGUI:Create("Label")
-    MekkaTime:SetText(fightLogs[7])
-    MekkaTime:SetColor(255,255,255)
-    MekkaTime:SetFont("Fonts\\MORPHEUS_CYR.TTF", 16)
-    MekkaTime:ClearAllPoints()
-    MekkaTime:SetPoint("LEFT", container.tab, "CENTER", 10, 0)
-    container:AddChild(MekkaTime)
-    container.MekkaTime = MekkaTime
-
-    local separator7 = AceGUI:Create("Label")
-    separator7:SetFullWidth(true)
-    separator7:SetText(" ")
-    separator7:ClearAllPoints()
-    separator7:SetPoint("LEFT", container.tab, "LEFT", 6, 10)
-    container:AddChild(separator7)
-    container.separator7 = separator7
-
-    local Stormwall = AceGUI:Create("Label")
-    Stormwall:SetText("Stormwall Blockade: ")
-    Stormwall:SetColor(255,255,0)
-    Stormwall:SetFont("Fonts\\MORPHEUS_CYR.TTF", 12)
-    Stormwall:SetWidth(112)
-    Stormwall:ClearAllPoints()
-    Stormwall:SetPoint("LEFT", container.tab, "LEFT", 6, 10)
-    container:AddChild(Stormwall)
-    container.Stormwall = Stormwall
-
-    local StormwallTime = AceGUI:Create("Label")
-    StormwallTime:SetText(fightLogs[8])
-    StormwallTime:SetColor(255,255,255)
-    StormwallTime:SetFont("Fonts\\MORPHEUS_CYR.TTF", 16)
-    StormwallTime:ClearAllPoints()
-    StormwallTime:SetPoint("LEFT", container.tab, "CENTER", 10, 0)
-    container:AddChild(StormwallTime)
-    container.StormwallTime = StormwallTime
-
-    local separator8 = AceGUI:Create("Label")
-    separator8:SetFullWidth(true)
-    separator8:SetText(" ")
-    separator8:ClearAllPoints()
-    separator8:SetPoint("LEFT", container.tab, "LEFT", 6, 10)
-    container:AddChild(separator8)
-    container.separator8 = separator8
-
-    local IceBitch = AceGUI:Create("Label")
-    IceBitch:SetText("Lady Jaina Proudmoore: ")
-    IceBitch:SetColor(255,255,0)
-    IceBitch:SetFont("Fonts\\MORPHEUS_CYR.TTF", 12)
-    IceBitch:SetWidth(112)
-    IceBitch:ClearAllPoints()
-    IceBitch:SetPoint("LEFT", container.tab, "LEFT", 6, 10)
-    container:AddChild(IceBitch)
-    container.IceBitch = IceBitch
-
-    local IceBitchTime = AceGUI:Create("Label")
-    IceBitchTime:SetText(fightLogs[9])
-    IceBitchTime:SetColor(255,255,255)
-    IceBitchTime:SetFont("Fonts\\MORPHEUS_CYR.TTF", 16)
-    IceBitchTime:ClearAllPoints()
-    IceBitchTime:SetPoint("LEFT", container.tab, "CENTER", 10, 0)
-    container:AddChild(IceBitchTime)
-    container.IceBitchTime = IceBitchTime
-
-    CTT_UpdateMenuTexts(container,cttMenuOptions.difficultyDropDown)
-
+-- function that draws the dungeons tab
+local function Dungeons(container)
+    local Label = AceGUI:Create("Label")
+    Label:SetText("Feature Coming Soon!!")
+    Label:SetColor(255,255,0)
+    Label:SetFont("Fonts\\MORPHEUS_CYR.TTF", 12)
+    Label:SetWidth(112)
+    Label:ClearAllPoints()
+    Label:SetPoint("LEFT", container.tab, "LEFT", 6, 10)
+    container:AddChild(Label)
+    container.Label = Label
 end
 
-local function CrucibleOfStorms(container)
-    -- drop down menu (to load difficulty into the window)
-    local difficultyDropDown2 = AceGUI:Create("Dropdown")
-    difficultyDropDown2:SetLabel(" Instance Difficulty")
-    difficultyDropDown2:SetFullWidth(true)
-    difficultyDropDown2:SetMultiselect(false)
-    difficultyDropDown2:ClearAllPoints()
-    difficultyDropDown2:SetList(difficultyList)
-    if cttMenuOptions.difficultyDropDown2 then
-        difficultyDropDown2:SetText(difficultyList[cttMenuOptions.difficultyDropDown2])
-        difficultyDropDown2:SetValue(cttMenuOptions.difficultyDropDown2)
-    else
-        difficultyDropDown2:SetText(difficultyDropDown2[1])
-        difficultyDropDown2:SetValue(1)
-    end
-    difficultyDropDown2:SetPoint("RIGHT", container.tab, "LEFT")
-    difficultyDropDown2:SetCallback("OnValueChanged", CTT_cosDifficultyDropDown)
-    container:AddChild(difficultyDropDown2)
-    container.difficultyDropDown2 = difficultyDropDown2
-
-    local Cabal = AceGUI:Create("Label")
-    Cabal:SetText("The Restless Cabal: ")
-    Cabal:SetColor(255,255,0)
-    Cabal:SetFont("Fonts\\MORPHEUS_CYR.TTF", 12)
-    Cabal:SetWidth(112)
-    Cabal:ClearAllPoints()
-    Cabal:SetPoint("LEFT", container.tab, "LEFT", 6, 10)
-    container:AddChild(Cabal)
-    container.Cabal = Cabal
-
-    local CabalTime = AceGUI:Create("Label")
-    CabalTime:SetText(fightLogs[1])
-    CabalTime:SetColor(255,255,255)
-    CabalTime:SetFont("Fonts\\MORPHEUS_CYR.TTF", 16)
-    CabalTime:ClearAllPoints()
-    CabalTime:SetPoint("LEFT", container.tab, "CENTER", 10, 0)
-    container:AddChild(CabalTime)
-    container.CabalTime = CabalTime
-
-    local separator1 = AceGUI:Create("Label")
-    separator1:SetFullWidth(true)
-    separator1:SetText(" ")
-    separator1:ClearAllPoints()
-    separator1:SetPoint("LEFT", container.tab, "LEFT", 6, 10)
-    container:AddChild(separator1)
-    container.separator1 = separator1
-
-    local Uunat = AceGUI:Create("Label")
-    Uunat:SetText("Uu'nat, Harbinger of the Void: ")
-    Uunat:SetColor(255,255,0)
-    Uunat:SetFont("Fonts\\MORPHEUS_CYR.TTF", 12)
-    Uunat:SetWidth(112)
-    Uunat:ClearAllPoints()
-    Uunat:SetPoint("LEFT", container.tab, "LEFT", 6, 10)
-    container:AddChild(Uunat)
-    container.Uunat = Uunat
-
-    local UunatTime = AceGUI:Create("Label")
-    UunatTime:SetText(fightLogs[2])
-    UunatTime:SetColor(255,255,255)
-    UunatTime:SetFont("Fonts\\MORPHEUS_CYR.TTF", 16)
-    UunatTime:ClearAllPoints()
-    UunatTime:SetPoint("LEFT", container.tab, "CENTER", 10, 0)
-    container:AddChild(UunatTime)
-    container.UunatTime = UunatTime
-
-    CTT_CoSUpdateMenuTexts(container,cttMenuOptions.difficultyDropDown)
-end
-
-local function TheEternalPalace(container)
-    -- drop down menu (to load difficulty into the window)
-    local difficultyDropDown3 = AceGUI:Create("Dropdown")
-    difficultyDropDown3:SetLabel(" Instance Difficulty")
-    difficultyDropDown3:SetFullWidth(true)
-    difficultyDropDown3:SetMultiselect(false)
-    difficultyDropDown3:ClearAllPoints()
-    difficultyDropDown3:SetList(difficultyList)
-    if cttMenuOptions.difficultyDropDown3 then
-        difficultyDropDown3:SetText(difficultyList[cttMenuOptions.difficultyDropDown3])
-        difficultyDropDown3:SetValue(cttMenuOptions.difficultyDropDown3)
-    else
-        difficultyDropDown3:SetText(difficultyDropDown3[1])
-        difficultyDropDown3:SetValue(1)
-    end
-    difficultyDropDown3:SetPoint("RIGHT", container.tab, "LEFT")
-    difficultyDropDown3:SetCallback("OnValueChanged", CTT_tepDifficultyDropDown)
-    container:AddChild(difficultyDropDown3)
-    container.difficultyDropDown3 = difficultyDropDown3
-
-    local ACS = AceGUI:Create("Label")
-    ACS:SetText("Abyssal Commander Sivara: ")
-    ACS:SetColor(255,255,0)
-    ACS:SetFont("Fonts\\MORPHEUS_CYR.TTF", 12)
-    ACS:SetWidth(112)
-    ACS:ClearAllPoints()
-    ACS:SetPoint("LEFT", container.tab, "LEFT", 6, 10)
-    container:AddChild(ACS)
-    container.ACS = ACS
-
-    local ACSTime = AceGUI:Create("Label")
-    ACSTime:SetText(fightLogs[1])
-    ACSTime:SetColor(255,255,255)
-    ACSTime:SetFont("Fonts\\MORPHEUS_CYR.TTF", 16)
-    ACSTime:ClearAllPoints()
-    ACSTime:SetPoint("LEFT", container.tab, "CENTER", 10, 0)
-    container:AddChild(ACSTime)
-    container.ACSTime = ACSTime
-
-    local separator1 = AceGUI:Create("Label")
-    separator1:SetFullWidth(true)
-    separator1:SetText(" ")
-    separator1:ClearAllPoints()
-    separator1:SetPoint("LEFT", container.tab, "LEFT", 6, 10)
-    container:AddChild(separator1)
-    container.separator1 = separator1
-
-    local BB = AceGUI:Create("Label")
-    BB:SetText("Blackwater Behemoth: ")
-    BB:SetColor(255,255,0)
-    BB:SetFont("Fonts\\MORPHEUS_CYR.TTF", 12)
-    BB:SetWidth(112)
-    BB:ClearAllPoints()
-    BB:SetPoint("LEFT", container.tab, "LEFT", 6, 10)
-    container:AddChild(BB)
-    container.BB = BB
-
-    local BBTime = AceGUI:Create("Label")
-    BBTime:SetText(fightLogs[2])
-    BBTime:SetColor(255,255,255)
-    BBTime:SetFont("Fonts\\MORPHEUS_CYR.TTF", 16)
-    BBTime:ClearAllPoints()
-    BBTime:SetPoint("LEFT", container.tab, "CENTER", 10, 0)
-    container:AddChild(BBTime)
-    container.BBTime = BBTime
-
-    local separator2 = AceGUI:Create("Label")
-    separator2:SetFullWidth(true)
-    separator2:SetText(" ")
-    separator2:ClearAllPoints()
-    separator2:SetPoint("LEFT", container.tab, "LEFT", 6, 10)
-    container:AddChild(separator2)
-    container.separator2 = separator2
-
-    local RoA = AceGUI:Create("Label")
-    RoA:SetText("Radiance of Azshara: ")
-    RoA:SetColor(255,255,0)
-    RoA:SetFont("Fonts\\MORPHEUS_CYR.TTF", 12)
-    RoA:SetWidth(112)
-    RoA:ClearAllPoints()
-    RoA:SetPoint("LEFT", container.tab, "LEFT", 6, 10)
-    container:AddChild(RoA)
-    container.RoA = RoA
-
-    local RoATime = AceGUI:Create("Label")
-    RoATime:SetText(fightLogs[3])
-    RoATime:SetColor(255,255,255)
-    RoATime:SetFont("Fonts\\MORPHEUS_CYR.TTF", 16)
-    RoATime:ClearAllPoints()
-    RoATime:SetPoint("LEFT", container.tab, "CENTER", 10, 0)
-    container:AddChild(RoATime)
-    container.RoATime = RoATime
-
-    local separator3 = AceGUI:Create("Label")
-    separator3:SetFullWidth(true)
-    separator3:SetText(" ")
-    separator3:ClearAllPoints()
-    separator3:SetPoint("LEFT", container.tab, "LEFT", 6, 10)
-    container:AddChild(separator3)
-    container.separator3 = separator3
-
-    local LA = AceGUI:Create("Label")
-    LA:SetText("Lady Ashvane: ")
-    LA:SetColor(255,255,0)
-    LA:SetFont("Fonts\\MORPHEUS_CYR.TTF", 12)
-    LA:SetWidth(112)
-    LA:ClearAllPoints()
-    LA:SetPoint("LEFT", container.tab, "LEFT", 6, 10)
-    container:AddChild(LA)
-    container.LA = LA
-
-    local LATime = AceGUI:Create("Label")
-    LATime:SetText(fightLogs[4])
-    LATime:SetColor(255,255,255)
-    LATime:SetFont("Fonts\\MORPHEUS_CYR.TTF", 16)
-    LATime:ClearAllPoints()
-    LATime:SetPoint("LEFT", container.tab, "CENTER", 10, 0)
-    container:AddChild(LATime)
-    container.LATime = LATime
-
-    local separator4 = AceGUI:Create("Label")
-    separator4:SetFullWidth(true)
-    separator4:SetText(" ")
-    separator4:ClearAllPoints()
-    separator4:SetPoint("LEFT", container.tab, "LEFT", 6, 10)
-    container:AddChild(separator4)
-    container.separator4 = separator4
-
-    local O = AceGUI:Create("Label")
-    O:SetText("Orgozoa: ")
-    O:SetColor(255,255,0)
-    O:SetFont("Fonts\\MORPHEUS_CYR.TTF", 12)
-    O:SetWidth(112)
-    O:ClearAllPoints()
-    O:SetPoint("LEFT", container.tab, "LEFT", 6, 10)
-    container:AddChild(O)
-    container.O = O
-
-    local OTime = AceGUI:Create("Label")
-    OTime:SetText(fightLogs[5])
-    OTime:SetColor(255,255,255)
-    OTime:SetFont("Fonts\\MORPHEUS_CYR.TTF", 16)
-    OTime:ClearAllPoints()
-    OTime:SetPoint("LEFT", container.tab, "CENTER", 10, 0)
-    container:AddChild(OTime)
-    container.OTime = OTime
-
-    local separator5 = AceGUI:Create("Label")
-    separator5:SetFullWidth(true)
-    separator5:SetText(" ")
-    separator5:ClearAllPoints()
-    separator5:SetPoint("LEFT", container.tab, "LEFT", 6, 10)
-    container:AddChild(separator5)
-    container.separator5 = separator5
-
-    local TQC = AceGUI:Create("Label")
-    TQC:SetText("The Queen's Court: ")
-    TQC:SetColor(255,255,0)
-    TQC:SetFont("Fonts\\MORPHEUS_CYR.TTF", 12)
-    TQC:SetWidth(112)
-    TQC:ClearAllPoints()
-    TQC:SetPoint("LEFT", container.tab, "LEFT", 6, 10)
-    container:AddChild(TQC)
-    container.TQC = TQC
-
-    local TQCTime = AceGUI:Create("Label")
-    TQCTime:SetText(fightLogs[6])
-    TQCTime:SetColor(255,255,255)
-    TQCTime:SetFont("Fonts\\MORPHEUS_CYR.TTF", 16)
-    TQCTime:ClearAllPoints()
-    TQCTime:SetPoint("LEFT", container.tab, "CENTER", 10, 0)
-    container:AddChild(TQCTime)
-    container.TQCTime = TQCTime
-
-    local separator6 = AceGUI:Create("Label")
-    separator6:SetFullWidth(true)
-    separator6:SetText(" ")
-    separator6:ClearAllPoints()
-    separator6:SetPoint("LEFT", container.tab, "LEFT", 6, 10)
-    container:AddChild(separator6)
-    container.separator6 = separator6
-
-    local ZHoN = AceGUI:Create("Label")
-    ZHoN:SetText("Za'qul, Harbinger of Ny'alotha: ")
-    ZHoN:SetColor(255,255,0)
-    ZHoN:SetFont("Fonts\\MORPHEUS_CYR.TTF", 12)
-    ZHoN:SetWidth(112)
-    ZHoN:ClearAllPoints()
-    ZHoN:SetPoint("LEFT", container.tab, "LEFT", 6, 10)
-    container:AddChild(ZHoN)
-    container.ZHoN = ZHoN
-
-    local ZHoNTime = AceGUI:Create("Label")
-    ZHoNTime:SetText(fightLogs[7])
-    ZHoNTime:SetColor(255,255,255)
-    ZHoNTime:SetFont("Fonts\\MORPHEUS_CYR.TTF", 16)
-    ZHoNTime:ClearAllPoints()
-    ZHoNTime:SetPoint("LEFT", container.tab, "CENTER", 10, 0)
-    container:AddChild(ZHoNTime)
-    container.ZHoNTime = ZHoNTime
-
-    local separator7 = AceGUI:Create("Label")
-    separator7:SetFullWidth(true)
-    separator7:SetText(" ")
-    separator7:ClearAllPoints()
-    separator7:SetPoint("LEFT", container.tab, "LEFT", 6, 10)
-    container:AddChild(separator7)
-    container.separator7 = separator7
-
-    local QA = AceGUI:Create("Label")
-    QA:SetText("Queen Azshara: ")
-    QA:SetColor(255,255,0)
-    QA:SetFont("Fonts\\MORPHEUS_CYR.TTF", 12)
-    QA:SetWidth(112)
-    QA:ClearAllPoints()
-    QA:SetPoint("LEFT", container.tab, "LEFT", 6, 10)
-    container:AddChild(QA)
-    container.QA = QA
-
-    local QATime = AceGUI:Create("Label")
-    QATime:SetText(fightLogs[8])
-    QATime:SetColor(255,255,255)
-    QATime:SetFont("Fonts\\MORPHEUS_CYR.TTF", 16)
-    QATime:ClearAllPoints()
-    QATime:SetPoint("LEFT", container.tab, "CENTER", 10, 0)
-    container:AddChild(QATime)
-    container.QATime = QATime
-
-    CTT_tepUpdateMenuTexts(container,cttMenuOptions.difficultyDropDown)
+-- function that draws the raid tab
+local function Raids(container)
+    local Label = AceGUI:Create("Label")
+    Label:SetText("Feature Coming Soon!!")
+    Label:SetColor(255,255,0)
+    Label:SetFont("Fonts\\MORPHEUS_CYR.TTF", 12)
+    Label:SetWidth(112)
+    Label:ClearAllPoints()
+    Label:SetPoint("LEFT", container.tab, "LEFT", 6, 10)
+    container:AddChild(Label)
+    container.Label = Label
 end
 
 local function SelectGroup(container, event, group)
     container:ReleaseChildren()
     if group == "options" then
         OptionsMenu(container)
-    elseif group == "fightlogs" then
-        BattleForDazaralor(container)
-    elseif group == "cosraid" then
-        CrucibleOfStorms(container)
-    elseif group == "tepraid" then
-        TheEternalPalace(container)
+    elseif group == "dungeons" then
+        Dungeons(container)
+    elseif group == "raids" then
+        Raids(container)
     end
 end
 function CTT:CreateOptionsMenu()
@@ -1777,7 +1291,7 @@ function CTT:CreateOptionsMenu()
     local tab =  AceGUI:Create("TabGroup")
     tab:SetLayout("Flow")
     -- Setup which tabs to show
-    tab:SetTabs({{text="Options", value="options"}, {text="BoD Records", value="fightlogs"}, {text="CoS Records", value="cosraid"}, {text="TEP Records", value="tepraid"}})
+    tab:SetTabs({{text="Options", value="options"}, {text="Dungeons", value="dungeons"}, {text="Raids", value="raids"}})
     -- Register callback
     tab:SetCallback("OnGroupSelected", SelectGroup)
     -- Set initial Tab (this will fire the OnGroupSelected callback)
@@ -1786,6 +1300,10 @@ function CTT:CreateOptionsMenu()
     -- add to the frame container
     menu:AddChild(tab)
     menu.tab = tab
+
+    -- Add frame to the global variable table so that pressing escape key closes the menu frame
+    _G["CombatTimeTrackerMenu"] = menu.frame
+    tinsert(UISpecialFrames, "CombatTimeTrackerMenu")
 end
 
 
