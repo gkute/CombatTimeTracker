@@ -265,7 +265,9 @@ function CTT:ADDON_LOADED()
 --         print(id)
 --         j = j+1
 --     end
--- end
+-- 
+
+-- git tag -am "Tag v2.0" v2.0 && git push origin master --tags
 
     cttStopwatchGui.elapsed = .05
     cttStopwatchGui:SetScript("OnUpdate", function(self, elapsed)

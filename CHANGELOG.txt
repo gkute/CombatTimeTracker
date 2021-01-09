@@ -1,4 +1,4 @@
 ##Changelog:
 ###@project-version@
 ####Major Changes(s)
-* You can now toggle the previous "Target" feature on and off in the options menu
+* You can now toggle the previous "Target" feature on and off in the options menu per feature request
