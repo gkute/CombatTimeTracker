@@ -1,7 +1,4 @@
 ##Changelog:
 ###@project-version@
 ####Major Changes(s)
-* CTT Menu can be closed by pressing escape
-* CTT Menu tabs have received an update for a future feature to track Dungeons/Raids by expansion
-* CTT Now has the option to only function while in combat
-* CTT Now tracks what your current target is including raid marker icons
+* You can now toggle the previous "Target" feature on and off in the options menu

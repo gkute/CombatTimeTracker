@@ -215,9 +215,13 @@ function CTT:ADDON_LOADED()
         cttMenuOptions.backDropAlphaSlider = 1
         cttMenuOptions.timeValues = {"00","00","00","00","00"}
         -- cttMenuOptions.difficultyDropDown = 1
+        cttMenuOptions.toggleTarget = true
     end
     if cttMenuOptions.uiReset == nil then 
         cttMenuOptions.uiReset = true
+    end
+    if cttMenuOptions.toggleTarget == nil then
+        cttMenuOptions.toggleTarget = true
     end
     if table.getn(cttMenuOptions.timeValues) ~= 5 then
         cttMenuOptions.timeValues = {"00","00","00","00","00"}
@@ -644,6 +648,7 @@ end
 
 -- Function To check for players current target
 function CTT_CheckForTarget()
+    if not cttMenuOptions.toggleTarget then return end
     local target = GetUnitName("Target", false)
     local raidMarkerIcon = target ~= nil and GetRaidTargetIndex("Target") or nil
     if target ~= nil then
@@ -1020,6 +1025,15 @@ function CTT_MinimapIconCheckButton(widget, event, value)
     end
 end
 
+function CTT_ToggleTargetCheckButton(widget, event, value)
+    cttMenuOptions.toggleTarget = value
+    if cttMenuOptions.toggleTarget then
+        cttStopwatchGuiTargetText:Show()
+    else
+        cttStopwatchGuiTargetText:Hide()
+    end
+end
+
 function CTT_InstanceTypeDropDown(widget, event, key, checked)
     local zone = GetRealZoneText()
     cttMenuOptions.instanceType = key
@@ -1127,6 +1141,22 @@ local function OptionsMenu(container)
     minimapIconCheckButton:SetCallback("OnValueChanged",CTT_MinimapIconCheckButton)
     container:AddChild(minimapIconCheckButton)
     container.minimapIconCheckButton = minimapIconCheckButton
+
+    local toggleTarget = AceGUI:Create("CheckBox")
+    toggleTarget:SetLabel("Show Target")
+    toggleTarget:SetWidth(100)
+    toggleTarget:SetHeight(22)
+    toggleTarget:SetType("checkbox")
+    toggleTarget:ClearAllPoints()
+    if cttMenuOptions.toggleTarget then 
+        toggleTarget:SetValue(cttMenuOptions.toggleTarget)
+    else
+        toggleTarget:SetValue(true)
+    end
+    toggleTarget:SetPoint("CENTER", container.tab, "CENTER",6,0)
+    toggleTarget:SetCallback("OnValueChanged",CTT_ToggleTargetCheckButton)
+    container:AddChild(toggleTarget)
+    container.toggleTarget = toggleTarget
 
     -- color picker
     local textColorPicker = AceGUI:Create("ColorPicker")
