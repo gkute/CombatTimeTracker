@@ -32,7 +32,7 @@ jobs:
     steps:
 
       # we first have to clone the AddOn project, this is a required step
-      - name: Clone project
+      - name: Checkout addon
         uses: actions/checkout@v1 # note: v2 breaks git history, so generating a changelog and
                                   # file naming for alpha builds will not work properly
 
