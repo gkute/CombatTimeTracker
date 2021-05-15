@@ -8,7 +8,10 @@ CTT = LibStub("AceAddon-3.0"):NewAddon("CTT", "AceConsole-3.0", "AceEvent-3.0")
 
 local time = 0
 local fontTableOptions = {}
+local soundTableOptions = {}
 local bossEncounter = false
+local bossEncounterName = ""
+local lastBossSoundPlayed = ""
 local loadOptionsAfterCombat = false
 local hours = "00"
 local minutes = "00"
@@ -60,7 +63,20 @@ local instanceZones = {
 -- }
 
 local raidInstanceZones = {
-    "Castle Nathria"
+    "Castle Nathria",
+}
+
+local bosses = {
+    "Shriekwing",
+    "Huntsman Altimor",
+    "Sun King's Salvation",
+    "Artificer Xy'mox",
+    "Hungering Destroyer",
+    "Lady Inerva Darkvein",
+    "The Council of Blood",
+    "Sludgefist",
+    "Stone Legion Generals",
+    "Sire Denathrius"
 }
 
 -- local raidInstanceZones = {
@@ -207,6 +223,7 @@ function CTT:ADDON_LOADED()
         cttMenuOptions.dropdownValue = 1
         cttMenuOptions.dropdownValue2 = 1
         cttMenuOptions.dropdownValue3 = 1
+        cttMenuOptions.soundDropDownValue = 1
         cttMenuOptions.lockFrameCheckButton = true
         cttMenuOptions.fontVal = 16
         cttMenuOptions.fontName = "Fonts\\MORPHEUS_CYR.TTF"
@@ -223,11 +240,23 @@ function CTT:ADDON_LOADED()
     if cttMenuOptions.toggleTarget == nil then
         cttMenuOptions.toggleTarget = true
     end
+    if cttMenuOptions.soundName == nil then
+        cttMenuOptions.soundName = ""
+    end
+    if cttMenuOptions.soundDropDownValue == nil then
+        cttMenuOptions.soundDropDownValue = 1
+    end
     if table.getn(cttMenuOptions.timeValues) ~= 5 then
         cttMenuOptions.timeValues = {"00","00","00","00","00"}
     end
     if cttTextFormatOptions == nil or table.getn(cttTextFormatOptions) > 1 then
         cttTextFormatOptions = {"(SS)", "(MM:SS)", "(HH:MM:SS)"}
+    end
+    if cttMenuOptions.localStore ~= nil then
+        cttMenuOptions.localStore = nil
+    end
+    if cttMenuOptions.alerts == nil then
+        cttMenuOptions.alerts = {}
     end
     if fightLogs == nil then
         fightLogs = {}
@@ -310,6 +339,9 @@ function CTT:ADDON_LOADED()
 
             --cttMenuOptions.timeValues = {hours, minutes, seconds, tonumber(string.format("%02.f", math.floor(times)))}
             CTT_UpdateText(hours, minutes, seconds, miliseconds, cttMenuOptions.dropdownValue, 1)
+            if (lastBossSoundPlayed ~= totalSeconds) then
+                CTT_CheckToPlaySound()
+            end
         end
     end)
 end
@@ -379,6 +411,7 @@ function CTT:Encounter_Start(...)
     if cttMenuOptions.instanceType == 5 and not cttStopwatchGui:IsShown() then cttStopwatchGui:Show() end
     bossEncounter = true
     local arg1, arg2, arg3, arg4, arg5 = ...
+    bossEncounterName = arg3
     --CTT:Print(L["Encounter Started!"])
     -- local members = {}
     -- local numMembers = GetNumGroupMembers()
@@ -400,6 +433,7 @@ end
 function CTT:Encounter_End(...)
     if cttMenuOptions.instanceType == 5 and cttStopwatchGui:IsShown() then cttStopwatchGui:Hide() end
     bossEncounter = false
+    bossEncounterName = ""
     if loadOptionsAfterCombat then 
         loadOptionsAfterCombat = false
         CTT_ToggleMenu()
@@ -573,6 +607,8 @@ function CTT:UpdateUsedMedia(event, mediatype, key)
             break
         end
     end
+
+    soundTableOptions = LSM:List("sound")
 end
 
 -- Slash Command function
@@ -605,6 +641,7 @@ function CTT:SlashCommands(input)
         longestMin = 0
         longestSec = 0
         fightLogs = {}
+        cttMenuOptions.alerts = {}
         for i=1,36 do
             fightLogs[i] = "00:00"
         end
@@ -648,6 +685,10 @@ function CTT_CheckForReload()
     if table.getn(fightLogs) < 36 then cttMenuOptions.uiReset = true else cttMenuOptions.uiReset = false end
 end
 
+function isInt(n)
+    return (type(tonumber(n)) == "number" and (math.floor( (tonumber(n)) ) == tonumber(n)))
+end
+
 -- Function To check for players current target
 function CTT_CheckForTarget()
     if not cttMenuOptions.toggleTarget then return end
@@ -668,6 +709,16 @@ function CTT_CheckForTarget()
     else
         cttStopwatchGuiTargetText:Hide()
         if cttStopwatchGuiTargetIcon:IsShown() then cttStopwatchGuiTargetIcon:Hide() cttStopwatchGuiTargetIcon2:Hide() end
+    end
+end
+
+function CTT_CheckToPlaySound()
+    if not bossEncounter then return end
+    for k,v in pairs(cttMenuOptions.alerts) do
+        if k ~= "scrollvalue" and k ~= "offset" and cttMenuOptions.alerts[k][3] == bossEncounterName and tonumber(totalSeconds) == cttMenuOptions.alerts[k][1] then
+            lastBossSoundPlayed = totalSeconds
+            PlaySoundFile(LSM:Fetch("sound", soundTableOptions[cttMenuOptions.soundDropDownValue]), "Master")
+        end
     end
 end
 
@@ -1107,6 +1158,76 @@ function CTT_tepDifficultyDropDown(widget, event, key, checked)
     end
 end
 
+function CTT_PlaySoundOnDropDownSelect(widget, event, key, checked)
+    cttMenuOptions.soundDropDownValue = key
+    cttMenuOptions.soundName = LSM:Fetch("sound", soundTableOptions[key])
+    PlaySoundFile(LSM:Fetch("sound", soundTableOptions[key]), "Master")
+end
+
+function CTT_AlertTimeOnEnterPressed(widget, event, text)
+    cttMenuOptions.localStore = text
+end
+
+function CTT_AlertRaidDropDown(widget, event, key, checked)
+    cttMenuOptions.raidDropdown = raidInstanceZones[key]
+    -- CTT:Print(cttMenuOptions.raidDropdown)
+end
+
+function CTT_AlertBossDropDown(widget, event, key, checked)
+    cttMenuOptions.bossDropdown = bosses[key]
+    -- CTT:Print(cttMenuOptions.bossDropdown)
+end
+
+function CTT_AlertAddButtonClicked(widget, event)
+    local timeInSeconds = isInt(cttMenuOptions.localStore)
+    local key = 0
+    if cttMenuOptions.alerts[table.getn(cttMenuOptions.alerts)] ~= {} then key = 1 end
+    if cttMenuOptions.localStore ~= nil and timeInSeconds and cttMenuOptions.raidDropdown ~= nil and cttMenuOptions.bossDropdown ~= nil then
+        cttMenuOptions.alerts[table.getn(cttMenuOptions.alerts) + key] = { tonumber(cttMenuOptions.localStore), cttMenuOptions.raidDropdown, cttMenuOptions.bossDropdown, table.getn(cttMenuOptions.alerts) + 1 }
+        cttMenuOptions.localStore = nil
+        cttMenuOptions.bossDropdown = bosses[1]
+        cttMenuOptions.raidDropdown = raidInstanceZones[1]
+        CTT.menu.tab:SelectTab("alerts")
+    else
+        if not timeInSeconds then
+            CTT_AlertsErrorPopup(1)
+        elseif cttMenuOptions.raidDropdown == nil then
+            CTT_AlertsErrorPopup(2)
+        elseif cttMenuOptions.bossDropdown == nil then
+            CTT_AlertsErrorPopup(3)
+        end
+    end
+end
+
+function CTT_AlertDeleteButtonClicked(widget, event, key)
+    table.remove( cttMenuOptions.alerts, key)
+    CTT.menu.tab:SelectTab("alerts")
+end
+
+function CTT_AlertsErrorPopup(errorCode)
+    local text = "You must enter values!"
+
+    if errorCode == 1 then
+        text = "You must enter a valid time in seconds (no decimal vaues!!! e.g. 100 not 100.1)!"
+    elseif errorCode == 2 then
+        text = "You must select a raid!"
+    elseif errorCode == 3 then
+        text = "You must select a boss!"
+    end
+
+    StaticPopupDialogs["AlertError"] = {
+        text = text,
+        button1 = "Ok",
+        -- button2 = "Reset Later",
+        OnAccept = function() end,
+        timeout = 0,
+        whileDead = true,
+        hideOnEscape = true,
+        preferredIndex = 3,
+    }
+    StaticPopup_Show ("AlertError")
+end
+
 --|-----------------------|
 --| AceGUI Raid Bosses  --|
 --|-----------------------|
@@ -1255,14 +1376,24 @@ local function OptionsMenu(container)
     container:AddChild(instanceType)
     container.instanceType = instanceType
 
-    -- local default = AceGUI:Create("Button")
-    -- default:SetText("Reset Full")
-    -- default:SetWidth(100)
-    -- default:ClearAllPoints()
-    -- default:SetPoint("BOTTOMLEFT", container.tab, "BOTTOMLEFT", 6, 0)
-    -- default:SetCallback("OnClick", CTT_DefaultButtonOnClick)
-    -- container:AddChild(default)
-    -- container.default = default
+    -- Dropdown for different sound options
+    local soundPickerDropDown = AceGUI:Create("Dropdown")
+    soundPickerDropDown:SetLabel("Choose Sound")
+    soundPickerDropDown:SetWidth(250)
+    soundPickerDropDown:SetMultiselect(false)
+    soundPickerDropDown:ClearAllPoints()
+    soundPickerDropDown:SetList(LSM:List("sound"))
+    if cttMenuOptions.soundName and cttMenuOptions.soundDropDownValue then 
+        soundPickerDropDown:SetText(soundTableOptions[cttMenuOptions.soundDropDownValue])
+        soundPickerDropDown:SetValue(cttMenuOptions.soundDropDownValue)
+    else
+        soundPickerDropDown:SetText("")
+        soundPickerDropDown:SetValue(1)
+    end
+    soundPickerDropDown:SetPoint("LEFT", container.tab, "LEFT", 6, 0)
+    soundPickerDropDown:SetCallback("OnValueChanged", CTT_PlaySoundOnDropDownSelect)
+    container:AddChild(soundPickerDropDown)
+    container.soundPickerDropDown = soundPickerDropDown
 end
     
 -- function that draws the dungeons tab
@@ -1291,6 +1422,101 @@ local function Raids(container)
     container.Label = Label
 end
 
+-- function that draws the Alert Times tab
+local function Alerts(container)
+    cttMenuOptions.bossDropdown = bosses[1]
+    cttMenuOptions.raidDropdown = raidInstanceZones[1]
+    -- Input field to get the time (in seconds)
+    local timeInput = AceGUI:Create("EditBox")
+    timeInput:SetLabel("Alert Time(seconds)")
+    timeInput:SetWidth(115)
+    timeInput:ClearAllPoints()
+    timeInput:SetPoint("LEFT", container.tab, "LEFT", 6, 10)
+    timeInput:SetCallback("OnEnterPressed", CTT_AlertTimeOnEnterPressed)
+    container:AddChild(timeInput)
+    container.timeInput = timeInput
+
+    -- Select Raid
+    local raidDropdown = AceGUI:Create("Dropdown")
+    raidDropdown:SetLabel("Select Raid")
+    raidDropdown:SetMultiselect(false)
+    raidDropdown:SetList(raidInstanceZones)
+    raidDropdown:SetText(raidInstanceZones[1])
+    raidDropdown:SetValue(1)
+    raidDropdown:SetWidth(125)
+    raidDropdown:ClearAllPoints()
+    raidDropdown:SetPoint("LEFT", container.tab, "LEFT", 6, 10)
+    raidDropdown:SetCallback("OnValueChanged", CTT_AlertRaidDropDown)
+    container:AddChild(raidDropdown)
+    container.raidDropdown = raidDropdown
+
+    -- Select Boss
+    local bossDropdown = AceGUI:Create("Dropdown")
+    bossDropdown:SetLabel("Select Boss")
+    bossDropdown:SetMultiselect(false)
+    bossDropdown:SetList(bosses)
+    bossDropdown:SetText(bosses[1])
+    bossDropdown:SetValue(1)
+    bossDropdown:SetWidth(125)
+    bossDropdown:ClearAllPoints()
+    bossDropdown:SetPoint("LEFT", container.tab, "LEFT", 6, 10)
+    bossDropdown:SetCallback("OnValueChanged", CTT_AlertBossDropDown)
+    container:AddChild(bossDropdown)
+    container.bossDropdown = bossDropdown
+
+    -- Add alert to list
+    local addAlertButton = AceGUI:Create("Button")
+    addAlertButton:SetText("Add")
+    addAlertButton:SetWidth(75)
+    addAlertButton:ClearAllPoints()
+    addAlertButton:SetPoint("LEFT", container.tab, "LEFT", 6, 10)
+    addAlertButton:SetCallback("OnClick", CTT_AlertAddButtonClicked)
+    container:AddChild(addAlertButton)
+    container.addAlertButton = addAlertButton
+
+    -- scroll frame for timers
+    scrollcontainer = AceGUI:Create("InlineGroup") -- "InlineGroup" is also good
+    scrollcontainer:SetFullWidth(true)
+    scrollcontainer:SetFullHeight(true) -- probably?
+    scrollcontainer:SetLayout("Fill") -- important!
+
+    container:AddChild(scrollcontainer)
+
+    scroll = AceGUI:Create("ScrollFrame")
+    scroll:SetLayout("Flow") -- probably?
+    scroll:SetStatusTable(cttMenuOptions.alerts)
+    scrollcontainer:AddChild(scroll)
+
+    
+
+    for i,v in ipairs(cttMenuOptions.alerts) do
+        local value = "value".. i
+        value = AceGUI:Create("Label")
+        value:SetText("Seconds into fight: " .. cttMenuOptions.alerts[i][1] .. ", Raid: " .. cttMenuOptions.alerts[i][2] .. ", Boss: " .. cttMenuOptions.alerts[i][3])
+        value:SetColor(255,255,0)
+        value:SetFont("Fonts\\MORPHEUS_CYR.TTF", 10)
+        if(table.getn(cttMenuOptions.alerts) > 10) then
+            value:SetWidth(350)
+        else
+            value:SetWidth(375)
+        end
+        value:ClearAllPoints()
+        value:SetPoint("LEFT", nil, "LEFT", 6, 10)
+        scroll:AddChild(value)
+
+        local deleteBtn = "btn" .. i 
+        deleteBtn = AceGUI:Create("Button")
+        deleteBtn:SetText("X")
+        deleteBtn:SetWidth(40)
+        deleteBtn:ClearAllPoints()
+        deleteBtn:SetPoint("LEFT", nil, "LEFT", 6, 10)
+        deleteBtn:SetCallback("OnClick", function(widget) CTT_AlertDeleteButtonClicked(widget, event, i) end )
+        scroll:AddChild(deleteBtn)
+    end
+
+    
+end
+
 local function SelectGroup(container, event, group)
     container:ReleaseChildren()
     if group == "options" then
@@ -1299,6 +1525,8 @@ local function SelectGroup(container, event, group)
         Dungeons(container)
     elseif group == "raids" then
         Raids(container)
+    elseif group == "alerts" then
+        Alerts(container)
     end
 end
 function CTT:CreateOptionsMenu()
@@ -1323,7 +1551,7 @@ function CTT:CreateOptionsMenu()
     local tab =  AceGUI:Create("TabGroup")
     tab:SetLayout("Flow")
     -- Setup which tabs to show
-    tab:SetTabs({{text="Options", value="options"}, {text="Dungeons", value="dungeons"}, {text="Raids", value="raids"}})
+    tab:SetTabs({{text="Options", value="options"}, {text="Dungeons", value="dungeons"}, {text="Raids", value="raids"}, {text="Alert Times", value="alerts"}})
     -- Register callback
     tab:SetCallback("OnGroupSelected", SelectGroup)
     -- Set initial Tab (this will fire the OnGroupSelected callback)
