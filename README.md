@@ -4,23 +4,27 @@
 
 ## Features:
 
-* Automatically starts a custom stopwatch when entering combat.
-* Automatically stops the stopwatch when exiting combat.
-* Tracks fastest kill times for each BoD fight on each difficulty.
-* Check to see if it's your longest fight, then updates if it was.
-* Option to change text color.
-* Option to change the text format on the tracker.
-* Option to resize the tracker(within reason).
-* Option to select which font to use for the text.
-* Option to change the backdrop opacity.
+* Automatically starts a custom stopwatch when entering combat
+* Automatically stops the stopwatch when exiting combat
+* Check to see if it's your longest fight, then updates if it was
+* Option to change text color
+* Option to change the text format on the tracker
+* Option to resize the tracker(within reason)
+* Option to select which font to use for the text
+* Option to change the backdrop opacity
 * Option to choose when the tracker loads:
     * Dungeons Only
     * Raids Only
     * Dungeons and Raids Only
     * Everywhere (selected by default)
+    * Combat Only
+* Option to play sounds during raid bosses
+    * Can play sound of your choice by whats available in-game
+* Option to toggle showing current target inside tracker frame
 
 ## Coming Soon:
-* Finish locale support
+* Option to toggle on/off print functionality of text after combat
+* More display formats for the tracker
 
 ## Slash Commands:
 
