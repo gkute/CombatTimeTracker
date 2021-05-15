@@ -9,22 +9,14 @@ on:
     # Sequence of patterns matched against refs/heads
     branches:    
       # Push events on main branch
-      - main
-      # Push events to branches matching refs/heads/mona/octocat
-      - 'mona/octocat'
-      # Push events to branches matching refs/heads/releases/10
-      - 'releases/**'
+      - master
     # Sequence of patterns matched against refs/tags
     tags:        
       - v*
   pull_request:
     branches:    
       # Push events on main branch
-      - main
-      # Push events to branches matching refs/heads/mona/octocat
-      - 'mona/octocat'
-      # Push events to branches matching refs/heads/releases/10
-      - 'releases/**'
+      - master
     # Sequence of patterns matched against refs/tags
     tags:        
       - v*
