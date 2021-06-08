@@ -79,6 +79,19 @@ local bosses = {
     "Sire Denathrius"
 }
 
+local bossEncounterID = {
+    2398,
+    2418,
+    2402,
+    2405,
+    2383,
+    2406,
+    2412,
+    2399,
+    2417,
+    2407
+}
+
 -- local raidInstanceZones = {
 --     "Uldir",
 --     "Battle of Dazar'alor",
@@ -250,7 +263,7 @@ function CTT:ADDON_LOADED()
         cttMenuOptions.timeValues = {"00","00","00","00","00"}
     end
     if cttTextFormatOptions == nil or table.getn(cttTextFormatOptions) > 1 then
-        cttTextFormatOptions = {"(SS)", "(MM:SS)", "(HH:MM:SS)"}
+        cttTextFormatOptions = {"(SS)", "(MM:SS)", "(HH:MM:SS)", "(MM:SS.MS)", "(MM:SS:MS)"}
     end
     if cttMenuOptions.localStore ~= nil then
         cttMenuOptions.localStore = nil
@@ -258,6 +271,7 @@ function CTT:ADDON_LOADED()
     if cttMenuOptions.alerts == nil then
         cttMenuOptions.alerts = {}
     end
+    if cttMenuOptions.bossDropDownkey == nil then cttMenuOptions.bossDropDownkey = 1 end
     if fightLogs == nil then
         fightLogs = {}
         for i=1,36 do
@@ -277,7 +291,7 @@ function CTT:ADDON_LOADED()
         end
     end
     CTT_CheckForReload()
-    if GetAddOnMetadata("CombatTimeTracker", "Version") >= "2.5" and cttMenuOptions.uiReset then
+    if GetAddOnMetadata("CombatTimeTracker", "Version") >= cttMenuOptions.lastVersion and cttMenuOptions.uiReset then
         CTT_PopUpMessage()
     end
 
@@ -411,7 +425,7 @@ function CTT:Encounter_Start(...)
     if cttMenuOptions.instanceType == 5 and not cttStopwatchGui:IsShown() then cttStopwatchGui:Show() end
     bossEncounter = true
     local arg1, arg2, arg3, arg4, arg5 = ...
-    bossEncounterName = arg3
+    bossEncounterName = arg2
     --CTT:Print(L["Encounter Started!"])
     -- local members = {}
     -- local numMembers = GetNumGroupMembers()
@@ -442,102 +456,8 @@ function CTT:Encounter_End(...)
     local arg1, arg2, arg3, arg4, arg5, arg6 = ...
     local diffIDKey = 0
     if arg6 == 1 then
-        for k,v in pairs(BoDBosses) do
-            if v == arg2 then
-                if arg4 == 14 then 
-                    diffIDKey = 9
-                elseif arg4 == 15 then
-                    diffIDKey = 18 
-                elseif arg4 == 16 then 
-                    diffIDKey = 27
-                end
-
-                local mins,secs = strsplit(":",fightLogs[k + diffIDKey])
-                if (mins =="00" and secs == "00") then
-                    local text = tostring(minutes..":"..seconds)
-                    fightLogs[diffIDKey + k] = text
-                else
-                    if tonumber(seconds) < tonumber(secs) then
-                        if (tonumber(minutes) <= tonumber(mins)) then
-                            local text = tostring(minutes..":"..seconds)
-                            fightLogs[diffIDKey + k] = text
-                        end
-                    else
-                        if tonumber(minutes) < tonumber(mins) then
-                            local text = tostring(minutes..":"..seconds)
-                            fightLogs[diffIDKey + k] = text
-                        end
-                    end
-                    break
-                end
-            end
-        end
-
-        for k,v in pairs(CoSBosses) do
-            if v == arg2 then
-                if arg4 == 14 then 
-                    diffIDKey = 2
-                elseif arg4 == 15 then
-                    diffIDKey = 4 
-                elseif arg4 == 16 then 
-                    diffIDKey = 6
-                end
-                local mins,secs = strsplit(":",CoSFightLogs[k + diffIDKey])
-                if (mins =="00" and secs == "00") then
-                    local text = tostring(minutes..":"..seconds)
-                    CoSFightLogs[diffIDKey + k] = text
-                else
-                    if tonumber(seconds) < tonumber(secs) then
-                        if (tonumber(minutes) <= tonumber(mins)) then
-                            local text = tostring(minutes..":"..seconds)
-                            CoSFightLogs[diffIDKey + k] = text
-                        end
-                    else
-                        if tonumber(minutes) < tonumber(mins) then
-                            local text = tostring(minutes..":"..seconds)
-                            CoSFightLogs[diffIDKey + k] = text
-                        end
-                    end
-                    break
-                end
-            end
-        end
-
-        for k,v in pairs(TEPBosses) do
-            if v == arg2 then
-                if arg4 == 14 then 
-                    diffIDKey = 8
-                elseif arg4 == 15 then
-                    diffIDKey = 16 
-                elseif arg4 == 16 then 
-                    diffIDKey = 24
-                end
-                local mins,secs = strsplit(":",tepFightLogs[k + diffIDKey])
-                if (mins =="00" and secs == "00") then
-                    local text = tostring(minutes..":"..seconds)
-                    tepFightLogs[diffIDKey + k] = text
-                else
-                    if tonumber(seconds) < tonumber(secs) then
-                        if (tonumber(minutes) <= tonumber(mins)) then
-                            local text = tostring(minutes..":"..seconds)
-                            tepFightLogs[diffIDKey + k] = text
-                        end
-                    else
-                        if tonumber(minutes) < tonumber(mins) then
-                            local text = tostring(minutes..":"..seconds)
-                            tepFightLogs[diffIDKey + k] = text
-                        end
-                    end
-                    break
-                end
-            end
-        end
-        
         CTT_DisplayResultsBosses(arg3, true)
     else
-        --local index = table.getn(fightLogs)
-        --fightLogs[index][7] = {hours, minutes, seconds, totalSeconds, miliseconds}
-        --cttMenuOptions.timeValues = {hours, minutes, seconds, totalSeconds, miliseconds}
         CTT_DisplayResultsBosses(arg3, false)
     end
 end
@@ -682,7 +602,7 @@ end
 
 -- function to check if a ui reset is needed.
 function CTT_CheckForReload()
-    if table.getn(fightLogs) < 36 then cttMenuOptions.uiReset = true else cttMenuOptions.uiReset = false end
+    if cttMenuOptions.lastVersion == nil then cttMenuOptions.uiReset = true cttMenuOptions.lastVersion = GetAddOnMetadata("CombatTimeTracker", "Version") else cttMenuOptions.uiReset = false end
 end
 
 function isInt(n)
@@ -715,7 +635,7 @@ end
 function CTT_CheckToPlaySound()
     if not bossEncounter then return end
     for k,v in pairs(cttMenuOptions.alerts) do
-        if k ~= "scrollvalue" and k ~= "offset" and cttMenuOptions.alerts[k][3] == bossEncounterName and tonumber(totalSeconds) == cttMenuOptions.alerts[k][1] then
+        if k ~= "scrollvalue" and k ~= "offset" and bossEncounterID[cttMenuOptions.alerts[k][4]] == bossEncounterName and tonumber(totalSeconds) == cttMenuOptions.alerts[k][1] then
             lastBossSoundPlayed = totalSeconds
             PlaySoundFile(LSM:Fetch("sound", soundTableOptions[cttMenuOptions.soundDropDownValue]), "Master")
         end
@@ -893,6 +813,10 @@ function CTT_UpdateText(hours, minutes, seconds, miliseconds, textFormat, fontUp
         end
     elseif textFormat == 2 then
         cttStopwatchGuiTimeText:SetText(minutes .. ":" .. seconds)-- .. "." .. miliseconds)
+    elseif textFormat == 4 then
+        cttStopwatchGuiTimeText:SetText(minutes .. ":" .. seconds .. "." .. miliseconds)
+    elseif textFormat == 5 then
+        cttStopwatchGuiTimeText:SetText(minutes .. ":" .. seconds .. ":" .. miliseconds)
     else
         cttStopwatchGuiTimeText:SetText(hours .. ":" .. minutes .. ":" .. seconds)-- .. "." .. miliseconds)
     end
@@ -1175,6 +1099,7 @@ end
 
 function CTT_AlertBossDropDown(widget, event, key, checked)
     cttMenuOptions.bossDropdown = bosses[key]
+    cttMenuOptions.bossDropDownkey = key
     -- CTT:Print(cttMenuOptions.bossDropdown)
 end
 
@@ -1183,10 +1108,11 @@ function CTT_AlertAddButtonClicked(widget, event)
     local key = 0
     if cttMenuOptions.alerts[table.getn(cttMenuOptions.alerts)] ~= {} then key = 1 end
     if cttMenuOptions.localStore ~= nil and timeInSeconds and cttMenuOptions.raidDropdown ~= nil and cttMenuOptions.bossDropdown ~= nil then
-        cttMenuOptions.alerts[table.getn(cttMenuOptions.alerts) + key] = { tonumber(cttMenuOptions.localStore), cttMenuOptions.raidDropdown, cttMenuOptions.bossDropdown, table.getn(cttMenuOptions.alerts) + 1 }
+        cttMenuOptions.alerts[table.getn(cttMenuOptions.alerts) + key] = { tonumber(cttMenuOptions.localStore), cttMenuOptions.raidDropdown, cttMenuOptions.bossDropdown, cttMenuOptions.bossDropDownkey }
         cttMenuOptions.localStore = nil
         cttMenuOptions.bossDropdown = bosses[1]
         cttMenuOptions.raidDropdown = raidInstanceZones[1]
+        cttMenuOptions.bossDropDownkey = 1
         CTT.menu.tab:SelectTab("alerts")
     else
         if not timeInSeconds then
@@ -1492,7 +1418,7 @@ local function Alerts(container)
     for i,v in ipairs(cttMenuOptions.alerts) do
         local value = "value".. i
         value = AceGUI:Create("Label")
-        value:SetText("Seconds into fight: " .. cttMenuOptions.alerts[i][1] .. ", Raid: " .. cttMenuOptions.alerts[i][2] .. ", Boss: " .. cttMenuOptions.alerts[i][3])
+        value:SetText("Seconds into fight: " .. cttMenuOptions.alerts[i][1] .. ", Raid: " .. cttMenuOptions.alerts[i][2] .. ", Boss: " .. bosses[cttMenuOptions.alerts[i][4]])
         value:SetColor(255,255,0)
         value:SetFont("Fonts\\MORPHEUS_CYR.TTF", 10)
         if(table.getn(cttMenuOptions.alerts) > 10) then

@@ -1,4 +1,5 @@
 ##Changelog:
 ###@project-version@
 ####Major Changes(s)
-* You can have the addon play a sound for a given raid boss at a specific interval (in seconds).  This sound is configurable in the main options menu.
+* Bug fix for sound playing on boss fight not working as designed
+* Adding new display options for the tracker
