@@ -1,5 +1,4 @@
 ##Changelog:
 ###@project-version@
 ####Major Changes(s)
-* Bug fix for sound playing on boss fight not working as designed
-* Adding new display options for the tracker
+* updating debug
