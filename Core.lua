@@ -246,6 +246,7 @@ function CTT:ADDON_LOADED()
         cttMenuOptions.timeValues = {"00","00","00","00","00"}
         -- cttMenuOptions.difficultyDropDown = 1
         cttMenuOptions.toggleTarget = true
+        cttMenuOptions.togglePrint = true
     end
     if cttMenuOptions.uiReset == nil then 
         cttMenuOptions.uiReset = true
@@ -756,6 +757,7 @@ end
 
 -- function to display results on ecounter end or regen enabled
 function CTT_DisplayResults(newRecord)
+    if not cttMenuOptions.togglePrint then return end
     if cttMenuOptions.dropdownValue == 1 then
         if newRecord then 
             CTT:Print(L["New Record! Fight ended in "] .. cttMenuOptions.timeValues[4] .. "." .. cttMenuOptions.timeValues[5] .. " " .. L["seconds"] .. "!")
@@ -779,6 +781,7 @@ end
 
 -- function to fix display results on a boss encounter ending
 function CTT_DisplayResultsBosses(bossEncounter, wasAKill)
+    if not cttMenuOptions.togglePrint then return end
     if cttMenuOptions.dropdownValue == 1 then
         if wasAKill then
             CTT:Print(L["You have successfully killed "] .. bossEncounter .. " " .. L["after"] .. " " .. totalSeconds .. "." .. miliseconds .. " " .. L["seconds"] .. "!")
@@ -1011,6 +1014,10 @@ function CTT_ToggleTargetCheckButton(widget, event, value)
     end
 end
 
+function CTT_TogglePrintCheckButton(widget, event, value)
+    cttMenuOptions.togglePrint = value;
+end
+
 function CTT_InstanceTypeDropDown(widget, event, key, checked)
     local zone = GetRealZoneText()
     cttMenuOptions.instanceType = key
@@ -1164,19 +1171,19 @@ local function OptionsMenu(container)
     -- frame lock button
     local lockFrameCheckButton = AceGUI:Create("CheckBox")
     lockFrameCheckButton:SetLabel(L["Lock"])
-    lockFrameCheckButton:SetWidth(80)
+    lockFrameCheckButton:SetWidth(60)
     lockFrameCheckButton:SetHeight(22)
     lockFrameCheckButton:SetType("checkbox")
     lockFrameCheckButton:ClearAllPoints()
     if cttMenuOptions.lockFrameCheckButton then lockFrameCheckButton:SetValue(cttMenuOptions.lockFrameCheckButton)end
-    lockFrameCheckButton:SetPoint("TOPLEFT", container.tab, "TOPLEFT",6, 0)
+    lockFrameCheckButton:SetPoint("TOPLEFT", container.tab, "TOPLEFT", 6, 0)
     lockFrameCheckButton:SetCallback("OnValueChanged",CTT_LockFrameCheckBoxState)
     container:AddChild(lockFrameCheckButton)
     container.lockFrameCheckButton = lockFrameCheckButton
 
     local minimapIconCheckButton = AceGUI:Create("CheckBox")
     minimapIconCheckButton:SetLabel("Hide Minimap")
-    minimapIconCheckButton:SetWidth(100)
+    minimapIconCheckButton:SetWidth(110)
     minimapIconCheckButton:SetHeight(22)
     minimapIconCheckButton:SetType("checkbox")
     minimapIconCheckButton:ClearAllPoints()
@@ -1185,7 +1192,7 @@ local function OptionsMenu(container)
     else
         minimapIconCheckButton:SetValue(false)
     end
-    minimapIconCheckButton:SetPoint("CENTER", container.tab, "CENTER",6,0)
+    minimapIconCheckButton:SetPoint("TOPLEFT", container.tab, "TOPLEFT", 6, 0)
     --minimapIconCheckButton:SetCallBack("OnValueChanged", CTT_MinimapIconCheckButton)
     minimapIconCheckButton:SetCallback("OnValueChanged",CTT_MinimapIconCheckButton)
     container:AddChild(minimapIconCheckButton)
@@ -1202,10 +1209,27 @@ local function OptionsMenu(container)
     else
         toggleTarget:SetValue(true)
     end
-    toggleTarget:SetPoint("CENTER", container.tab, "CENTER",6,0)
+    toggleTarget:SetPoint("TOPLEFT", container.tab, "TOPLEFT", 6, 0)
     toggleTarget:SetCallback("OnValueChanged",CTT_ToggleTargetCheckButton)
     container:AddChild(toggleTarget)
     container.toggleTarget = toggleTarget
+
+    -- toggle printing
+    local togglePrint = AceGUI:Create("CheckBox")
+    togglePrint:SetLabel("Toggle Messages")
+    togglePrint:SetWidth(140)
+    togglePrint:SetHeight(22)
+    togglePrint:SetType("checkbox")
+    togglePrint:ClearAllPoints()
+    if cttMenuOptions.togglePrint then 
+        togglePrint:SetValue(cttMenuOptions.togglePrint)
+    else
+        togglePrint:SetValue(true)
+    end
+    togglePrint:SetPoint("TOPLEFT", container.tab, "TOPLEFT", 6, 0)
+    togglePrint:SetCallback("OnValueChanged", CTT_TogglePrintCheckButton)
+    container:AddChild(togglePrint)
+    container.togglePrint = togglePrint
 
     -- color picker
     local textColorPicker = AceGUI:Create("ColorPicker")
