@@ -1,4 +1,4 @@
 ##Changelog:
 ###@project-version@
 ####Major Changes(s)
-* adding ability to toggle printing results after combat ending
+* updating toc for patch 9.1
