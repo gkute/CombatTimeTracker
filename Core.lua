@@ -46,7 +46,8 @@ local instanceZones = {
     "Sanguine Depths", 
     "Spires of Ascension", 
     "The Necrotic Wake", 
-    "Theater of Pain"
+    "Theater of Pain",
+    "Tazavesh, the Veiled Market"
 }
 
 -- local instanceZones = {
@@ -64,6 +65,7 @@ local instanceZones = {
 
 local raidInstanceZones = {
     "Castle Nathria",
+    "Sanctum of Domination"
 }
 
 local bosses = {
@@ -79,6 +81,19 @@ local bosses = {
     "Sire Denathrius"
 }
 
+local bossesSOD = {
+    "The Tarragrue",
+    "The Eye of the Jailer",
+    "The Nine",
+    "Remnat of Ner'zhul",
+    "Soulrender Dormazain",
+    "Painsmith Raznal",
+    "Guardian of the First Ones",
+    "Fatescribe Roh-Kalo",
+    "Kel'Thuzad",
+    "Sylvanas Windrunner"
+}
+
 local bossEncounterID = {
     2398,
     2418,
@@ -90,6 +105,19 @@ local bossEncounterID = {
     2399,
     2417,
     2407
+}
+
+local EcounterIdSOD = {
+    2423,
+    2433,
+    2429,
+    2432,
+    2434,
+    2430,
+    2436,
+    2431,
+    2422,
+    2435
 }
 
 -- local raidInstanceZones = {
@@ -250,6 +278,12 @@ function CTT:ADDON_LOADED()
     end
     if cttMenuOptions.uiReset == nil then 
         cttMenuOptions.uiReset = true
+    end
+    if cttMenuOptions.raidKey == nil then
+        cttMenuOptions.raidKey = 1
+    end
+    if cttMenuOptions.bossDropDownkey == nil then
+        cttMenuOptions.bossDropDownkey = 1
     end
     if cttMenuOptions.toggleTarget == nil then
         cttMenuOptions.toggleTarget = true
@@ -1100,13 +1134,19 @@ function CTT_AlertTimeOnEnterPressed(widget, event, text)
 end
 
 function CTT_AlertRaidDropDown(widget, event, key, checked)
+    cttMenuOptions.raidKey = key
     cttMenuOptions.raidDropdown = raidInstanceZones[key]
-    -- CTT:Print(cttMenuOptions.raidDropdown)
+    CTT.menu.tab:SelectTab("alerts")
 end
 
 function CTT_AlertBossDropDown(widget, event, key, checked)
-    cttMenuOptions.bossDropdown = bosses[key]
-    cttMenuOptions.bossDropDownkey = key
+    if cttMenuOptions.raidKey == 2 then
+        cttMenuOptions.bossDropdown = bossesSOD[key]
+        cttMenuOptions.bossDropDownkey = key
+    else
+        cttMenuOptions.bossDropdown = bosses[key]
+        cttMenuOptions.bossDropDownkey = key
+    end
     -- CTT:Print(cttMenuOptions.bossDropdown)
 end
 
@@ -1116,10 +1156,6 @@ function CTT_AlertAddButtonClicked(widget, event)
     if cttMenuOptions.alerts[table.getn(cttMenuOptions.alerts)] ~= {} then key = 1 end
     if cttMenuOptions.localStore ~= nil and timeInSeconds and cttMenuOptions.raidDropdown ~= nil and cttMenuOptions.bossDropdown ~= nil then
         cttMenuOptions.alerts[table.getn(cttMenuOptions.alerts) + key] = { tonumber(cttMenuOptions.localStore), cttMenuOptions.raidDropdown, cttMenuOptions.bossDropdown, cttMenuOptions.bossDropDownkey }
-        cttMenuOptions.localStore = nil
-        cttMenuOptions.bossDropdown = bosses[1]
-        cttMenuOptions.raidDropdown = raidInstanceZones[1]
-        cttMenuOptions.bossDropDownkey = 1
         CTT.menu.tab:SelectTab("alerts")
     else
         if not timeInSeconds then
@@ -1374,8 +1410,8 @@ end
 
 -- function that draws the Alert Times tab
 local function Alerts(container)
-    cttMenuOptions.bossDropdown = bosses[1]
-    cttMenuOptions.raidDropdown = raidInstanceZones[1]
+    -- cttMenuOptions.bossDropdown = bosses[1]
+    -- cttMenuOptions.raidDropdown = raidInstanceZones[1]
     -- Input field to get the time (in seconds)
     local timeInput = AceGUI:Create("EditBox")
     timeInput:SetLabel("Alert Time(seconds)")
@@ -1391,8 +1427,8 @@ local function Alerts(container)
     raidDropdown:SetLabel("Select Raid")
     raidDropdown:SetMultiselect(false)
     raidDropdown:SetList(raidInstanceZones)
-    raidDropdown:SetText(raidInstanceZones[1])
-    raidDropdown:SetValue(1)
+    raidDropdown:SetText(raidInstanceZones[cttMenuOptions.raidKey])
+    raidDropdown:SetValue(cttMenuOptions.raidKey)
     raidDropdown:SetWidth(125)
     raidDropdown:ClearAllPoints()
     raidDropdown:SetPoint("LEFT", container.tab, "LEFT", 6, 10)
@@ -1404,9 +1440,15 @@ local function Alerts(container)
     local bossDropdown = AceGUI:Create("Dropdown")
     bossDropdown:SetLabel("Select Boss")
     bossDropdown:SetMultiselect(false)
-    bossDropdown:SetList(bosses)
-    bossDropdown:SetText(bosses[1])
-    bossDropdown:SetValue(1)
+    if cttMenuOptions.raidKey == 1 then
+        bossDropdown:SetList(bosses)
+        bossDropdown:SetText(bosses[cttMenuOptions.bossDropDownkey])
+        bossDropdown:SetValue(cttMenuOptions.bossDropDownkey)
+    else
+        bossDropdown:SetList(bossesSOD)
+        bossDropdown:SetText(bossesSOD[cttMenuOptions.bossDropDownkey])
+        bossDropdown:SetValue(cttMenuOptions.bossDropDownkey)
+    end
     bossDropdown:SetWidth(125)
     bossDropdown:ClearAllPoints()
     bossDropdown:SetPoint("LEFT", container.tab, "LEFT", 6, 10)
@@ -1442,7 +1484,7 @@ local function Alerts(container)
     for i,v in ipairs(cttMenuOptions.alerts) do
         local value = "value".. i
         value = AceGUI:Create("Label")
-        value:SetText("Seconds into fight: " .. cttMenuOptions.alerts[i][1] .. ", Raid: " .. cttMenuOptions.alerts[i][2] .. ", Boss: " .. bosses[cttMenuOptions.alerts[i][4]])
+        value:SetText("Seconds into fight: " .. cttMenuOptions.alerts[i][1] .. ", Raid: " .. cttMenuOptions.alerts[i][2] .. ", Boss: " .. cttMenuOptions.alerts[i][3])
         value:SetColor(255,255,0)
         value:SetFont("Fonts\\MORPHEUS_CYR.TTF", 10)
         if(table.getn(cttMenuOptions.alerts) > 10) then

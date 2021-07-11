@@ -1,4 +1,4 @@
 ##Changelog:
 ###@project-version@
 ####Major Changes(s)
-* updating toc for patch 9.1
+* updating to include new sanctum of domination raid for alerts
