@@ -2,8 +2,12 @@
 [![CombatTimeTracker on Discord](https://img.shields.io/badge/discord-CombatTimeTracker-blue.svg)](https://discord.gg/37CUxNn)
 # Combat Time Tracker
 
-## Features:
+## What's New:
+* Option to choose if combat end text prints
+* Retaining values when adding alerts
+* Added new time format of MM:SS.MS
 
+## Features:
 * Automatically starts a custom stopwatch when entering combat
 * Automatically stops the stopwatch when exiting combat
 * Check to see if it's your longest fight, then updates if it was
@@ -12,6 +16,7 @@
 * Option to resize the tracker(within reason)
 * Option to select which font to use for the text
 * Option to change the backdrop opacity
+* Option to choose if combat end text prints
 * Option to choose when the tracker loads:
     * Dungeons Only
     * Raids Only
@@ -23,8 +28,8 @@
 * Option to toggle showing current target inside tracker frame
 
 ## Coming Soon:
-* Option to toggle on/off print functionality of text after combat
-* More display formats for the tracker
+* More UI Customizations
+* UI fixes for target
 
 ## Slash Commands:
 

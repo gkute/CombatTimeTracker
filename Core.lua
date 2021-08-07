@@ -300,8 +300,8 @@ function CTT:ADDON_LOADED()
     if cttTextFormatOptions == nil or table.getn(cttTextFormatOptions) > 1 then
         cttTextFormatOptions = {"(SS)", "(MM:SS)", "(HH:MM:SS)", "(MM:SS.MS)", "(MM:SS:MS)"}
     end
-    if cttMenuOptions.localStore ~= nil then
-        cttMenuOptions.localStore = nil
+    if cttMenuOptions.localStore == nil then
+        cttMenuOptions.localStore = ""
     end
     if cttMenuOptions.alerts == nil then
         cttMenuOptions.alerts = {}
@@ -1417,6 +1417,7 @@ local function Alerts(container)
     timeInput:SetLabel("Alert Time(seconds)")
     timeInput:SetWidth(115)
     timeInput:ClearAllPoints()
+    if cttMenuOptions.localStore then timeInput:SetText(cttMenuOptions.localStore) end
     timeInput:SetPoint("LEFT", container.tab, "LEFT", 6, 10)
     timeInput:SetCallback("OnEnterPressed", CTT_AlertTimeOnEnterPressed)
     container:AddChild(timeInput)

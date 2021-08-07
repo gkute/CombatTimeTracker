@@ -1,4 +1,4 @@
 ##Changelog:
 ###@project-version@
-####Major Changes(s)
-* updating to include new sanctum of domination raid for alerts
+####Minor Bug Fix
+* The last update introduced saving dropdown values for the alert tab, fixing issue where input text wasn't properly being retained in the UI after adding.
