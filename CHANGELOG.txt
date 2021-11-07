@@ -1,4 +1,4 @@
 ##Changelog:
 ###@project-version@
-####Minor Bug Fix
-* The last update introduced saving dropdown values for the alert tab, fixing issue where input text wasn't properly being retained in the UI after adding.
+####Patch 9.1.5
+* Upgrading TOC for latest wow SL patch.
