@@ -1,4 +1,4 @@
 ##Changelog:
 ###@project-version@
 ####Patch 9.1.5
-* Upgrading TOC for latest wow SL patch.
+* Fixing tag.
