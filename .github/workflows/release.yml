@@ -7,9 +7,9 @@ on:
   # Triggers the workflow on push or pull request events but only for the master branch
   push:
     # Sequence of patterns matched against refs/heads
-    branches:    
+    # branches:    
       # Push events on main branch
-      - master
+      # - master
     # Sequence of patterns matched against refs/tags
     tags:        
       - '*'
