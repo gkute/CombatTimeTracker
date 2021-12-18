@@ -6,6 +6,7 @@ CTT = LibStub("AceAddon-3.0"):NewAddon("CTT", "AceConsole-3.0", "AceEvent-3.0")
 --| Variable Declarations   |
 --|-------------------------|
 
+local zone = GetRealZoneText()
 local time = 0
 local fontTableOptions = {}
 local soundTableOptions = {}
@@ -529,7 +530,7 @@ end
 
 function CTT:ZONE_CHANGED()
     --@debug@
-    --self:Print("Zone_Changed: " .. GetRealZoneText())
+    ---self:Print("Zone_Changed: " .. GetRealZoneText())
     --self:Print("Zone_Changed: " .. GetSubZoneText())
     --@end-debug@
 end
@@ -544,7 +545,10 @@ end
 function CTT:ZONE_CHANGED_NEW_AREA()
     --@debug@
     --self:Print("Zone_Changed_New_Area: " .. GetRealZoneText())
+    --self:Print("Zone_Changed_New_Area: " .. GetSubZoneText())
     --@end-debug@
+
+    zone = GetRealZoneText()
     CTT_InstanceTypeDisplay(cttMenuOptions.instanceType) 
 end
 
@@ -670,9 +674,16 @@ end
 function CTT_CheckToPlaySound()
     if not bossEncounter then return end
     for k,v in pairs(cttMenuOptions.alerts) do
-        if k ~= "scrollvalue" and k ~= "offset" and bossEncounterID[cttMenuOptions.alerts[k][4]] == bossEncounterName and tonumber(totalSeconds) == cttMenuOptions.alerts[k][1] then
-            lastBossSoundPlayed = totalSeconds
-            PlaySoundFile(LSM:Fetch("sound", soundTableOptions[cttMenuOptions.soundDropDownValue]), "Master")
+        if (zone ~= "Sanctum of Domination") then
+            if k ~= "scrollvalue" and k ~= "offset" and bossEncounterID[cttMenuOptions.alerts[k][4]] == bossEncounterName and tonumber(totalSeconds) == cttMenuOptions.alerts[k][1] then
+                lastBossSoundPlayed = totalSeconds
+                PlaySoundFile(LSM:Fetch("sound", soundTableOptions[cttMenuOptions.soundDropDownValue]), "Master")
+            end
+        else
+            if k ~= "scrollvalue" and k ~= "offset" and EcounterIdSOD[cttMenuOptions.alerts[k][4]] == bossEncounterName and tonumber(totalSeconds) == cttMenuOptions.alerts[k][1] then
+                lastBossSoundPlayed = totalSeconds
+                PlaySoundFile(LSM:Fetch("sound", soundTableOptions[cttMenuOptions.soundDropDownValue]), "Master")
+            end
         end
     end
 end
@@ -1140,6 +1151,7 @@ function CTT_AlertRaidDropDown(widget, event, key, checked)
 end
 
 function CTT_AlertBossDropDown(widget, event, key, checked)
+    CTT:Print(cttMenuOptions.raidKey)
     if cttMenuOptions.raidKey == 2 then
         cttMenuOptions.bossDropdown = bossesSOD[key]
         cttMenuOptions.bossDropDownkey = key
