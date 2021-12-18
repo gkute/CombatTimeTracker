@@ -1,4 +1,4 @@
 ##Changelog:
 ###@project-version@
 ####Patch 9.1.5
-* Bug fix.  Properly play sound for alerts in SOD raid.
+* Bug fix.
