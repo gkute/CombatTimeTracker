@@ -26,6 +26,7 @@
 * Option to play sounds during raid bosses
     * Can play sound of your choice by whats available in-game
 * Option to toggle showing current target inside tracker frame
+* Profiles (create/copy/delete) to prevent having to setup the addon each time!
 
 ## Coming Soon:
 * More UI Customizations

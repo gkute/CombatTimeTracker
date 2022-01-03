@@ -8,7 +8,7 @@
 ## X-Curse-Project-ID: 305012
 
 
-## SavedVariablesPerCharacter: longestMin, longestSec, cttMenuOptions, fightLogs, cttTextFormatOptions, cosFightLogs, tepFightLogs
+## SavedVariablesPerCharacter: longestMin, longestSec, activeProfileKey, activeProfile
 ## SavedVariables: cttDB
 
 embeds.xml

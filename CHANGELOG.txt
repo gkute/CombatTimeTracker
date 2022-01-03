@@ -1,4 +1,3 @@
 ##Changelog:
 ###@project-version@
-####Patch 9.1.5
-* Bug fix.
+####User Profile Feature Implementation!

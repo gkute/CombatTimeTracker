@@ -2,7 +2,7 @@
     xmlns:xsd="http://www.w3.org/2001/XMLSchema"
     xmlns="http://www.blizzard.com/wow/ui/">
 
-    <Frame name="cttStopwatchGui" parent="UIParent" movable="true" enableMouse="true" clampedToScreen="true" hidden="false0" inherits="BackdropTemplate">
+    <Frame name="cttStopwatchGui" parent="UIParent" movable="true" enableMouse="true" clampedToScreen="true" hidden="false" inherits="BackdropTemplate">
         <Size x="100" y="40"/>
         <Anchors>
             <Anchor point="RIGHT"/>
@@ -58,14 +58,6 @@
             <OnLoad>
                 self:RegisterForDrag("LeftButton")
             </OnLoad>
-            <OnDragStart>
-                if not self.isLocked then
-                self:StartMoving()
-                end
-            </OnDragStart>
-            <OnDragStop>
-                self:StopMovingOrSizing()
-            </OnDragStop>
         </Scripts>
     </Frame>
 
