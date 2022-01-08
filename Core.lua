@@ -60,7 +60,9 @@ local defaults = {
             framePoint = "CENTER",
             frameRelativePoint = "CENTER",
             xOfs = 0,
-            yOfs = 0
+            yOfs = 0,
+            fontFlags = "",
+            textFlags = false
         }
     }
 }
@@ -958,10 +960,10 @@ function CTT_ResizeFrameSliderUpdater(widget, event, value)
     cttStopwatchGui:SetHeight(height)
     cttStopwatchGuiTimeText:SetSize(width, height)
     if db.profile.cttMenuOptions.fontName then
-        cttStopwatchGuiTimeText:SetFont(db.profile.cttMenuOptions.fontName,fontVal)
+        cttStopwatchGuiTimeText:SetFont(db.profile.cttMenuOptions.fontName,fontVal, db.profile.cttMenuOptions.fontFlags)
         db.profile.cttMenuOptions.fontVal = fontVal
     else
-        cttStopwatchGuiTimeText:SetFont("Fonts\\MORPHEUS.ttf",fontVal)
+        cttStopwatchGuiTimeText:SetFont("Fonts\\MORPHEUS.ttf",fontVal, db.profile.cttMenuOptions.fontFlags)
         db.profile.cttMenuOptions.fontVal = fontVal
     end
 end
@@ -972,7 +974,7 @@ function CTT_SetTrackerSizeOnLogin()
         cttStopwatchGui:SetWidth(db.profile.cttMenuOptions.timeTrackerSize[1])
         cttStopwatchGui:SetHeight(db.profile.cttMenuOptions.timeTrackerSize[2])
         cttStopwatchGuiTimeText:SetSize(db.profile.cttMenuOptions.timeTrackerSize[1], db.profile.cttMenuOptions.timeTrackerSize[2])
-        cttStopwatchGuiTimeText:SetFont(db.profile.cttMenuOptions.fontName,db.profile.cttMenuOptions.fontVal)
+        cttStopwatchGuiTimeText:SetFont(db.profile.cttMenuOptions.fontName,db.profile.cttMenuOptions.fontVal, db.profile.cttMenuOptions.fontFlags)
         cttStopwatchGui:SetBackdrop(backdropSettings)
         cttStopwatchGui:SetBackdropColor(0,0,0,db.profile.cttMenuOptions.backDropAlphaSlider)
         cttStopwatchGui:SetBackdropBorderColor(255,255,255,db.profile.cttMenuOptions.backDropAlphaSlider)
@@ -980,7 +982,7 @@ function CTT_SetTrackerSizeOnLogin()
         cttStopwatchGui:ClearAllPoints()
         cttStopwatchGui:SetPoint(db.profile.cttMenuOptions.framePoint, nil, db.profile.cttMenuOptions.frameRelativePoint, db.profile.cttMenuOptions.xOfs, db.profile.cttMenuOptions.yOfs)
     else
-        cttStopwatchGuiTimeText:SetFont("Fonts\\MORPHEUS.ttf", 16)
+        cttStopwatchGuiTimeText:SetFont("Fonts\\MORPHEUS.ttf", 16, db.profile.cttMenuOptions.fontFlags)
         db.profile.cttMenuOptions.fontVal = fontVal
     end
 end
@@ -999,7 +1001,7 @@ function CTT_FontPickerDropDownState(widget, event, key, checked)
         cttStopwatchGui:SetWidth(db.profile.cttMenuOptions.timeTrackerSize[1])
         cttStopwatchGui:SetHeight(db.profile.cttMenuOptions.timeTrackerSize[2])
         cttStopwatchGuiTimeText:SetSize(db.profile.cttMenuOptions.timeTrackerSize[1], db.profile.cttMenuOptions.timeTrackerSize[2])
-        cttStopwatchGuiTimeText:SetFont(db.profile.cttMenuOptions.fontName,db.profile.cttMenuOptions.fontVal)
+        cttStopwatchGuiTimeText:SetFont(db.profile.cttMenuOptions.fontName,db.profile.cttMenuOptions.fontVal, db.profile.cttMenuOptions.fontFlags)
         CTT_UpdateText(db.profile.cttMenuOptions.timeValues[1], db.profile.cttMenuOptions.timeValues[2], db.profile.cttMenuOptions.timeValues[3], db.profile.cttMenuOptions.timeValues[5], db.profile.cttMenuOptions.dropdownValue, 2)
     end
 end
@@ -1038,6 +1040,12 @@ end
 
 function CTT_TogglePrintCheckButton(widget, event, value)
     db.profile.cttMenuOptions.togglePrint = value;
+end
+
+function CTT_ToggleTextFlagsButton(widget, event, value)
+    db.profile.cttMenuOptions.textFlags = value
+    if value then db.profile.cttMenuOptions.fontFlags = "OUTLINE, THICKOUTLINE, MONOCHROME" else db.profile.cttMenuOptions.fontFlags = "" end
+    CTT_SetTrackerSizeOnLogin()
 end
 
 function CTT_InstanceTypeDropDown(widget, event, key, checked)
@@ -1310,11 +1318,24 @@ local function OptionsMenu(container)
         textColorPicker:SetColor(255,255,255)
     end
     textColorPicker:SetLabel(L["Text Color"])
+    textColorPicker:SetWidth(100)
     textColorPicker:ClearAllPoints()
     textColorPicker:SetPoint("TOPLEFT", container.tab, "TOPLEFT", 6, 0)
     textColorPicker:SetCallback("OnValueConfirmed", CTT_ColorPickerConfirmed)
     container:AddChild(textColorPicker)
     container.textColorPicker = textColorPicker
+
+    local textFlagsButton = AceGUI:Create("CheckBox")
+    textFlagsButton:SetLabel("TextOutline")
+    textFlagsButton:SetWidth(125)
+    textFlagsButton:SetHeight(22)
+    textFlagsButton:SetType("checkbox")
+    textFlagsButton:ClearAllPoints()
+    textFlagsButton:SetValue(db.profile.cttMenuOptions.textFlags)
+    textFlagsButton:SetPoint("TOPLEFT", container.tab, "TOPLEFT", 6, 0)
+    textFlagsButton:SetCallback("OnValueChanged", CTT_ToggleTextFlagsButton)
+    container:AddChild(textFlagsButton)
+    container.textFlagsButton = textFlagsButton
 
     -- different text options
     local textStyleDropDown = AceGUI:Create("Dropdown")

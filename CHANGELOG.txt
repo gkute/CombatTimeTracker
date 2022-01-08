@@ -1,3 +1,3 @@
 ##Changelog:
 ###@project-version@
-####User Profile Feature Implementation!
+* Updating text to have outline with toggle in menu
