@@ -6,6 +6,7 @@
 ## OptionalDeps: Ace3
 ## X-Embeds: Ace3
 ## X-Curse-Project-ID: 305012
+## Globe: check-classic
 
 
 ## SavedVariablesPerCharacter: longestMin, longestSec, activeProfileKey, activeProfile

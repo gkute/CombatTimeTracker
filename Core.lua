@@ -6,6 +6,9 @@ CTT = LibStub("AceAddon-3.0"):NewAddon("CTT", "AceConsole-3.0", "AceEvent-3.0")
 --| Variable Declarations   |
 --|-------------------------|
 
+local isTBC = (WOW_PROJECT_ID == WOW_PROJECT_BURNING_CRUSADE_CLASSIC)
+local isClassic = (WOW_PROJECT_ID == WOW_PROJECT_CLASSIC)
+local isRetail = (WOW_PROJECT_ID == WOW_PROJECT_MAINLINE)
 local zone = GetRealZoneText()
 local profileList = {}
 local newProfileName = ""
@@ -62,7 +65,293 @@ local defaults = {
             xOfs = 0,
             yOfs = 0,
             fontFlags = "",
-            textFlags = false
+            textFlags = false,
+            xpacKey = 1,
+            expansion = "Classic"
+        }
+    }
+}
+
+local raidZones = {
+
+}
+
+local dungeonZones = {
+    
+}
+
+local xpacs = {
+    "Classic",
+    "Burning Crusade",
+    -- "Wrath of the Lich King",
+    -- "Cataclysm",
+    -- "Mists of Pandaria",
+    -- "Warlords of Draenor",
+    -- "Legion",
+    -- "Battle for Azeroth",
+    "Shadowlands"
+}
+
+local raidInstanceZones = {
+    --Classic
+    {
+        "Blackwing Lair",
+        "Molten Core",
+        "Ruins of Ahn'Qiraj",
+        "Temple of Ahn'Qiraj"
+    },
+    --TBC
+    {
+        "Karazhan",
+        "Guul's Lair",
+        "Magtheridon's Lair",
+        "Serpentshrine Cavern",
+        "The Eye",
+        "The Battle for Mount Hyjal",
+        "Black Temple",
+        "Sunwell Plateau"
+    },
+    -- SL
+    {
+        "Castle Nathria",
+        "Sanctum of Domination",
+        "Sepulcher of the First Ones"
+    }
+}
+
+local raidBosses = {
+    -- Classic
+    {
+        -- Blackwing Lair
+        {
+            "Razorgore the Untamed",
+            "Vaelastrasz the Corrupt",
+            "Broodlord Lashlayer",
+            "Firemaw",
+            "Ebonroc",
+            "Flamegor",
+            "Chromaggus",
+            "Nefarian"
+        },
+        -- Molten Core
+        {
+            "Lucifron",
+            "Magmadar",
+            "Gehennas",
+            "Garr",
+            "Shazzrah",
+            "Baron Geddon",
+            "Sulfuron Harbinger",
+            "Golemagg the Incinerator",
+            "Majordomo Executus",
+            "Ragnaros"
+        },
+        -- Ruins of Ahn'Qiraj
+        {
+            "Kurinnaxx",
+            "General Rajaxx",
+            "Moam",
+            "Buru the Gorger",
+            "Ayamiss the Hunter",
+            "Ossirian the Unscarred"
+        },
+        -- Temple of Ahn'Qiraj
+        {
+            "The Prophet Skeram",
+            "Silithid Royalty",
+            "Battleguard Sartura",
+            "Fankriss the Unyielding",
+            "Viscidus",
+            "Princess Huhuran",
+            "The Twin Emperors",
+            "Ouro",
+            "C'Thun"
+        }
+    },
+    -- Burning Crusade
+    {
+        -- Karazhan
+        {
+            "Attumen the Huntsman",
+            "Moroes",
+            "Maiden of Virtue",
+            "Opera Hall",
+            "The Curator",
+            "Shade of Aran",
+            "Terestian Illhoof",
+            "Netherspite",
+            "Chess Event",
+            "Prince Malchezaar",
+            "Nightbane"
+        },
+        -- Gruul's Lair
+        { 
+            "High Kind Maulgar",
+            "Gruul the Dragonkiller"
+        },
+        -- Magtheridon's Lair
+        { 
+            "Magtheridon"
+        },
+        -- Serpentshrine Cavern
+        { 
+            "Hydross the Unstable",
+            "The Lurker Below",
+            "Leotheras the Blind",
+            "Fathom-Lord Karathress",
+            "Morogrim Tidewalker",
+            "Lady Vashj"
+        },
+        -- The Eye
+        { 
+            "Al'ar",
+            "Void Reaver",
+            "High Astromancer Solarian",
+            "Kael'thas Sunstrider"
+        },
+        -- The battle for mount hyjal
+        { 
+            "Rage Winterchill",
+            "Anetheron",
+            "Kaz'rogal",
+            "Azgalor",
+            "Archimonde"
+        },
+        -- Black Temple
+        { 
+            "High Warlord Naj'entus",
+            "Supremus",
+            "Shade of Akama",
+            "Teron Gorefiend",
+            "Gurtogg Bloodboil",
+            "Reliquary of Souls",
+            "Mother Shahraz",
+            "The Illidari Council",
+            "Illidan Stormrage"
+        },
+        -- Sunwell Plateau
+        { 
+            "Kalecgos",
+            "Brutallus",
+            "Felmyst",
+            "The Eredar Twins",
+            "M'uru",
+            "Kil'jaedon"
+        }
+    },
+    -- Shadowlands
+    {
+        -- CN
+        {
+            "Shriekwing",
+            "Huntsman Altimor",
+            "Sun King's Salvation",
+            "Artificer Xy'mox",
+            "Hungering Destroyer",
+            "Lady Inerva Darkvein",
+            "The Council of Blood",
+            "Sludgefist",
+            "Stone Legion Generals",
+            "Sire Denathrius"
+        },
+        -- SOD
+        {
+            "The Tarragrue",
+            "The Eye of the Jailer",
+            "The Nine",
+            "Remnat of Ner'zhul",
+            "Soulrender Dormazain",
+            "Painsmith Raznal",
+            "Guardian of the First Ones",
+            "Fatescribe Roh-Kalo",
+            "Kel'Thuzad",
+            "Sylvanas Windrunner"
+        },
+        -- SOFTO
+        {
+            "Vigilant Guardian",
+            "Skolex, the Insatiable Ravener",
+            "Artificer Xy'mox",
+            "Dausegne, the Fallen Oracle",
+            "Prototype Pantheon",
+            "Lihuvim, Principal Architect",
+            "Halondrus the Reclaimer",
+            "Anduin Wrynn",
+            "Lords of Dread",
+            "Rygelon",
+            "The Jailer"
+        }
+    }
+}
+
+local raidEncounterIDs = {
+    -- Classic
+    {
+        -- BL
+        {
+            610, 611, 612, 613, 614, 615, 616, 617
+        },
+        -- MC
+        {
+            663, 664, 665, 666, 667, 668, 669, 670, 671, 672
+        },
+        -- RoAQ
+        {
+            718, 719, 720, 721, 722, 723
+        },
+        -- ToAQ
+        {
+            709, 710, 711, 712, 713, 714, 715, 716, 717
+        }
+    },
+    -- TBC
+    {
+        -- Kara
+        {
+            652, 653, 654, 655, 656, 658, 657, 659, 660, 661, 662
+        },
+        -- Gruuls Lair
+        {
+            649, 650
+        },
+        -- Magtheridon's Lair
+        {
+            651
+        },
+        -- Serpenshrine Cavern
+        {
+            623, 624, 625, 626, 627, 628
+        },
+        -- The Eye
+        {
+            730, 731, 732, 733
+        },
+        -- The Battle for Mount Hyjal
+        {
+            618, 619, 620, 621, 622
+        },
+        -- Black Temple
+        {
+            601, 602, 603, 604, 605, 606, 607, 608, 609
+        },
+        -- Sunwell Plateau
+        {
+            724, 725, 726, 727, 728, 729
+        }
+    },
+    -- SL
+    {
+        -- Castle Nathria
+        {
+            2398, 2418, 2402, 2405, 2383, 2406, 2412, 2399, 2417, 2407
+        },
+        -- Sanctum Of Domination
+        {
+            2423, 2433, 2429, 2432, 2434, 2430, 2436, 2431, 2422, 2435
+        },
+        -- Sepulchar of the First Ones
+        {
+
         }
     }
 }
@@ -84,7 +373,42 @@ local instanceZones = {
     "Spires of Ascension", 
     "The Necrotic Wake", 
     "Theater of Pain",
-    "Tazavesh, the Veiled Market"
+    "Tazavesh, the Veiled Market",
+    "Blackfathom Deeps",
+    "Blackrock Depths",
+    "Deadmines",
+    "Dire Maul",
+    "Gnomeregan",
+    "Lower Blackrock Spire",
+    "Maraudon",
+    "Ragefire Chasm",
+    "Razorfen Downs",
+    "Razorfen Kraul",
+    "Scarlet Halls",
+    "Scarlet Monastery",
+    "Scholomance",
+    "Shadowfang Keep",
+    "Stratholme",
+    "The Stockade",
+    "The Temple of Atal'hakkar",
+    "Uldaman",
+    "Wailing Caverns",
+    "Zul'Farrak",
+    "Auchenai Crypts",
+    "Hellfire Ramparts",
+    "Magisters' Terrace",
+    "Mana-Tombs",
+    "Old Hillsbrad Foothills",
+    "Sethekk Halls",
+    "The Arcatraz",
+    "The Black Morass",
+    "The Blood Furnace",
+    "The Botanica",
+    "The Mechanar",
+    "The Shattered Halls",
+    "The Slave Pens",
+    "The Steamvault",
+    "The Underbog"
 }
 
 -- local instanceZones = {
@@ -99,63 +423,6 @@ local instanceZones = {
 --     "Tol Dagor", 
 --     "Waycrest Manor"
 -- }
-
-local raidInstanceZones = {
-    "Castle Nathria",
-    "Sanctum of Domination"
-}
-
-local bosses = {
-    "Shriekwing",
-    "Huntsman Altimor",
-    "Sun King's Salvation",
-    "Artificer Xy'mox",
-    "Hungering Destroyer",
-    "Lady Inerva Darkvein",
-    "The Council of Blood",
-    "Sludgefist",
-    "Stone Legion Generals",
-    "Sire Denathrius"
-}
-
-local bossesSOD = {
-    "The Tarragrue",
-    "The Eye of the Jailer",
-    "The Nine",
-    "Remnat of Ner'zhul",
-    "Soulrender Dormazain",
-    "Painsmith Raznal",
-    "Guardian of the First Ones",
-    "Fatescribe Roh-Kalo",
-    "Kel'Thuzad",
-    "Sylvanas Windrunner"
-}
-
-local bossEncounterID = {
-    2398,
-    2418,
-    2402,
-    2405,
-    2383,
-    2406,
-    2412,
-    2399,
-    2417,
-    2407
-}
-
-local EcounterIdSOD = {
-    2423,
-    2433,
-    2429,
-    2432,
-    2434,
-    2430,
-    2436,
-    2431,
-    2422,
-    2435
-}
 
 -- local raidInstanceZones = {
 --     "Uldir",
@@ -455,8 +722,9 @@ end
 function CTT:Encounter_Start(...)
     if db.profile.cttMenuOptions.instanceType == 5 and not cttStopwatchGui:IsShown() then cttStopwatchGui:Show() end
     bossEncounter = true
-    local arg1, arg2, arg3, arg4, arg5 = ...
-    bossEncounterName = arg2
+    local eventName, encounterID, encounterName, difficultyID, groupSize = ...
+
+    bossEncounterName = encounterID
     --CTT:Print(L["Encounter Started!"])
     -- local members = {}
     -- local numMembers = GetNumGroupMembers()
@@ -484,12 +752,12 @@ function CTT:Encounter_End(...)
         CTT_ToggleMenu()
     end
     --CTT:Print(L["Encounter Ended!"])
-    local arg1, arg2, arg3, arg4, arg5, arg6 = ...
+    local eventName, encounterID, encounterName, difficultyID, groupSize, success = ...
     local diffIDKey = 0
-    if arg6 == 1 then
-        CTT_DisplayResultsBosses(arg3, true)
+    if success == 1 then
+        CTT_DisplayResultsBosses(encounterName, true)
     else
-        CTT_DisplayResultsBosses(arg3, false)
+        CTT_DisplayResultsBosses(encounterName, false)
     end
 end
 
@@ -677,16 +945,9 @@ end
 function CTT_CheckToPlaySound()
     if not bossEncounter then return end
     for k,v in pairs(db.profile.cttMenuOptions.alerts) do
-        if (zone ~= "Sanctum of Domination") then
-            if k ~= "scrollvalue" and k ~= "offset" and bossEncounterID[db.profile.cttMenuOptions.alerts[k][4]] == bossEncounterName and tonumber(totalSeconds) == db.profile.cttMenuOptions.alerts[k][1] then
-                lastBossSoundPlayed = totalSeconds
-                PlaySoundFile(LSM:Fetch("sound", soundTableOptions[db.profile.cttMenuOptions.soundDropDownValue]), "Master")
-            end
-        else
-            if k ~= "scrollvalue" and k ~= "offset" and EcounterIdSOD[db.profile.cttMenuOptions.alerts[k][4]] == bossEncounterName and tonumber(totalSeconds) == db.profile.cttMenuOptions.alerts[k][1] then
-                lastBossSoundPlayed = totalSeconds
-                PlaySoundFile(LSM:Fetch("sound", soundTableOptions[db.profile.cttMenuOptions.soundDropDownValue]), "Master")
-            end
+        if k ~= "scrollvalue" and k ~= "offset" and raidEncounterIDs[db.profile.cttMenuOptions.alerts[k][4]] == bossEncounterName and tonumber(totalSeconds) == db.profile.cttMenuOptions.alerts[k][1] then
+            lastBossSoundPlayed = totalSeconds
+            PlaySoundFile(LSM:Fetch("sound", soundTableOptions[db.profile.cttMenuOptions.soundDropDownValue]), "Master")
         end
     end
 end
@@ -1131,19 +1392,20 @@ end
 
 function CTT_AlertRaidDropDown(widget, event, key, checked)
     db.profile.cttMenuOptions.raidKey = key
-    db.profile.cttMenuOptions.raidDropdown = raidInstanceZones[key]
+    db.profile.cttMenuOptions.raidDropdown = raidInstanceZones[db.profile.cttMenuOptions.xpacKey][key]
+    CTT.menu.tab:SelectTab("alerts")
+end
+
+function CTT_ExpansionDropDown(widget, event, key, checked)
+    db.profile.cttMenuOptions.xpacKey = key
     CTT.menu.tab:SelectTab("alerts")
 end
 
 function CTT_AlertBossDropDown(widget, event, key, checked)
     CTT:Print(db.profile.cttMenuOptions.raidKey)
-    if db.profile.cttMenuOptions.raidKey == 2 then
-        db.profile.cttMenuOptions.bossDropdown = bossesSOD[key]
-        db.profile.cttMenuOptions.bossDropDownkey = key
-    else
-        db.profile.cttMenuOptions.bossDropdown = bosses[key]
-        db.profile.cttMenuOptions.bossDropDownkey = key
-    end
+    db.profile.cttMenuOptions.bossDropdown = raidBosses[db.profile.cttMenuOptions.xpacKey][db.profile.cttMenuOptions.raidKey][key]
+    db.profile.cttMenuOptions.bossDropDownkey = key
+    CTT.menu.tab:SelectTab("alerts")
 end
 
 function CTT_AlertAddButtonClicked(widget, event)
@@ -1151,7 +1413,7 @@ function CTT_AlertAddButtonClicked(widget, event)
     local key = 0
     if db.profile.cttMenuOptions.alerts[table.getn(db.profile.cttMenuOptions.alerts)] ~= {} then key = 1 end
     if db.profile.cttMenuOptions.localStore ~= nil and timeInSeconds and db.profile.cttMenuOptions.raidDropdown ~= nil and db.profile.cttMenuOptions.bossDropdown ~= nil then
-        db.profile.cttMenuOptions.alerts[table.getn(db.profile.cttMenuOptions.alerts) + key] = { tonumber(db.profile.cttMenuOptions.localStore), db.profile.cttMenuOptions.raidDropdown, db.profile.cttMenuOptions.bossDropdown, db.profile.cttMenuOptions.bossDropDownkey }
+        db.profile.cttMenuOptions.alerts[table.getn(db.profile.cttMenuOptions.alerts) + key] = { tonumber(db.profile.cttMenuOptions.localStore), raidInstanceZones[db.profile.cttMenuOptions.xpacKey][db.profile.cttMenuOptions.raidKey], raidBosses[db.profile.cttMenuOptions.xpacKey][db.profile.cttMenuOptions.raidKey][db.profile.cttMenuOptions.bossDropDownkey], raidEncounterIDs[db.profile.cttMenuOptions.xpacKey][db.profile.cttMenuOptions.raidKey][db.profile.cttMenuOptions.bossDropDownkey] }
         CTT.menu.tab:SelectTab("alerts")
     else
         if not timeInSeconds then
@@ -1516,8 +1778,20 @@ end
 
 -- function that draws the Alert Times tab
 local function Alerts(container)
-    -- db.profile.cttMenuOptions.bossDropdown = bosses[1]
-    -- db.profile.cttMenuOptions.raidDropdown = raidInstanceZones[1]
+    --select xpac
+    local xpacDropdown = AceGUI:Create("Dropdown")
+    xpacDropdown:SetLabel("Select Expansion")
+    xpacDropdown:SetMultiselect(false)
+    xpacDropdown:SetList(xpacs)
+    xpacDropdown:SetText(xpacs[db.profile.cttMenuOptions.xpacKey])
+    xpacDropdown:SetValue(db.profile.cttMenuOptions.xpacKey)
+    xpacDropdown:SetWidth(125)
+    xpacDropdown:ClearAllPoints()
+    xpacDropdown:SetPoint("TOPLEFT", container.tab, "TOPLEFT", 6, 10)
+    xpacDropdown:SetCallback("OnValueChanged", CTT_ExpansionDropDown)
+    container:AddChild(xpacDropdown)
+    container.xpacDropdown = xpacDropdown
+
     -- Input field to get the time (in seconds)
     local timeInput = AceGUI:Create("EditBox")
     timeInput:SetLabel("Alert Time(seconds)")
@@ -1533,8 +1807,8 @@ local function Alerts(container)
     local raidDropdown = AceGUI:Create("Dropdown")
     raidDropdown:SetLabel("Select Raid")
     raidDropdown:SetMultiselect(false)
-    raidDropdown:SetList(raidInstanceZones)
-    raidDropdown:SetText(raidInstanceZones[db.profile.cttMenuOptions.raidKey])
+    raidDropdown:SetList(raidInstanceZones[db.profile.cttMenuOptions.xpacKey])
+    raidDropdown:SetText(raidInstanceZones[db.profile.cttMenuOptions.xpacKey][db.profile.cttMenuOptions.raidKey])
     raidDropdown:SetValue(db.profile.cttMenuOptions.raidKey)
     raidDropdown:SetWidth(125)
     raidDropdown:ClearAllPoints()
@@ -1547,15 +1821,9 @@ local function Alerts(container)
     local bossDropdown = AceGUI:Create("Dropdown")
     bossDropdown:SetLabel("Select Boss")
     bossDropdown:SetMultiselect(false)
-    if db.profile.cttMenuOptions.raidKey == 1 then
-        bossDropdown:SetList(bosses)
-        bossDropdown:SetText(bosses[db.profile.cttMenuOptions.bossDropDownkey])
-        bossDropdown:SetValue(db.profile.cttMenuOptions.bossDropDownkey)
-    else
-        bossDropdown:SetList(bossesSOD)
-        bossDropdown:SetText(bossesSOD[db.profile.cttMenuOptions.bossDropDownkey])
-        bossDropdown:SetValue(db.profile.cttMenuOptions.bossDropDownkey)
-    end
+    bossDropdown:SetList(raidBosses[db.profile.cttMenuOptions.xpacKey][db.profile.cttMenuOptions.raidKey])
+    bossDropdown:SetText(raidBosses[db.profile.cttMenuOptions.xpacKey][db.profile.cttMenuOptions.raidKey][db.profile.cttMenuOptions.bossDropDownkey])
+    bossDropdown:SetValue(db.profile.cttMenuOptions.bossDropDownkey)
     bossDropdown:SetWidth(125)
     bossDropdown:ClearAllPoints()
     bossDropdown:SetPoint("LEFT", container.tab, "LEFT", 6, 10)

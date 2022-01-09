@@ -1,3 +1,3 @@
 ##Changelog:
 ###@project-version@
-* Updating text to have outline with toggle in menu
+* Updated alert core logic to be more precise
