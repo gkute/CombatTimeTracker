@@ -431,6 +431,11 @@ local difficultyList = {
     "Mythic"
 }
 
+local NonHearthstones = {
+    "Autographed Hearthstone Card",
+    "Hearthstone Board"
+}
+
 
 --|----------------------------|
 --| Ace Library Declarations   |
@@ -488,6 +493,8 @@ function CTT:OnEnable()
     self:RegisterEvent("PLAYER_TARGET_CHANGED")
     self:RegisterEvent("CHALLENGE_MODE_COMPLETED")
     self:RegisterEvent("CHALLENGE_MODE_START")
+    self:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
+    self:RegisterEvent("CHALLENGE_MODE_RESET")
 end
 
 -- Register slash commands for addon.
@@ -518,7 +525,9 @@ end
 -- Handle profile callbacks
 function CTT:RefreshConfig()
     CTT_SetTrackerSizeOnLogin()
-    CTT_UpdateText(db.profile.cttMenuOptions.timeValues[1], db.profile.cttMenuOptions.timeValues[2], db.profile.cttMenuOptions.timeValues[3], db.profile.cttMenuOptions.timeValues[5], db.profile.cttMenuOptions.dropdownValue, 1)
+    CTT_UpdateText(db.profile.cttMenuOptions.timeValues[1], db.profile.cttMenuOptions.timeValues[2],
+        db.profile.cttMenuOptions.timeValues[3], db.profile.cttMenuOptions.timeValues[5],
+        db.profile.cttMenuOptions.dropdownValue, 1)
     for k, v in ipairs(db:GetProfiles()) do
         if activeProfile == v and activeProfileKey ~= nil and activeProfile ~= nil then
             activeProfileKey = k
@@ -537,7 +546,8 @@ function CTT:ADDON_LOADED()
     end
 
     CTT_CheckForReload()
-    if GetAddOnMetadata("CombatTimeTracker", "Version") >= db.profile.cttMenuOptions.lastVersion and db.profile.cttMenuOptions.uiReset then
+    if GetAddOnMetadata("CombatTimeTracker", "Version") >= db.profile.cttMenuOptions.lastVersion and
+        db.profile.cttMenuOptions.uiReset then
         CTT_PopUpMessage()
     end
 
@@ -574,7 +584,9 @@ function CTT:ADDON_LOADED()
             hours = floor(time / 3600)
             minutes = floor((time - floor(time / 3600) * 3600) / 60)
             seconds = floor(time - floor(time / 3600) * 3600 - floor((time - floor(time / 3600) * 3600) / 60) * 60)
-            miliseconds = floor((time - floor(time / 3600) * 3600 - floor((time - floor(time / 3600) * 3600) / 60) * 60 - floor(time - floor(time / 3600) * 3600 - floor((time - floor(time / 3600) * 3600) / 60) * 60)) * 100)
+            miliseconds = floor((
+                time - floor(time / 3600) * 3600 - floor((time - floor(time / 3600) * 3600) / 60) * 60 -
+                    floor(time - floor(time / 3600) * 3600 - floor((time - floor(time / 3600) * 3600) / 60) * 60)) * 100)
 
             if seconds < 10 then
                 --local temp = tostring(seconds)
@@ -724,8 +736,25 @@ function CTT:CHALLENGE_MODE_START(mapID)
     end
 end
 
+function CTT:COMBAT_LOG_EVENT_UNFILTERED()
+    local playerGUID = UnitGUID("player")
+    local timestamp, subevent, _, sourceGUID, sourceName, sourceFlags, sourceRaidFlags, destGUID, destName, destFlags, destRaidFlags, spellId, spellName, spellSchool, amount, overkill, school, resisted, blocked, absorbed, critical, glancing, crushing, isOffHand = CombatLogGetCurrentEventInfo()
+
+    if sourceGUID == playerGUID and subevent == "SPELL_CAST_SUCCESS" and
+        not CTT_TableContainsValue(NonHearthstones, spellName) and
+        string.find(spellName, "Hearthstone") then
+        print(spellName)
+        ResetInstances();
+    end
+end
+
+function CTT:CHALLENGE_MODE_RESET(mapID)
+    print(mapID)
+end
+
 -- event function to handle persistence on the settings of the tracker when the player enters the world
 function CTT:PLAYER_ENTERING_WORLD()
+    CTT:Print("player entering world")
     --CTT:Print(GetAddOnMetadata("CombatTimeTracker", "Version"))
     CTT_InstanceTypeDisplay(db.profile.cttMenuOptions.instanceType)
     if db.profile.cttMenuOptions.timeTrackerSize then
@@ -742,7 +771,9 @@ function CTT:PLAYER_ENTERING_WORLD()
         seconds = db.profile.cttMenuOptions.timeValues[3]
         totalSeconds = db.profile.cttMenuOptions.timeValues[4]
         miliseconds = db.profile.cttMenuOptions.timeValues[5]
-        CTT_UpdateText(db.profile.cttMenuOptions.timeValues[1], db.profile.cttMenuOptions.timeValues[2], db.profile.cttMenuOptions.timeValues[3], db.profile.cttMenuOptions.timeValues[5], db.profile.cttMenuOptions.dropdownValue, 1)
+        CTT_UpdateText(db.profile.cttMenuOptions.timeValues[1], db.profile.cttMenuOptions.timeValues[2],
+            db.profile.cttMenuOptions.timeValues[3], db.profile.cttMenuOptions.timeValues[5],
+            db.profile.cttMenuOptions.dropdownValue, 1)
     else
         CTT_UpdateText("00", "00", "00", "00", 1, 1)
     end
@@ -830,7 +861,9 @@ function CTT:SlashCommands(input)
         db.profile.cttMenuOptions.timeValues = { "00", "00", "00", "00" }
         activeProfile = nil
         activeProfileKey = nil
-        CTT_UpdateText(db.profile.cttMenuOptions.timeValues[1], db.profile.cttMenuOptions.timeValues[2], db.profile.cttMenuOptions.timeValues[3], db.profile.cttMenuOptions.timeValues[5], db.profile.cttMenuOptions.dropdownValue, 1)
+        CTT_UpdateText(db.profile.cttMenuOptions.timeValues[1], db.profile.cttMenuOptions.timeValues[2],
+            db.profile.cttMenuOptions.timeValues[3], db.profile.cttMenuOptions.timeValues[5],
+            db.profile.cttMenuOptions.dropdownValue, 1)
         CTT:Print(L["Stopwatch has been reset!"])
     elseif command == "show" then
         cttStopwatchGui:Show()
@@ -877,6 +910,15 @@ function CTT_CheckForReload()
     else db.profile.cttMenuOptions.uiReset = false end
 end
 
+function CTT_TableContainsValue(tab, val)
+    for index, value in ipairs(tab) do
+        if value == val then
+            return true
+        end
+    end
+    return false
+end
+
 function IsInt(n)
     return (type(tonumber(n)) == "number" and (math.floor((tonumber(n))) == tonumber(n)))
 end
@@ -892,7 +934,8 @@ function CTT_CheckForTarget()
         if raidMarkerIcon ~= nil then
             cttStopwatchGuiTargetIcon:SetTexture("Interface/TargetingFrame/UI-RaidTargetingIcon_" .. raidMarkerIcon, true)
             cttStopwatchGuiTargetIcon:Show()
-            cttStopwatchGuiTargetIcon2:SetTexture("Interface/TargetingFrame/UI-RaidTargetingIcon_" .. raidMarkerIcon, true)
+            cttStopwatchGuiTargetIcon2:SetTexture("Interface/TargetingFrame/UI-RaidTargetingIcon_" .. raidMarkerIcon,
+                true)
             cttStopwatchGuiTargetIcon2:Show()
         else
             cttStopwatchGuiTargetIcon:Hide()
@@ -907,7 +950,9 @@ end
 function CTT_CheckToPlaySound()
     if not bossEncounter then return end
     for k, v in pairs(db.profile.cttMenuOptions.alerts) do
-        if k ~= "scrollvalue" and k ~= "offset" and raidEncounterIDs[db.profile.cttMenuOptions.alerts[k][4]] == bossEncounterName and tonumber(totalSeconds) == db.profile.cttMenuOptions.alerts[k][1] then
+        if k ~= "scrollvalue" and k ~= "offset" and
+            raidEncounterIDs[db.profile.cttMenuOptions.alerts[k][4]] == bossEncounterName and
+            tonumber(totalSeconds) == db.profile.cttMenuOptions.alerts[k][1] then
             lastBossSoundPlayed = totalSeconds
             PlaySoundFile(LSM:Fetch("sound", soundTableOptions[db.profile.cttMenuOptions.soundDropDownValue]), "Master")
         end
@@ -1002,21 +1047,41 @@ function CTT_DisplayResults(newRecord)
     if not db.profile.cttMenuOptions.togglePrint then return end
     if db.profile.cttMenuOptions.dropdownValue == 1 then
         if newRecord then
-            CTT:Print(L["New Record! Fight ended in "] .. db.profile.cttMenuOptions.timeValues[4] .. "." .. db.profile.cttMenuOptions.timeValues[5] .. " " .. L["seconds"] .. "!")
+            CTT:Print(L["New Record! Fight ended in "] ..
+                db.profile.cttMenuOptions.timeValues[4] ..
+                "." .. db.profile.cttMenuOptions.timeValues[5] .. " " .. L["seconds"] .. "!")
         else
-            CTT:Print(L["Fight ended in "] .. db.profile.cttMenuOptions.timeValues[4] .. "." .. db.profile.cttMenuOptions.timeValues[5] .. " " .. L["seconds"] .. ".")
+            CTT:Print(L["Fight ended in "] ..
+                db.profile.cttMenuOptions.timeValues[4] ..
+                "." .. db.profile.cttMenuOptions.timeValues[5] .. " " .. L["seconds"] .. ".")
         end
     elseif db.profile.cttMenuOptions.dropdownValue == 2 then
         if newRecord then
-            CTT:Print(L["New Record! Fight ended in "] .. "(MM:SS.MS): " .. db.profile.cttMenuOptions.timeValues[2] .. ":" .. db.profile.cttMenuOptions.timeValues[3] .. "." .. db.profile.cttMenuOptions.timeValues[5] .. "!")
+            CTT:Print(L["New Record! Fight ended in "] ..
+                "(MM:SS.MS): " ..
+                db.profile.cttMenuOptions.timeValues[2] ..
+                ":" .. db.profile.cttMenuOptions.timeValues[3] .. "." .. db.profile.cttMenuOptions.timeValues[5] .. "!")
         else
-            CTT:Print(L["Fight ended in "] .. "(MM:SS.MS): " .. db.profile.cttMenuOptions.timeValues[2] .. ":" .. db.profile.cttMenuOptions.timeValues[3] .. "." .. db.profile.cttMenuOptions.timeValues[5] .. ".")
+            CTT:Print(L["Fight ended in "] ..
+                "(MM:SS.MS): " ..
+                db.profile.cttMenuOptions.timeValues[2] ..
+                ":" .. db.profile.cttMenuOptions.timeValues[3] .. "." .. db.profile.cttMenuOptions.timeValues[5] .. ".")
         end
     else
         if newRecord then
-            CTT:Print(L["New Record! Fight ended in "] .. "(HH:MM:SS.MS): " .. db.profile.cttMenuOptions.timeValues[1] .. ":" .. db.profile.cttMenuOptions.timeValues[2] .. ":" .. db.profile.cttMenuOptions.timeValues[3] .. "." .. db.profile.cttMenuOptions.timeValues[5] .. "!")
+            CTT:Print(L["New Record! Fight ended in "] ..
+                "(HH:MM:SS.MS): " ..
+                db.profile.cttMenuOptions.timeValues[1] ..
+                ":" ..
+                db.profile.cttMenuOptions.timeValues[2] ..
+                ":" .. db.profile.cttMenuOptions.timeValues[3] .. "." .. db.profile.cttMenuOptions.timeValues[5] .. "!")
         else
-            CTT:Print(L["Fight ended in "] .. "(HH:MM:SS.MS): " .. db.profile.cttMenuOptions.timeValues[1] .. ":" .. db.profile.cttMenuOptions.timeValues[2] .. ":" .. db.profile.cttMenuOptions.timeValues[3] .. "." .. db.profile.cttMenuOptions.timeValues[5] .. ".")
+            CTT:Print(L["Fight ended in "] ..
+                "(HH:MM:SS.MS): " ..
+                db.profile.cttMenuOptions.timeValues[1] ..
+                ":" ..
+                db.profile.cttMenuOptions.timeValues[2] ..
+                ":" .. db.profile.cttMenuOptions.timeValues[3] .. "." .. db.profile.cttMenuOptions.timeValues[5] .. ".")
         end
     end
 end
@@ -1026,21 +1091,30 @@ function CTT_DisplayResultsBosses(bossEncounter, wasAKill)
     if not db.profile.cttMenuOptions.togglePrint then return end
     if db.profile.cttMenuOptions.dropdownValue == 1 then
         if wasAKill then
-            CTT:Print(L["You have successfully killed "] .. bossEncounter .. " " .. L["after"] .. " " .. totalSeconds .. "." .. miliseconds .. " " .. L["seconds"] .. "!")
+            CTT:Print(L["You have successfully killed "] ..
+                bossEncounter ..
+                " " .. L["after"] .. " " .. totalSeconds .. "." .. miliseconds .. " " .. L["seconds"] .. "!")
         else
-            CTT:Print(L["You have wiped on "] .. bossEncounter .. L["after"] .. " " .. totalSeconds .. "." .. miliseconds .. ".")
+            CTT:Print(L["You have wiped on "] ..
+                bossEncounter .. L["after"] .. " " .. totalSeconds .. "." .. miliseconds .. ".")
         end
     elseif db.profile.cttMenuOptions.dropdownValue == 2 then
         if wasAKill then
-            CTT:Print(L["You have successfully killed "] .. bossEncounter .. " " .. L["after"] .. " " .. minutes .. ":" .. seconds .. "." .. miliseconds .. "!")
+            CTT:Print(L["You have successfully killed "] ..
+                bossEncounter .. " " .. L["after"] .. " " .. minutes .. ":" .. seconds .. "." .. miliseconds .. "!")
         else
-            CTT:Print(L["You have wiped on "] .. bossEncounter .. " " .. L["after"] .. " " .. minutes .. ":" .. seconds .. "." .. miliseconds .. ".")
+            CTT:Print(L["You have wiped on "] ..
+                bossEncounter .. " " .. L["after"] .. " " .. minutes .. ":" .. seconds .. "." .. miliseconds .. ".")
         end
     else
         if wasAKill then
-            CTT:Print(L["You have successfully killed "] .. bossEncounter .. " " .. L["after"] .. " " .. hours .. ":" .. minutes .. ":" .. seconds .. "." .. miliseconds .. ".")
+            CTT:Print(L["You have successfully killed "] ..
+                bossEncounter ..
+                " " .. L["after"] .. " " .. hours .. ":" .. minutes .. ":" .. seconds .. "." .. miliseconds .. ".")
         else
-            CTT:Print(L["You have wiped on "] .. bossEncounter .. " " .. L["after"] .. " " .. hours .. ":" .. minutes .. ":" .. seconds .. "." .. miliseconds .. ".")
+            CTT:Print(L["You have wiped on "] ..
+                bossEncounter ..
+                " " .. L["after"] .. " " .. hours .. ":" .. minutes .. ":" .. seconds .. "." .. miliseconds .. ".")
         end
     end
 end
@@ -1154,7 +1228,9 @@ end
 
 function CTT_DropdownState(widget, event, key, checked)
     db.profile.cttMenuOptions.dropdownValue = key
-    CTT_UpdateText(db.profile.cttMenuOptions.timeValues[1], db.profile.cttMenuOptions.timeValues[2], db.profile.cttMenuOptions.timeValues[3], db.profile.cttMenuOptions.timeValues[5], db.profile.cttMenuOptions.dropdownValue, 1)
+    CTT_UpdateText(db.profile.cttMenuOptions.timeValues[1], db.profile.cttMenuOptions.timeValues[2],
+        db.profile.cttMenuOptions.timeValues[3], db.profile.cttMenuOptions.timeValues[5],
+        db.profile.cttMenuOptions.dropdownValue, 1)
 end
 
 -- function to handle the sliding of the slider, this fires anytime the slider moves
@@ -1163,32 +1239,52 @@ function CTT_ResizeFrameSliderUpdater(widget, event, value)
     local multiplier = value
     local width = 100 + (multiplier * 100)
     local height = 40 + (multiplier * 40)
+    local targetSizeHeight = 12.5 + (multiplier * 12.5)
+    local targetSizeWidth = 50 + (multiplier * 50)
     local fontVal = 16 + (multiplier * 16)
+    local iconSize = 7.5 + (multiplier * 7.5)
     cttStopwatchGui:SetWidth(width)
     cttStopwatchGui:SetHeight(height)
     cttStopwatchGuiTimeText:SetSize(width, height)
+    if db.profile.cttMenuOptions.toggleTarget then
+        cttStopwatchGuiTargetText:SetSize(targetSizeWidth, targetSizeHeight)
+        cttStopwatchGuiTargetIcon:SetSize(iconSize, iconSize)
+        cttStopwatchGuiTargetIcon2:SetSize(iconSize, iconSize)
+    end
+    -- TODO add target text to ctt db for persistence
+    -- TODO add dynamic absolute offset for target raid icons
     if db.profile.cttMenuOptions.fontName then
         cttStopwatchGuiTimeText:SetFont(db.profile.cttMenuOptions.fontName, fontVal, db.profile.cttMenuOptions.fontFlags)
+        if db.profile.cttMenuOptions.toggleTarget then cttStopwatchGuiTargetText:SetFont(db.profile.cttMenuOptions.fontName
+            , fontVal / 2, db.profile.cttMenuOptions.fontFlags) end
         db.profile.cttMenuOptions.fontVal = fontVal
     else
         cttStopwatchGuiTimeText:SetFont("Fonts\\MORPHEUS.ttf", fontVal, db.profile.cttMenuOptions.fontFlags)
+        if db.profile.cttMenuOptions.toggleTarget then cttStopwatchGuiTargetText:SetFont("Fonts\\MORPHEUS.ttf", fontVal /
+            2, db.profile.cttMenuOptions.fontFlags) end
         db.profile.cttMenuOptions.fontVal = fontVal
     end
 end
 
 -- function to update the tracker size from user settings on login
 function CTT_SetTrackerSizeOnLogin()
-    if table.getn(db.profile.cttMenuOptions.timeTrackerSize) == 2 and db.profile.cttMenuOptions.fontVal and db.profile.cttMenuOptions.fontName and db.profile.cttMenuOptions.backDropAlphaSlider then
+    if table.getn(db.profile.cttMenuOptions.timeTrackerSize) == 2 and db.profile.cttMenuOptions.fontVal and
+        db.profile.cttMenuOptions.fontName and db.profile.cttMenuOptions.backDropAlphaSlider then
         cttStopwatchGui:SetWidth(db.profile.cttMenuOptions.timeTrackerSize[1])
         cttStopwatchGui:SetHeight(db.profile.cttMenuOptions.timeTrackerSize[2])
-        cttStopwatchGuiTimeText:SetSize(db.profile.cttMenuOptions.timeTrackerSize[1], db.profile.cttMenuOptions.timeTrackerSize[2])
-        cttStopwatchGuiTimeText:SetFont(db.profile.cttMenuOptions.fontName, db.profile.cttMenuOptions.fontVal, db.profile.cttMenuOptions.fontFlags)
+        cttStopwatchGuiTimeText:SetSize(db.profile.cttMenuOptions.timeTrackerSize[1],
+            db.profile.cttMenuOptions.timeTrackerSize[2])
+        cttStopwatchGuiTimeText:SetFont(db.profile.cttMenuOptions.fontName, db.profile.cttMenuOptions.fontVal,
+            db.profile.cttMenuOptions.fontFlags)
         cttStopwatchGui:SetBackdrop(backdropSettings)
         cttStopwatchGui:SetBackdropColor(0, 0, 0, db.profile.cttMenuOptions.backDropAlphaSlider)
         cttStopwatchGui:SetBackdropBorderColor(255, 255, 255, db.profile.cttMenuOptions.backDropAlphaSlider)
-        cttStopwatchGuiTimeText:SetTextColor(db.profile.cttMenuOptions.textColorPicker[1], db.profile.cttMenuOptions.textColorPicker[2], db.profile.cttMenuOptions.textColorPicker[3], db.profile.cttMenuOptions.textColorPicker[4])
+        cttStopwatchGuiTimeText:SetTextColor(db.profile.cttMenuOptions.textColorPicker[1],
+            db.profile.cttMenuOptions.textColorPicker[2], db.profile.cttMenuOptions.textColorPicker[3],
+            db.profile.cttMenuOptions.textColorPicker[4])
         cttStopwatchGui:ClearAllPoints()
-        cttStopwatchGui:SetPoint(db.profile.cttMenuOptions.framePoint, nil, db.profile.cttMenuOptions.frameRelativePoint, db.profile.cttMenuOptions.xOfs, db.profile.cttMenuOptions.yOfs)
+        cttStopwatchGui:SetPoint(db.profile.cttMenuOptions.framePoint, nil, db.profile.cttMenuOptions.frameRelativePoint
+            , db.profile.cttMenuOptions.xOfs, db.profile.cttMenuOptions.yOfs)
     else
         cttStopwatchGuiTimeText:SetFont("Fonts\\MORPHEUS.ttf", 16, db.profile.cttMenuOptions.fontFlags)
         db.profile.cttMenuOptions.fontVal = fontVal
@@ -1205,12 +1301,17 @@ end
 function CTT_FontPickerDropDownState(widget, event, key, checked)
     db.profile.cttMenuOptions.fontPickerDropDown = key
     db.profile.cttMenuOptions.fontName = LSM:Fetch("font", fontTableOptions[key])
-    if table.getn(db.profile.cttMenuOptions.timeTrackerSize) == 2 and db.profile.cttMenuOptions.fontVal and db.profile.cttMenuOptions.fontName then
+    if table.getn(db.profile.cttMenuOptions.timeTrackerSize) == 2 and db.profile.cttMenuOptions.fontVal and
+        db.profile.cttMenuOptions.fontName then
         cttStopwatchGui:SetWidth(db.profile.cttMenuOptions.timeTrackerSize[1])
         cttStopwatchGui:SetHeight(db.profile.cttMenuOptions.timeTrackerSize[2])
-        cttStopwatchGuiTimeText:SetSize(db.profile.cttMenuOptions.timeTrackerSize[1], db.profile.cttMenuOptions.timeTrackerSize[2])
-        cttStopwatchGuiTimeText:SetFont(db.profile.cttMenuOptions.fontName, db.profile.cttMenuOptions.fontVal, db.profile.cttMenuOptions.fontFlags)
-        CTT_UpdateText(db.profile.cttMenuOptions.timeValues[1], db.profile.cttMenuOptions.timeValues[2], db.profile.cttMenuOptions.timeValues[3], db.profile.cttMenuOptions.timeValues[5], db.profile.cttMenuOptions.dropdownValue, 2)
+        cttStopwatchGuiTimeText:SetSize(db.profile.cttMenuOptions.timeTrackerSize[1],
+            db.profile.cttMenuOptions.timeTrackerSize[2])
+        cttStopwatchGuiTimeText:SetFont(db.profile.cttMenuOptions.fontName, db.profile.cttMenuOptions.fontVal,
+            db.profile.cttMenuOptions.fontFlags)
+        CTT_UpdateText(db.profile.cttMenuOptions.timeValues[1], db.profile.cttMenuOptions.timeValues[2],
+            db.profile.cttMenuOptions.timeValues[3], db.profile.cttMenuOptions.timeValues[5],
+            db.profile.cttMenuOptions.dropdownValue, 2)
     end
 end
 
@@ -1252,7 +1353,9 @@ end
 
 function CTT_ToggleTextFlagsButton(widget, event, value)
     db.profile.cttMenuOptions.textFlags = value
-    if value then db.profile.cttMenuOptions.fontFlags = "OUTLINE, THICKOUTLINE, MONOCHROME" else db.profile.cttMenuOptions.fontFlags = "" end
+    if value then db.profile.cttMenuOptions.fontFlags = "OUTLINE, THICKOUTLINE, MONOCHROME" else db.profile.cttMenuOptions
+            .fontFlags = ""
+    end
     CTT_SetTrackerSizeOnLogin()
 end
 
@@ -1350,7 +1453,8 @@ end
 
 function CTT_AlertBossDropDown(widget, event, key, checked)
     CTT:Print(db.profile.cttMenuOptions.raidKey)
-    db.profile.cttMenuOptions.bossDropdown = raidBosses[db.profile.cttMenuOptions.xpacKey][db.profile.cttMenuOptions.raidKey][key]
+    db.profile.cttMenuOptions.bossDropdown = raidBosses[db.profile.cttMenuOptions.xpacKey][
+        db.profile.cttMenuOptions.raidKey][key]
     db.profile.cttMenuOptions.bossDropDownkey = key
     CTT.menu.tab:SelectTab("alerts")
 end
@@ -1359,8 +1463,14 @@ function CTT_AlertAddButtonClicked(widget, event)
     local timeInSeconds = IsInt(db.profile.cttMenuOptions.localStore)
     local key = 0
     if db.profile.cttMenuOptions.alerts[table.getn(db.profile.cttMenuOptions.alerts)] ~= {} then key = 1 end
-    if db.profile.cttMenuOptions.localStore ~= nil and timeInSeconds and db.profile.cttMenuOptions.raidDropdown ~= nil and db.profile.cttMenuOptions.bossDropdown ~= nil then
-        db.profile.cttMenuOptions.alerts[table.getn(db.profile.cttMenuOptions.alerts) + key] = { tonumber(db.profile.cttMenuOptions.localStore), raidInstanceZones[db.profile.cttMenuOptions.xpacKey][db.profile.cttMenuOptions.raidKey], raidBosses[db.profile.cttMenuOptions.xpacKey][db.profile.cttMenuOptions.raidKey][db.profile.cttMenuOptions.bossDropDownkey], raidEncounterIDs[db.profile.cttMenuOptions.xpacKey][db.profile.cttMenuOptions.raidKey][db.profile.cttMenuOptions.bossDropDownkey] }
+    if db.profile.cttMenuOptions.localStore ~= nil and timeInSeconds and db.profile.cttMenuOptions.raidDropdown ~= nil
+        and db.profile.cttMenuOptions.bossDropdown ~= nil then
+        db.profile.cttMenuOptions.alerts[table.getn(db.profile.cttMenuOptions.alerts) + key] = { tonumber(db.profile.cttMenuOptions
+            .localStore), raidInstanceZones[db.profile.cttMenuOptions.xpacKey][db.profile.cttMenuOptions.raidKey],
+            raidBosses[db.profile.cttMenuOptions.xpacKey][db.profile.cttMenuOptions.raidKey][
+                db.profile.cttMenuOptions.bossDropDownkey],
+            raidEncounterIDs[db.profile.cttMenuOptions.xpacKey][db.profile.cttMenuOptions.raidKey][
+                db.profile.cttMenuOptions.bossDropDownkey] }
         CTT.menu.tab:SelectTab("alerts")
     else
         if not timeInSeconds then
@@ -1534,7 +1644,9 @@ local function OptionsMenu(container)
     -- color picker
     local textColorPicker = AceGUI:Create("ColorPicker")
     if db.profile.cttMenuOptions.textColorPicker then
-        textColorPicker:SetColor(db.profile.cttMenuOptions.textColorPicker[1], db.profile.cttMenuOptions.textColorPicker[2], db.profile.cttMenuOptions.textColorPicker[3], db.profile.cttMenuOptions.textColorPicker[4])
+        textColorPicker:SetColor(db.profile.cttMenuOptions.textColorPicker[1],
+            db.profile.cttMenuOptions.textColorPicker[2], db.profile.cttMenuOptions.textColorPicker[3],
+            db.profile.cttMenuOptions.textColorPicker[4])
     else
         textColorPicker:SetColor(255, 255, 255)
     end
@@ -1604,7 +1716,9 @@ local function OptionsMenu(container)
     backDropAlphaSlider:SetLabel(L["Backdrop Opacity"])
     backDropAlphaSlider:SetWidth(150)
     backDropAlphaSlider:SetIsPercent(true)
-    if db.profile.cttMenuOptions.backDropAlphaSlider then backDropAlphaSlider:SetValue(db.profile.cttMenuOptions.backDropAlphaSlider) else backDropAlphaSlider:SetValue(1) end
+    if db.profile.cttMenuOptions.backDropAlphaSlider then backDropAlphaSlider:SetValue(db.profile.cttMenuOptions.backDropAlphaSlider) else backDropAlphaSlider
+            :SetValue(1)
+    end
     backDropAlphaSlider:SetSliderValues(0, 1, .01)
     backDropAlphaSlider:ClearAllPoints()
     backDropAlphaSlider:SetPoint("LEFT", container.tab, "LEFT", 6, 0)
@@ -1794,7 +1908,8 @@ local function Alerts(container)
     bossDropdown:SetLabel("Select Boss")
     bossDropdown:SetMultiselect(false)
     bossDropdown:SetList(raidBosses[db.profile.cttMenuOptions.xpacKey][db.profile.cttMenuOptions.raidKey])
-    bossDropdown:SetText(raidBosses[db.profile.cttMenuOptions.xpacKey][db.profile.cttMenuOptions.raidKey][db.profile.cttMenuOptions.bossDropDownkey])
+    bossDropdown:SetText(raidBosses[db.profile.cttMenuOptions.xpacKey][db.profile.cttMenuOptions.raidKey][
+        db.profile.cttMenuOptions.bossDropDownkey])
     bossDropdown:SetValue(db.profile.cttMenuOptions.bossDropDownkey)
     bossDropdown:SetWidth(125)
     bossDropdown:ClearAllPoints()
@@ -1831,7 +1946,9 @@ local function Alerts(container)
     for i, v in ipairs(db.profile.cttMenuOptions.alerts) do
         local value = "value" .. i
         value = AceGUI:Create("Label")
-        value:SetText("Seconds into fight: " .. db.profile.cttMenuOptions.alerts[i][1] .. ", Raid: " .. db.profile.cttMenuOptions.alerts[i][2] .. ", Boss: " .. db.profile.cttMenuOptions.alerts[i][3])
+        value:SetText("Seconds into fight: " ..
+            db.profile.cttMenuOptions.alerts[i][1] ..
+            ", Raid: " .. db.profile.cttMenuOptions.alerts[i][2] .. ", Boss: " .. db.profile.cttMenuOptions.alerts[i][3])
         value:SetColor(255, 255, 0)
         value:SetFont("Fonts\\MORPHEUS_CYR.TTF", 10)
         if (table.getn(db.profile.cttMenuOptions.alerts) > 10) then
@@ -1882,8 +1999,7 @@ function CTT:CreateOptionsMenu()
     CTT.menu = menu
 
     CTT_menu = menu.frame
-    menu.frame:SetMaxResize(500, 500)
-    menu.frame:SetMinResize(500, 500)
+    menu.frame:SetResizeBounds(500, 500, 500, 500)
     menu.frame:SetFrameStrata("HIGH")
     menu.frame:SetFrameLevel(1)
 
@@ -1891,7 +2007,8 @@ function CTT:CreateOptionsMenu()
     local tab = AceGUI:Create("TabGroup")
     tab:SetLayout("Flow")
     -- Setup which tabs to show
-    tab:SetTabs({ { text = "Options", value = "options" }, { text = "Dungeons", value = "dungeons" }, { text = "Raids", value = "raids" }, { text = "Alert Times", value = "alerts" } })
+    tab:SetTabs({ { text = "Options", value = "options" }, { text = "Dungeons", value = "dungeons" },
+        { text = "Raids", value = "raids" }, { text = "Alert Times", value = "alerts" } })
     -- Register callback
     tab:SetCallback("OnGroupSelected", SelectGroup)
     -- Set initial Tab (this will fire the OnGroupSelected callback)
