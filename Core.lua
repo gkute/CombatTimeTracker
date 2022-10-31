@@ -73,14 +73,6 @@ local defaults = {
     }
 }
 
-local raidZones = {
-
-}
-
-local dungeonZones = {
-
-}
-
 local xpacs = {
     "Classic",
     "Burning Crusade",
@@ -725,12 +717,10 @@ end
 
 -- event function for knowing when a m+ dungeon ends
 function CTT:CHALLENGE_MODE_COMPLETED()
-    --print("m+ is completed!")
 end
 
 -- event function to handle starting m+ dungeon
 function CTT:CHALLENGE_MODE_START(mapID)
-    --print(mapID)
     if db.profile.cttMenuOptions.resetCounterOnEndOfCombat then
         time = GetTime()
     end
@@ -743,13 +733,12 @@ function CTT:COMBAT_LOG_EVENT_UNFILTERED()
     if sourceGUID == playerGUID and subevent == "SPELL_CAST_SUCCESS" and
         not CTT_TableContainsValue(NonHearthstones, spellName) and
         string.find(spellName, "Hearthstone") then
-        print(spellName)
         ResetInstances();
     end
 end
 
 function CTT:CHALLENGE_MODE_RESET(mapID)
-    print(mapID)
+
 end
 
 -- event function to handle persistence on the settings of the tracker when the player enters the world
@@ -1256,12 +1245,15 @@ function CTT_ResizeFrameSliderUpdater(widget, event, value)
     if db.profile.cttMenuOptions.fontName then
         cttStopwatchGuiTimeText:SetFont(db.profile.cttMenuOptions.fontName, fontVal, db.profile.cttMenuOptions.fontFlags)
         if db.profile.cttMenuOptions.toggleTarget then cttStopwatchGuiTargetText:SetFont(db.profile.cttMenuOptions.fontName
-            , fontVal / 2, db.profile.cttMenuOptions.fontFlags) end
+                , fontVal / 2, db.profile.cttMenuOptions.fontFlags)
+        end
         db.profile.cttMenuOptions.fontVal = fontVal
     else
         cttStopwatchGuiTimeText:SetFont("Fonts\\MORPHEUS.ttf", fontVal, db.profile.cttMenuOptions.fontFlags)
-        if db.profile.cttMenuOptions.toggleTarget then cttStopwatchGuiTargetText:SetFont("Fonts\\MORPHEUS.ttf", fontVal /
-            2, db.profile.cttMenuOptions.fontFlags) end
+        if db.profile.cttMenuOptions.toggleTarget then cttStopwatchGuiTargetText:SetFont("Fonts\\MORPHEUS.ttf",
+                fontVal /
+                2, db.profile.cttMenuOptions.fontFlags)
+        end
         db.profile.cttMenuOptions.fontVal = fontVal
     end
 end
@@ -1841,7 +1833,8 @@ local function Dungeons(container)
     local Label = AceGUI:Create("Label")
     Label:SetText("Feature Coming Soon!!")
     Label:SetColor(255, 255, 0)
-    Label:SetFont("Fonts\\MORPHEUS_CYR.TTF", 12)
+    -- Label:SetFontObject("GameFontNormal")
+    -- Label:SetFont("Fonts\\MORPHEUS_CYR.TTF", 12, nil)
     Label:SetWidth(112)
     Label:ClearAllPoints()
     Label:SetPoint("LEFT", container.tab, "LEFT", 6, 10)
@@ -1854,7 +1847,7 @@ local function Raids(container)
     local Label = AceGUI:Create("Label")
     Label:SetText("Feature Coming Soon!!")
     Label:SetColor(255, 255, 0)
-    Label:SetFont("Fonts\\MORPHEUS_CYR.TTF", 12)
+    -- Label:SetFont("Fonts\\MORPHEUS_CYR.TTF", 12)
     Label:SetWidth(112)
     Label:ClearAllPoints()
     Label:SetPoint("LEFT", container.tab, "LEFT", 6, 10)
@@ -1950,7 +1943,7 @@ local function Alerts(container)
             db.profile.cttMenuOptions.alerts[i][1] ..
             ", Raid: " .. db.profile.cttMenuOptions.alerts[i][2] .. ", Boss: " .. db.profile.cttMenuOptions.alerts[i][3])
         value:SetColor(255, 255, 0)
-        value:SetFont("Fonts\\MORPHEUS_CYR.TTF", 10)
+        -- value:SetFont("Fonts\\MORPHEUS_CYR.TTF", 10)
         if (table.getn(db.profile.cttMenuOptions.alerts) > 10) then
             value:SetWidth(350)
         else

@@ -1,4 +1,3 @@
 ##Changelog:
 ###@project-version@
-* Updated toc version for Dragonflight PrePatch
-* Adding ability to keep timer from resetting while in keys - Beta feature may not work as expected
+* Updates to fix issues with menu tabs causing crashes
