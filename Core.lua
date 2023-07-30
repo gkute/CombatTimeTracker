@@ -578,7 +578,7 @@ function CTT:ADDON_LOADED()
             seconds = floor(time - floor(time / 3600) * 3600 - floor((time - floor(time / 3600) * 3600) / 60) * 60)
             miliseconds = floor((
                 time - floor(time / 3600) * 3600 - floor((time - floor(time / 3600) * 3600) / 60) * 60 -
-                    floor(time - floor(time / 3600) * 3600 - floor((time - floor(time / 3600) * 3600) / 60) * 60)) * 100)
+                floor(time - floor(time / 3600) * 3600 - floor((time - floor(time / 3600) * 3600) / 60) * 60)) * 100)
 
             if seconds < 10 then
                 --local temp = tostring(seconds)
@@ -728,7 +728,8 @@ end
 
 function CTT:COMBAT_LOG_EVENT_UNFILTERED()
     local playerGUID = UnitGUID("player")
-    local timestamp, subevent, _, sourceGUID, sourceName, sourceFlags, sourceRaidFlags, destGUID, destName, destFlags, destRaidFlags, spellId, spellName, spellSchool, amount, overkill, school, resisted, blocked, absorbed, critical, glancing, crushing, isOffHand = CombatLogGetCurrentEventInfo()
+    local timestamp, subevent, _, sourceGUID, sourceName, sourceFlags, sourceRaidFlags, destGUID, destName, destFlags, destRaidFlags, spellId, spellName, spellSchool, amount, overkill, school, resisted, blocked, absorbed, critical, glancing, crushing, isOffHand =
+        CombatLogGetCurrentEventInfo()
 
     if sourceGUID == playerGUID and subevent == "SPELL_CAST_SUCCESS" and
         not CTT_TableContainsValue(NonHearthstones, spellName) and
@@ -885,7 +886,6 @@ function CTT:SlashCommands(input)
         CallSimulateBossKill()
         --@end-debug@
     end
-
 end
 
 --|--------------------------|
@@ -894,9 +894,12 @@ end
 
 -- function to check if a ui reset is needed.
 function CTT_CheckForReload()
-    if db.profile.cttMenuOptions.lastVersion == nil then db.profile.cttMenuOptions.uiReset = true
+    if db.profile.cttMenuOptions.lastVersion == nil then
+        db.profile.cttMenuOptions.uiReset = true
         db.profile.cttMenuOptions.lastVersion = GetAddOnMetadata("CombatTimeTracker", "Version")
-    else db.profile.cttMenuOptions.uiReset = false end
+    else
+        db.profile.cttMenuOptions.uiReset = false
+    end
 end
 
 function CTT_TableContainsValue(tab, val)
@@ -932,7 +935,10 @@ function CTT_CheckForTarget()
         end
     else
         cttStopwatchGuiTargetText:Hide()
-        if cttStopwatchGuiTargetIcon:IsShown() then cttStopwatchGuiTargetIcon:Hide() cttStopwatchGuiTargetIcon2:Hide() end
+        if cttStopwatchGuiTargetIcon:IsShown() then
+            cttStopwatchGuiTargetIcon:Hide()
+            cttStopwatchGuiTargetIcon2:Hide()
+        end
     end
 end
 
@@ -1117,7 +1123,7 @@ function CTT_UpdateText(hours, minutes, seconds, miliseconds, textFormat, fontUp
         if db.profile.cttMenuOptions.timeValues then
             cttStopwatchGuiTimeText:SetText(totalSeconds) -- .. "." .. miliseconds)
         else
-            cttStopwatchGuiTimeText:SetText(seconds) -- .. "." .. miliseconds)
+            cttStopwatchGuiTimeText:SetText(seconds)      -- .. "." .. miliseconds)
         end
     elseif textFormat == 2 then
         cttStopwatchGuiTimeText:SetText(minutes .. ":" .. seconds) -- .. "." .. miliseconds)
@@ -1244,13 +1250,15 @@ function CTT_ResizeFrameSliderUpdater(widget, event, value)
     -- TODO add dynamic absolute offset for target raid icons
     if db.profile.cttMenuOptions.fontName then
         cttStopwatchGuiTimeText:SetFont(db.profile.cttMenuOptions.fontName, fontVal, db.profile.cttMenuOptions.fontFlags)
-        if db.profile.cttMenuOptions.toggleTarget then cttStopwatchGuiTargetText:SetFont(db.profile.cttMenuOptions.fontName
-                , fontVal / 2, db.profile.cttMenuOptions.fontFlags)
+        if db.profile.cttMenuOptions.toggleTarget then
+            cttStopwatchGuiTargetText:SetFont(db.profile.cttMenuOptions.fontName
+            , fontVal / 2, db.profile.cttMenuOptions.fontFlags)
         end
         db.profile.cttMenuOptions.fontVal = fontVal
     else
         cttStopwatchGuiTimeText:SetFont("Fonts\\MORPHEUS.ttf", fontVal, db.profile.cttMenuOptions.fontFlags)
-        if db.profile.cttMenuOptions.toggleTarget then cttStopwatchGuiTargetText:SetFont("Fonts\\MORPHEUS.ttf",
+        if db.profile.cttMenuOptions.toggleTarget then
+            cttStopwatchGuiTargetText:SetFont("Fonts\\MORPHEUS.ttf",
                 fontVal /
                 2, db.profile.cttMenuOptions.fontFlags)
         end
@@ -1276,7 +1284,7 @@ function CTT_SetTrackerSizeOnLogin()
             db.profile.cttMenuOptions.textColorPicker[4])
         cttStopwatchGui:ClearAllPoints()
         cttStopwatchGui:SetPoint(db.profile.cttMenuOptions.framePoint, nil, db.profile.cttMenuOptions.frameRelativePoint
-            , db.profile.cttMenuOptions.xOfs, db.profile.cttMenuOptions.yOfs)
+        , db.profile.cttMenuOptions.xOfs, db.profile.cttMenuOptions.yOfs)
     else
         cttStopwatchGuiTimeText:SetFont("Fonts\\MORPHEUS.ttf", 16, db.profile.cttMenuOptions.fontFlags)
         db.profile.cttMenuOptions.fontVal = fontVal
@@ -1345,8 +1353,11 @@ end
 
 function CTT_ToggleTextFlagsButton(widget, event, value)
     db.profile.cttMenuOptions.textFlags = value
-    if value then db.profile.cttMenuOptions.fontFlags = "OUTLINE, THICKOUTLINE, MONOCHROME" else db.profile.cttMenuOptions
-            .fontFlags = ""
+    if value then
+        db.profile.cttMenuOptions.fontFlags = "OUTLINE, THICKOUTLINE, MONOCHROME"
+    else
+        db.profile.cttMenuOptions
+        .fontFlags = ""
     end
     CTT_SetTrackerSizeOnLogin()
 end
@@ -1446,7 +1457,7 @@ end
 function CTT_AlertBossDropDown(widget, event, key, checked)
     CTT:Print(db.profile.cttMenuOptions.raidKey)
     db.profile.cttMenuOptions.bossDropdown = raidBosses[db.profile.cttMenuOptions.xpacKey][
-        db.profile.cttMenuOptions.raidKey][key]
+    db.profile.cttMenuOptions.raidKey][key]
     db.profile.cttMenuOptions.bossDropDownkey = key
     CTT.menu.tab:SelectTab("alerts")
 end
@@ -1457,8 +1468,9 @@ function CTT_AlertAddButtonClicked(widget, event)
     if db.profile.cttMenuOptions.alerts[table.getn(db.profile.cttMenuOptions.alerts)] ~= {} then key = 1 end
     if db.profile.cttMenuOptions.localStore ~= nil and timeInSeconds and db.profile.cttMenuOptions.raidDropdown ~= nil
         and db.profile.cttMenuOptions.bossDropdown ~= nil then
-        db.profile.cttMenuOptions.alerts[table.getn(db.profile.cttMenuOptions.alerts) + key] = { tonumber(db.profile.cttMenuOptions
-            .localStore), raidInstanceZones[db.profile.cttMenuOptions.xpacKey][db.profile.cttMenuOptions.raidKey],
+        db.profile.cttMenuOptions.alerts[table.getn(db.profile.cttMenuOptions.alerts) + key] = {
+            tonumber(db.profile.cttMenuOptions
+                .localStore), raidInstanceZones[db.profile.cttMenuOptions.xpacKey][db.profile.cttMenuOptions.raidKey],
             raidBosses[db.profile.cttMenuOptions.xpacKey][db.profile.cttMenuOptions.raidKey][
                 db.profile.cttMenuOptions.bossDropDownkey],
             raidEncounterIDs[db.profile.cttMenuOptions.xpacKey][db.profile.cttMenuOptions.raidKey][
@@ -1495,7 +1507,8 @@ function CTT_AlertsErrorPopup(errorCode)
         text = text,
         button1 = "Ok",
         -- button2 = "Reset Later",
-        OnAccept = function() end,
+        OnAccept = function()
+        end,
         timeout = 0,
         whileDead = true,
         hideOnEscape = true,
@@ -1513,7 +1526,8 @@ function CTT_ProfileNameOnEnterPressed(widget, event, text)
             text = "You have entered and invalid profile name, please try again!",
             button1 = "Ok",
             -- button2 = "Reset Later",
-            OnAccept = function() end,
+            OnAccept = function()
+            end,
             timeout = 0,
             whileDead = true,
             hideOnEscape = true,
@@ -1694,7 +1708,10 @@ local function OptionsMenu(container)
     textFrameSizeSlider:SetLabel(L["Tracker Size"])
     textFrameSizeSlider:SetWidth(150)
     textFrameSizeSlider:SetIsPercent(true)
-    if db.profile.cttMenuOptions.textFrameSizeSlider then textFrameSizeSlider:SetValue(db.profile.cttMenuOptions.textFrameSizeSlider) end
+    if db.profile.cttMenuOptions.textFrameSizeSlider then
+        textFrameSizeSlider:SetValue(db.profile.cttMenuOptions
+            .textFrameSizeSlider)
+    end
     textFrameSizeSlider:SetSliderValues(0, 1, .01)
     textFrameSizeSlider:ClearAllPoints()
     textFrameSizeSlider:SetPoint("LEFT", container.tab, "LEFT", 6, 0)
@@ -1708,7 +1725,10 @@ local function OptionsMenu(container)
     backDropAlphaSlider:SetLabel(L["Backdrop Opacity"])
     backDropAlphaSlider:SetWidth(150)
     backDropAlphaSlider:SetIsPercent(true)
-    if db.profile.cttMenuOptions.backDropAlphaSlider then backDropAlphaSlider:SetValue(db.profile.cttMenuOptions.backDropAlphaSlider) else backDropAlphaSlider
+    if db.profile.cttMenuOptions.backDropAlphaSlider then
+        backDropAlphaSlider:SetValue(db.profile.cttMenuOptions.backDropAlphaSlider)
+    else
+        backDropAlphaSlider
             :SetValue(1)
     end
     backDropAlphaSlider:SetSliderValues(0, 1, .01)
@@ -1825,7 +1845,6 @@ local function OptionsMenu(container)
     profileDeleteDropdown:SetCallback("OnValueChanged", CTT_ProfileDeleteDropdown)
     container:AddChild(profileDeleteDropdown)
     container.profileDeleteDropdown = profileDeleteDropdown
-
 end
 
 -- function that draws the dungeons tab
@@ -1902,7 +1921,7 @@ local function Alerts(container)
     bossDropdown:SetMultiselect(false)
     bossDropdown:SetList(raidBosses[db.profile.cttMenuOptions.xpacKey][db.profile.cttMenuOptions.raidKey])
     bossDropdown:SetText(raidBosses[db.profile.cttMenuOptions.xpacKey][db.profile.cttMenuOptions.raidKey][
-        db.profile.cttMenuOptions.bossDropDownkey])
+    db.profile.cttMenuOptions.bossDropDownkey])
     bossDropdown:SetValue(db.profile.cttMenuOptions.bossDropDownkey)
     bossDropdown:SetWidth(125)
     bossDropdown:ClearAllPoints()
@@ -1924,8 +1943,8 @@ local function Alerts(container)
     -- scroll frame for timers
     scrollcontainer = AceGUI:Create("InlineGroup") -- "InlineGroup" is also good
     scrollcontainer:SetFullWidth(true)
-    scrollcontainer:SetFullHeight(true) -- probably?
-    scrollcontainer:SetLayout("Fill") -- important!
+    scrollcontainer:SetFullHeight(true)            -- probably?
+    scrollcontainer:SetLayout("Fill")              -- important!
 
     container:AddChild(scrollcontainer)
 
@@ -1962,8 +1981,6 @@ local function Alerts(container)
         deleteBtn:SetCallback("OnClick", function(widget) CTT_AlertDeleteButtonClicked(widget, event, i) end)
         scroll:AddChild(deleteBtn)
     end
-
-
 end
 
 local function SelectGroup(container, event, group)
@@ -2001,7 +2018,7 @@ function CTT:CreateOptionsMenu()
     tab:SetLayout("Flow")
     -- Setup which tabs to show
     tab:SetTabs({ { text = "Options", value = "options" }, { text = "Dungeons", value = "dungeons" },
-        { text = "Raids", value = "raids" }, { text = "Alert Times", value = "alerts" } })
+        { text = "Raids",   value = "raids" }, { text = "Alert Times", value = "alerts" } })
     -- Register callback
     tab:SetCallback("OnGroupSelected", SelectGroup)
     -- Set initial Tab (this will fire the OnGroupSelected callback)
