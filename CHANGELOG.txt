@@ -1,3 +1,3 @@
 ##Changelog:
 ###@project-version@
-* Updating TOC version for new patch
+* Updating to include Dragonflight raids and dungeons for timers

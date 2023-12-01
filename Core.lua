@@ -82,7 +82,8 @@ local xpacs = {
     -- "Warlords of Draenor",
     -- "Legion",
     -- "Battle for Azeroth",
-    "Shadowlands"
+    "Shadowlands",
+    "DragonFlight"
 }
 
 local raidInstanceZones = {
@@ -109,6 +110,12 @@ local raidInstanceZones = {
         "Castle Nathria",
         "Sanctum of Domination",
         "Sepulcher of the First Ones"
+    },
+    -- DF
+    {
+        "Vault of the Incarnates",
+        "Aberrus, the Shadowed Crucible",
+        "Amirdrassil, the Dream's Hope"
     }
 }
 
@@ -274,6 +281,43 @@ local raidBosses = {
             "Rygelon",
             "The Jailer"
         }
+    },
+    -- DF
+    {
+        -- Vault
+        {
+            "Eranog",
+            "Terros",
+            "The Prime council",
+            "Sennarth, the Cold Breath",
+            "Dathea, Ascended",
+            "Kurog Grimtotem",
+            "Broodkeeper Diurna",
+            "Raszageth the Storm-Eater"
+        },
+        -- Aberrus
+        {
+            "Kazzara, the Hellforged",
+            "The Amalgamation chamber",
+            "The Forgotten Experiments",
+            "Assault of the Zaqali",
+            "Rashok, the Elder",
+            "The Vigilent Steward, Zskarn",
+            "Echo of Neltharion",
+            "Scalecommander Sarkareth"
+        },
+        -- Amirdrassil
+        {
+            "Gnarlroot",
+            "Igira the Cruel",
+            "Volcoross",
+            "Council of Dreams",
+            "Larodar, Keeper of the Flame",
+            "Nymue, Weaver of the Cycle",
+            "Smolderon",
+            "Tindral Sageswift, Seer of the Flame",
+            "Fyrakk the Blazing"
+        }
     }
 }
 
@@ -344,7 +388,22 @@ local raidEncounterIDs = {
         },
         -- Sepulchar of the First Ones
         {
-
+            2512, 2542, 2553, 2540, 2544, 2539, 2529, 2546, 2543, 2549, 2537
+        }
+    },
+    -- DF
+    {
+        -- Vault of the Incarnates
+        {
+            2587, 2639, 2590, 2592, 2635, 2605, 2614, 2607
+        },
+        -- Aberrus, the Shadowed Crucible
+        {
+            2688, 2687, 2693, 2682, 2680, 2689, 2683, 2684, 2685
+        },
+        -- Amirdrassil, the Dream's Hope
+        {
+            2820, 2709, 2737, 2728, 2731, 2708, 2824, 2786, 2677
         }
     }
 }
@@ -1878,7 +1937,7 @@ end
 local function Alerts(container)
     --select xpac
     local xpacDropdown = AceGUI:Create("Dropdown")
-    xpacDropdown:SetLabel("Select Expansion")
+    xpacDropdown:SetLabel("Expasion")
     xpacDropdown:SetMultiselect(false)
     xpacDropdown:SetList(xpacs)
     xpacDropdown:SetText(xpacs[db.profile.cttMenuOptions.xpacKey])
@@ -1892,8 +1951,8 @@ local function Alerts(container)
 
     -- Input field to get the time (in seconds)
     local timeInput = AceGUI:Create("EditBox")
-    timeInput:SetLabel("Alert Time(seconds)")
-    timeInput:SetWidth(115)
+    timeInput:SetLabel("Time(sec)")
+    timeInput:SetWidth(85)
     timeInput:ClearAllPoints()
     if db.profile.cttMenuOptions.localStore then timeInput:SetText(db.profile.cttMenuOptions.localStore) end
     timeInput:SetPoint("LEFT", container.tab, "LEFT", 6, 10)
@@ -1903,27 +1962,27 @@ local function Alerts(container)
 
     -- Select Raid
     local raidDropdown = AceGUI:Create("Dropdown")
-    raidDropdown:SetLabel("Select Raid")
+    raidDropdown:SetLabel("Raid")
     raidDropdown:SetMultiselect(false)
     raidDropdown:SetList(raidInstanceZones[db.profile.cttMenuOptions.xpacKey])
     raidDropdown:SetText(raidInstanceZones[db.profile.cttMenuOptions.xpacKey][db.profile.cttMenuOptions.raidKey])
     raidDropdown:SetValue(db.profile.cttMenuOptions.raidKey)
-    raidDropdown:SetWidth(125)
+    raidDropdown:SetWidth(225)
     raidDropdown:ClearAllPoints()
-    raidDropdown:SetPoint("LEFT", container.tab, "LEFT", 6, 10)
+    raidDropdown:SetPoint("LEFT", container.tab, "LEFT", 12, 10)
     raidDropdown:SetCallback("OnValueChanged", CTT_AlertRaidDropDown)
     container:AddChild(raidDropdown)
     container.raidDropdown = raidDropdown
 
     -- Select Boss
     local bossDropdown = AceGUI:Create("Dropdown")
-    bossDropdown:SetLabel("Select Boss")
+    bossDropdown:SetLabel("Boss")
     bossDropdown:SetMultiselect(false)
     bossDropdown:SetList(raidBosses[db.profile.cttMenuOptions.xpacKey][db.profile.cttMenuOptions.raidKey])
     bossDropdown:SetText(raidBosses[db.profile.cttMenuOptions.xpacKey][db.profile.cttMenuOptions.raidKey][
     db.profile.cttMenuOptions.bossDropDownkey])
     bossDropdown:SetValue(db.profile.cttMenuOptions.bossDropDownkey)
-    bossDropdown:SetWidth(125)
+    bossDropdown:SetWidth(250)
     bossDropdown:ClearAllPoints()
     bossDropdown:SetPoint("LEFT", container.tab, "LEFT", 6, 10)
     bossDropdown:SetCallback("OnValueChanged", CTT_AlertBossDropDown)
@@ -1964,9 +2023,9 @@ local function Alerts(container)
         value:SetColor(255, 255, 0)
         -- value:SetFont("Fonts\\MORPHEUS_CYR.TTF", 10)
         if (table.getn(db.profile.cttMenuOptions.alerts) > 10) then
-            value:SetWidth(350)
+            value:SetWidth(600)
         else
-            value:SetWidth(375)
+            value:SetWidth(625)
         end
         value:ClearAllPoints()
         value:SetPoint("LEFT", nil, "LEFT", 6, 10)
@@ -2001,15 +2060,15 @@ function CTT:CreateOptionsMenu()
     menu = AceGUI:Create("Frame")
     menu:SetTitle("Combat Time Tracker Options")
     menu:SetStatusText(GetAddOnMetadata("CombatTimeTracker", "Version"))
-    menu:SetWidth(500)
-    menu:SetHeight(500)
+    menu:SetWidth(750)
+    menu:SetHeight(750)
     menu:SetLayout("Fill")
     -- menu:SetCallBack("OnGroupSelected", CTT_SelectGroup)
     menu:Hide()
     CTT.menu = menu
 
     CTT_menu = menu.frame
-    menu.frame:SetResizeBounds(500, 500, 500, 500)
+    menu.frame:SetResizeBounds(750, 750, 750, 750)
     menu.frame:SetFrameStrata("HIGH")
     menu.frame:SetFrameLevel(1)
 
