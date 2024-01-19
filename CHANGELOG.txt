@@ -1,3 +1,3 @@
 ##Changelog:
 ###@project-version@
-* Updating to include Dragonflight raids and dungeons for timers
+* Updating toc for 10.2.5.
