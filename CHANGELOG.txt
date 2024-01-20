@@ -1,3 +1,3 @@
 ##Changelog:
 ###@project-version@
-* Updating toc for 10.2.5.
+* Updating the addon version api to use non-deprecated version
