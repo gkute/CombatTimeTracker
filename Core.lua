@@ -594,7 +594,7 @@ function CTT:ADDON_LOADED()
     end
 
     CTT_CheckForReload()
-    if C_AddOns.GetAddOnMetadata(name, variable) >= db.profile.cttMenuOptions.lastVersion and
+    if C_AddOns.GetAddOnMetadata("CombatTimeTracker", "Version") >= db.profile.cttMenuOptions.lastVersion and
         db.profile.cttMenuOptions.uiReset then
         CTT_PopUpMessage()
     end
