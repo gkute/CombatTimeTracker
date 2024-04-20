@@ -1236,7 +1236,9 @@ function CTT_ToggleMenu()
         loadOptionsAfterCombat = true
         CTT:Print("Options menu cannot be loaded while in combat, try again after combat has ended!")
     else
-        CTT:CreateOptionsMenu()
+        if CTT.menu == nil then
+            CTT:CreateOptionsMenu()
+        end
         if CTT.menu:IsShown() then
             CTT.menu:Hide()
             CTT:Print(L["Options menu hidden, for other commands use /ctt help!"])
@@ -1705,7 +1707,7 @@ local function OptionsMenu(container)
     textColorPicker:SetWidth(100)
     textColorPicker:ClearAllPoints()
     textColorPicker:SetPoint("TOPLEFT", container.tab, "TOPLEFT", 6, 0)
-    textColorPicker:SetCallback("OnValueConfirmed", CTT_ColorPickerConfirmed)
+    textColorPicker:SetCallback("OnValueChanged", CTT_ColorPickerConfirmed)
     container:AddChild(textColorPicker)
     container.textColorPicker = textColorPicker
 

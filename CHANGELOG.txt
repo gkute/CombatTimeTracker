@@ -1,3 +1,5 @@
 ##Changelog:
 ###@project-version@
-* Fixing build status
+* Fixing color picker not properly setting value - issue with AceGUI Lib
+* Fixing issue where menu frame was not properly closing and creating multiple instances
+* Updating some libs
