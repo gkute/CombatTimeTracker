@@ -1,5 +1,3 @@
 ##Changelog:
 ###@project-version@
-* Fixing color picker not properly setting value - issue with AceGUI Lib
-* Fixing issue where menu frame was not properly closing and creating multiple instances
-* Updating some libs
+* New feature to track boss kills from raid and store info
