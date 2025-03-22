@@ -1,4 +1,3 @@
 ##Changelog:
 ###@project-version@
-* Add feature to allow toggling if frame is click through
-* Add TWW raids
+* Add Season 2 raid Liberation of Undermine
