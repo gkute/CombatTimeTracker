@@ -597,7 +597,6 @@ function CTT:OnEnable()
     self:RegisterEvent("PLAYER_TARGET_CHANGED")
     self:RegisterEvent("CHALLENGE_MODE_COMPLETED")
     self:RegisterEvent("CHALLENGE_MODE_START")
-    self:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
     self:RegisterEvent("CHALLENGE_MODE_RESET")
 end
 
@@ -803,17 +802,17 @@ function CTT:CHALLENGE_MODE_START(mapID)
     end
 end
 
-function CTT:COMBAT_LOG_EVENT_UNFILTERED()
-    local playerGUID = UnitGUID("player")
-    local timestamp, subevent, _, sourceGUID, sourceName, sourceFlags, sourceRaidFlags, destGUID, destName, destFlags, destRaidFlags, spellId, spellName, spellSchool, amount, overkill, school, resisted, blocked, absorbed, critical, glancing, crushing, isOffHand =
-        CombatLogGetCurrentEventInfo()
+-- function CTT:COMBAT_LOG_EVENT_UNFILTERED()
+--     local playerGUID = UnitGUID("player")
+--     local timestamp, subevent, _, sourceGUID, sourceName, sourceFlags, sourceRaidFlags, destGUID, destName, destFlags, destRaidFlags, spellId, spellName, spellSchool, amount, overkill, school, resisted, blocked, absorbed, critical, glancing, crushing, isOffHand =
+--         CombatLogGetCurrentEventInfo()
 
-    if sourceGUID == playerGUID and subevent == "SPELL_CAST_SUCCESS" and
-        not CTT_TableContainsValue(NonHearthstones, spellName) and
-        string.find(spellName, "Hearthstone") then
-        ResetInstances();
-    end
-end
+--     if sourceGUID == playerGUID and subevent == "SPELL_CAST_SUCCESS" and
+--         not CTT_TableContainsValue(NonHearthstones, spellName) and
+--         string.find(spellName, "Hearthstone") then
+--         ResetInstances();
+--     end
+-- end
 
 function CTT:CHALLENGE_MODE_RESET(mapID)
 
@@ -1007,26 +1006,11 @@ end
 function CTT_CheckForTarget()
     if not db.profile.cttMenuOptions.toggleTarget then return end
     local target = GetUnitName("Target", false)
-    local raidMarkerIcon = target ~= nil and GetRaidTargetIndex("Target") or nil
     if target ~= nil then
         cttStopwatchGuiTargetText:SetText(target)
         cttStopwatchGuiTargetText:Show()
-        if raidMarkerIcon ~= nil then
-            cttStopwatchGuiTargetIcon:SetTexture("Interface/TargetingFrame/UI-RaidTargetingIcon_" .. raidMarkerIcon, true)
-            cttStopwatchGuiTargetIcon:Show()
-            cttStopwatchGuiTargetIcon2:SetTexture("Interface/TargetingFrame/UI-RaidTargetingIcon_" .. raidMarkerIcon,
-                true)
-            cttStopwatchGuiTargetIcon2:Show()
-        else
-            cttStopwatchGuiTargetIcon:Hide()
-            cttStopwatchGuiTargetIcon2:Hide()
-        end
     else
         cttStopwatchGuiTargetText:Hide()
-        if cttStopwatchGuiTargetIcon:IsShown() then
-            cttStopwatchGuiTargetIcon:Hide()
-            cttStopwatchGuiTargetIcon2:Hide()
-        end
     end
 end
 

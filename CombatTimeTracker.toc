@@ -1,4 +1,4 @@
-## Interface: 110205
+## Interface: 110205, 110207, 120000
 ## Title: Combat |cffff930fTime Tracker|r
 ## Version: @project-version@
 ## Notes: Fully automatic custom stopwatch to keep track of time spent in combat.

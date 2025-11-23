@@ -1,3 +1,3 @@
 ##Changelog:
 ###@project-version@
-* Add Season 2 raid Liberation of Undermine
+* Updates to get a workable version for Midnight
