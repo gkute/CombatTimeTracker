@@ -553,7 +553,7 @@ local cttLBD = LibStub("LibDataBroker-1.1"):NewDataObject("CombatTimeTracker", {
     icon = "Interface\\Icons\\inv_belt_armor_waistoftime_d_01",
     OnClick = function(button, buttonPressed)
         if buttonPressed == "RightButton" then
-            if db.minimap.lock then
+            if db.minimap and db.minimap.lock then
                 icon:Unlock("CombatTimeTracker")
             else
                 icon:Lock("CombatTimeTracker")

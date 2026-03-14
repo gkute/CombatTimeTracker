@@ -1,3 +1,4 @@
 ##Changelog:
 ###@project-version@
-* Updates to get a workable version for Midnight
+* Fix lua errors with locking the minimap
+* Remove older versions of the game from toc
