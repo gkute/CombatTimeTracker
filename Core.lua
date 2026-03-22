@@ -28,6 +28,12 @@ local fontDropDownMorpheus = 0
 local cttElapsedSeconds = 0
 local globalMenu
 local db
+local CTT_GetCharacterProfileName
+local CTT_ProfileExists
+local CTT_GetSharedProfileName
+local CTT_SetActiveProfile
+local CTT_GetProfileKey
+local CTT_ApplyConfiguredProfile
 
 local defaults = {
     global = {
@@ -1289,11 +1295,11 @@ function CTT_tepUpdateMenuTexts(container, difficultyNumber)
     container.QATime:SetText(tepFightLogs[8 + difficultyNumber])
 end
 
-local function CTT_GetCharacterProfileName()
+function CTT_GetCharacterProfileName()
     return UnitName("player") .. ' - ' .. GetRealmName()
 end
 
-local function CTT_ProfileExists(profileName)
+function CTT_ProfileExists(profileName)
     for _, existingProfileName in ipairs(db:GetProfiles()) do
         if existingProfileName == profileName then
             return true
@@ -1303,7 +1309,7 @@ local function CTT_ProfileExists(profileName)
     return false
 end
 
-local function CTT_GetSharedProfileName()
+function CTT_GetSharedProfileName()
     if db.global.sharedProfileName == nil or db.global.sharedProfileName == "" then
         db.global.sharedProfileName = CTT_GetCharacterProfileName()
     end
@@ -1311,7 +1317,7 @@ local function CTT_GetSharedProfileName()
     return db.global.sharedProfileName
 end
 
-local function CTT_SetActiveProfile(profileName)
+function CTT_SetActiveProfile(profileName)
     activeProfile = profileName
     activeProfileKey = nil
 
@@ -1323,7 +1329,7 @@ local function CTT_SetActiveProfile(profileName)
     end
 end
 
-local function CTT_GetProfileKey(profileName)
+function CTT_GetProfileKey(profileName)
     for k, existingProfileName in ipairs(db:GetProfiles()) do
         if existingProfileName == profileName then
             return k
@@ -1331,7 +1337,7 @@ local function CTT_GetProfileKey(profileName)
     end
 end
 
-local function CTT_ApplyConfiguredProfile()
+function CTT_ApplyConfiguredProfile()
     local profileName = CTT_GetCharacterProfileName()
 
     if db.global.useSharedDefaultProfile then
