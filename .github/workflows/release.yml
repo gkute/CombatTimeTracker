@@ -4,13 +4,9 @@ name: Package and release CTT
 
 # Controls when the action will run. 
 on:
-  # Triggers the workflow on push or pull request events but only for the master branch
+  # Only run automatically for pushed tags. A later step verifies the tag points at master.
   push:
-    # Sequence of patterns matched against refs/heads
-    branches:
-      - master
-    # Sequence of patterns matched against refs/tags
-    tags:        
+    tags:
       - '*'
     paths-ignore:
       - '.github/**'
@@ -41,9 +37,21 @@ jobs:
         uses: actions/checkout@v1 # note: v2 breaks git history, so generating a changelog and
                                   # file naming for alpha builds will not work properly
 
+      - name: Verify tag points to master
+        id: tagged_master
+        run: |
+          git fetch --force origin master
+          if git branch -r --contains "$GITHUB_SHA" | grep -q "origin/master"; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Install subversion
+        if: github.event_name == 'workflow_dispatch' || steps.tagged_master.outputs.run == 'true'
         run: sudo apt-get update && sudo apt-get install -y subversion
 
       # once cloned, we just run the GitHub Action for the packager project
       - name: Package and release
+        if: github.event_name == 'workflow_dispatch' || steps.tagged_master.outputs.run == 'true'
         uses: BigWigsMods/packager@master
