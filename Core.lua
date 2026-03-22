@@ -553,18 +553,14 @@ local cttLBD = LibStub("LibDataBroker-1.1"):NewDataObject("CombatTimeTracker", {
     icon = "Interface\\Icons\\inv_belt_armor_waistoftime_d_01",
     OnClick = function(button, buttonPressed)
         if buttonPressed == "RightButton" then
-            if db.minimap and db.minimap.lock then
+            if db.profile.minimap and db.profile.minimap.lock then
                 icon:Unlock("CombatTimeTracker")
             else
                 icon:Lock("CombatTimeTracker")
             end
         elseif buttonPressed == "MiddleButton" then
             icon:Hide("CombatTimeTracker")
-            if (db.minimap == nil) then
-                db.minimap = {
-                    hide = true,
-                }
-            end
+            db.profile.minimap.hide = true
             db.profile.cttMenuOptions.minimapIconCheckButton = true
         else
             CTT_ToggleMenu()
@@ -605,7 +601,7 @@ function CTT:OnInitialize()
     self:RegisterChatCommand('ctt', 'SlashCommands')
     LSM.RegisterCallback(self, "LibSharedMedia_Registered", "UpdateUsedMedia")
     db = LibStub("AceDB-3.0"):New("cttDB", defaults)
-    icon:Register("CombatTimeTracker", cttLBD, db.minimap)
+    icon:Register("CombatTimeTracker", cttLBD, db.profile.minimap)
     if not db.profile.minimap.hide then
         icon:Show("CombatTimeTracker")
     end
@@ -1525,11 +1521,7 @@ function CTT_BackDropSliderDone(widget, event, value)
 end
 
 function CTT_MinimapIconCheckButton(widget, event, value)
-    if (db.minimap == nil) then
-        db.minimap = {
-            hide = value,
-        }
-    end
+    db.profile.minimap.hide = value
     db.profile.cttMenuOptions.minimapIconCheckButton = value
     if db.profile.cttMenuOptions.minimapIconCheckButton then
         icon:Hide("CombatTimeTracker")
