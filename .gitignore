@@ -452,3 +452,6 @@ $RECYCLE.BIN/
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
+
+# WoW Addon Libs (downloaded at build time via .pkgmeta externals)
+Libs/
