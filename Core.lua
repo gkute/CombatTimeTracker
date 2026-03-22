@@ -27,8 +27,13 @@ local miliseconds = "00"
 local fontDropDownMorpheus = 0
 local cttElapsedSeconds = 0
 local globalMenu
+local db
 
 local defaults = {
+    global = {
+        useSharedDefaultProfile = false,
+        sharedProfileName = nil,
+    },
     profile = {
         minimap = {
             hide = false,
@@ -545,7 +550,6 @@ local NonHearthstones = {
 local L = LibStub("AceLocale-3.0"):GetLocale("cttTranslations")
 local AceGUI = LibStub("AceGUI-3.0")
 local LSM = LibStub("LibSharedMedia-3.0")
-local db
 local icon = LibStub("LibDBIcon-1.0")
 local cttLBD = LibStub("LibDataBroker-1.1"):NewDataObject("CombatTimeTracker", {
     type = "data source",
@@ -601,19 +605,10 @@ function CTT:OnInitialize()
     self:RegisterChatCommand('ctt', 'SlashCommands')
     LSM.RegisterCallback(self, "LibSharedMedia_Registered", "UpdateUsedMedia")
     db = LibStub("AceDB-3.0"):New("cttDB", defaults)
+    CTT_ApplyConfiguredProfile()
     icon:Register("CombatTimeTracker", cttLBD, db.profile.minimap)
     if not db.profile.minimap.hide then
         icon:Show("CombatTimeTracker")
-    end
-
-    if activeProfile == nil and activeProfileKey == nil then
-        db:SetProfile(UnitName("player") .. ' - ' .. GetRealmName())
-        for k, v in ipairs(db:GetProfiles()) do
-            if v == UnitName("player") .. ' - ' .. GetRealmName() then
-                activeProfile = v
-                activeProfileKey = k
-            end
-        end
     end
 
     db.RegisterCallback(self, "OnProfileChanged", "RefreshConfig")
@@ -627,11 +622,7 @@ function CTT:RefreshConfig()
     CTT_UpdateText(db.profile.cttMenuOptions.timeValues[1], db.profile.cttMenuOptions.timeValues[2],
         db.profile.cttMenuOptions.timeValues[3], db.profile.cttMenuOptions.timeValues[5],
         db.profile.cttMenuOptions.dropdownValue, 1)
-    for k, v in ipairs(db:GetProfiles()) do
-        if activeProfile == v and activeProfileKey ~= nil and activeProfile ~= nil then
-            activeProfileKey = k
-        end
-    end
+    CTT_SetActiveProfile(db:GetCurrentProfile())
 end
 
 -- Handle the initialization of values from nil to 0 first time addon is loaded.
@@ -1298,6 +1289,59 @@ function CTT_tepUpdateMenuTexts(container, difficultyNumber)
     container.QATime:SetText(tepFightLogs[8 + difficultyNumber])
 end
 
+local function CTT_GetCharacterProfileName()
+    return UnitName("player") .. ' - ' .. GetRealmName()
+end
+
+local function CTT_ProfileExists(profileName)
+    for _, existingProfileName in ipairs(db:GetProfiles()) do
+        if existingProfileName == profileName then
+            return true
+        end
+    end
+
+    return false
+end
+
+local function CTT_GetSharedProfileName()
+    if db.global.sharedProfileName == nil or db.global.sharedProfileName == "" then
+        db.global.sharedProfileName = CTT_GetCharacterProfileName()
+    end
+
+    return db.global.sharedProfileName
+end
+
+local function CTT_SetActiveProfile(profileName)
+    activeProfile = profileName
+    activeProfileKey = nil
+
+    for k, existingProfileName in ipairs(db:GetProfiles()) do
+        if existingProfileName == profileName then
+            activeProfileKey = k
+            break
+        end
+    end
+end
+
+local function CTT_GetProfileKey(profileName)
+    for k, existingProfileName in ipairs(db:GetProfiles()) do
+        if existingProfileName == profileName then
+            return k
+        end
+    end
+end
+
+local function CTT_ApplyConfiguredProfile()
+    local profileName = CTT_GetCharacterProfileName()
+
+    if db.global.useSharedDefaultProfile then
+        profileName = CTT_GetSharedProfileName()
+    end
+
+    db:SetProfile(profileName)
+    CTT_SetActiveProfile(profileName)
+end
+
 --|-----------------------|
 --| AceGUI Options Menu --|
 --|-----------------------|
@@ -1325,6 +1369,7 @@ local function CreateDropdown(container, opts)
     if opts.width then dd:SetWidth(opts.width) end
     dd:SetMultiselect(false)
     dd:ClearAllPoints()
+    if opts.disabled ~= nil then dd:SetDisabled(opts.disabled) end
     if opts.list then dd:SetList(opts.list) end
     if opts.text then dd:SetText(opts.text) end
     if opts.value then dd:SetValue(opts.value) end
@@ -1777,17 +1822,16 @@ function CTT_ProfileNameOnEnterPressed(widget, event, text)
 end
 
 function CTT_ProfileDropDownPicker(widget, event, key)
-    activeProfileKey = key
-    activeProfile = db:GetProfiles()[key]
     db:SetProfile(db:GetProfiles()[key])
+    CTT_SetActiveProfile(db:GetProfiles()[key])
     CTT.menu.tab:SelectTab("options")
     CTT:Print(activeProfile .. " profile is now the active profile!")
     CTT_SetTrackerSizeOnLogin()
 end
 
 function CTT_ProfileAddButton(widget, event)
-    activeProfile = newProfileName
     db:SetProfile(newProfileName)
+    CTT_SetActiveProfile(newProfileName)
     CTT:Print("New profile with the name of " .. newProfileName .. " has been created!")
     CTT.menu.tab:SelectTab("options")
 end
@@ -1799,9 +1843,57 @@ function CTT_ProfileCopyDropdown(widget, event, key)
 end
 
 function CTT_ProfileDeleteDropdown(widget, event, key)
-    CTT:Print(db:GetProfiles()[key] .. " profile has been deleted!")
-    db:DeleteProfile(db:GetProfiles()[key], true)
+    local deletedProfileName = db:GetProfiles()[key]
+    CTT:Print(deletedProfileName .. " profile has been deleted!")
+    db:DeleteProfile(deletedProfileName, true)
+    if db.global.sharedProfileName == deletedProfileName then
+        db.global.sharedProfileName = db:GetCurrentProfile()
+    end
+    CTT_SetActiveProfile(db:GetCurrentProfile())
     CTT.menu.tab:SelectTab("options")
+end
+
+function CTT_UseSharedDefaultProfile(widget, event, value)
+    local currentProfileName = db:GetCurrentProfile()
+    db.global.useSharedDefaultProfile = value
+
+    if value and (db.global.sharedProfileName == nil or db.global.sharedProfileName == "") then
+        db.global.sharedProfileName = currentProfileName
+    end
+
+    local targetProfileName = CTT_GetCharacterProfileName()
+    if value then
+        targetProfileName = CTT_GetSharedProfileName()
+    end
+
+    local targetProfileExists = CTT_ProfileExists(targetProfileName)
+
+    if currentProfileName ~= targetProfileName then
+        db:SetProfile(targetProfileName)
+
+        if not targetProfileExists then
+            db:CopyProfile(currentProfileName, true)
+        end
+    end
+
+    CTT_SetActiveProfile(targetProfileName)
+    CTT:Print("New characters will " ..
+        (value and ("start on the " .. targetProfileName .. " profile.") or "use character-specific profiles."))
+    CTT.menu.tab:SelectTab("options")
+end
+
+function CTT_SharedProfileDropDown(widget, event, key)
+    local selectedProfileName = db:GetProfiles()[key]
+
+    db.global.sharedProfileName = selectedProfileName
+    CTT:Print("Shared profile is now set to " .. selectedProfileName .. ".")
+
+    if db.global.useSharedDefaultProfile then
+        db:SetProfile(selectedProfileName)
+        CTT_SetActiveProfile(selectedProfileName)
+        CTT_SetTrackerSizeOnLogin()
+        CTT.menu.tab:SelectTab("options")
+    end
 end
 
 function CTT_ResetTrackerOnCombatEnding(widget, event, value)
@@ -2032,6 +2124,28 @@ local function OptionsMenu(container)
         point = { "LEFT", container.tab, "LEFT", 6, 0 },
         callback = CTT_ProfileDeleteDropdown,
         name = "profileDeleteDropdown",
+    })
+
+    local sharedDefaultProfile = CreateCheckBox(container, {
+        label = "Use Default For New Characters",
+        width = 230,
+        height = 22,
+        value = db.global.useSharedDefaultProfile,
+        point = { "LEFT", container.tab, "LEFT", 6, 0 },
+        callback = CTT_UseSharedDefaultProfile,
+        name = "sharedDefaultProfile",
+    })
+
+    local sharedProfilePicker = CreateDropdown(container, {
+        label = "Shared Profile",
+        multiselect = false,
+        list = db:GetProfiles(),
+        value = CTT_GetProfileKey(CTT_GetSharedProfileName()),
+        width = 200,
+        disabled = not db.global.useSharedDefaultProfile,
+        point = { "LEFT", container.tab, "LEFT", 6, 0 },
+        callback = CTT_SharedProfileDropDown,
+        name = "sharedProfilePicker",
     })
 end
 
