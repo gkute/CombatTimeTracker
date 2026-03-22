@@ -43,6 +43,24 @@
 * /ctt hide - hides the tracker if it's visible
 * /ctt longest - prints out the longest recorded fight
 
+## Third-Party Libraries:
+
+Combat Time Tracker is licensed under the MIT License. Packaged releases also include third-party libraries fetched at build time. Those libraries remain under their own respective licenses.
+
+Included libraries:
+* Ace3 (AceAddon-3.0, AceEvent-3.0, AceDB-3.0, AceLocale-3.0, AceConsole-3.0, AceGUI-3.0)
+* LibStub
+* CallbackHandler-1.0
+* LibDataBroker-1.1
+* LibDBIcon-1.0
+* LibSharedMedia-3.0
+
+Notable upstream licenses:
+* Ace3 uses its own BSD-style license
+* LibSharedMedia-3.0 is licensed under LGPL v2.1
+
+Please refer to each upstream project for complete license terms and copyright notices.
+
 ## Support Me:
 If you would like to give me some support please considering donating by becoming a patron.  All support helps!
 [![](https://c5.patreon.com/external/logo/become_a_patron_button@2x.png)](https://www.patreon.com/bePatron?u=6756557)
