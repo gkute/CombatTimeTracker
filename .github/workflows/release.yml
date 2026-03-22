@@ -41,6 +41,9 @@ jobs:
         uses: actions/checkout@v1 # note: v2 breaks git history, so generating a changelog and
                                   # file naming for alpha builds will not work properly
 
+      - name: Install subversion
+        run: sudo apt-get update && sudo apt-get install -y subversion
+
       # once cloned, we just run the GitHub Action for the packager project
       - name: Package and release
         uses: BigWigsMods/packager@master

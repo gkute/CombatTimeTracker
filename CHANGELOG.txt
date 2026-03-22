@@ -1,4 +1,3 @@
 ##Changelog:
 ###@project-version@
-* Fix lua errors with locking the minimap
-* Remove older versions of the game from toc
+* Update libs and fix some additional core logic flaws with minimap icon
