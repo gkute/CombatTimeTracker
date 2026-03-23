@@ -81,8 +81,10 @@ local defaults = {
             xpacKey = 1,
             expansion = "Classic",
             resetCounterOnEndOfCombat = true,
-            selectedTab = "general",
-            clickThrough = true
+            selectedTab = "settings",
+            clickThrough = true,
+            menuWidth = 750,
+            menuHeight = 600
         }
     }
 }
@@ -560,7 +562,7 @@ local icon = LibStub("LibDBIcon-1.0")
 local cttLBD = LibStub("LibDataBroker-1.1"):NewDataObject("CombatTimeTracker", {
     type = "data source",
     text = "Combat Time Tracker",
-    icon = "Interface\\Icons\\inv_belt_armor_waistoftime_d_01",
+    icon = "Interface\\AddOns\\CombatTimeTracker\\Assets\\CombatTimeTracker",
     OnClick = function(button, buttonPressed)
         if buttonPressed == "RightButton" then
             if db.profile.minimap and db.profile.minimap.lock then
@@ -613,6 +615,7 @@ function CTT:OnInitialize()
     db = LibStub("AceDB-3.0"):New("cttDB", defaults)
     CTT_ApplyConfiguredProfile()
     icon:Register("CombatTimeTracker", cttLBD, db.profile.minimap)
+    icon:RemoveButtonBorder("CombatTimeTracker")
     if not db.profile.minimap.hide then
         icon:Show("CombatTimeTracker")
     end
@@ -647,9 +650,14 @@ function CTT:ADDON_LOADED()
         db.profile.RaidKills = {}
     end
 
-    local validTabs = { general=true, display=true, visibility=true, sound=true, profiles=true, dungeons=true, raids=true, alerts=true }
+    local validTabs = { settings=true, profiles=true, dungeons=true, raids=true, alerts=true }
+    -- migrate any old per-section tab values to the combined settings tab
+    local legacyTabs = { general=true, display=true, visibility=true, sound=true }
+    if legacyTabs[db.profile.cttMenuOptions.selectedTab] then
+        db.profile.cttMenuOptions.selectedTab = "settings"
+    end
     if db.profile.cttMenuOptions.selectedTab == nil or not validTabs[db.profile.cttMenuOptions.selectedTab] then
-        db.profile.cttMenuOptions.selectedTab = "general"
+        db.profile.cttMenuOptions.selectedTab = "settings"
     end
 
     CTT_CheckForReload()
@@ -1396,7 +1404,8 @@ end
 local function CreateCheckBox(container, opts)
     local cb = AceGUI:Create("CheckBox")
     cb:SetLabel(opts.label)
-    if opts.width then cb:SetWidth(opts.width) end
+    if opts.fullWidth then cb:SetFullWidth(true)
+    elseif opts.width then cb:SetWidth(opts.width) end
     if opts.height then cb:SetHeight(opts.height) end
     cb:SetType("checkbox")
     cb:ClearAllPoints()
@@ -1961,45 +1970,66 @@ end
 
 --function that draws the General section
 local function General(container)
-    CreateCheckBox(container, {
+    -- Frame Controls
+    local frameGroup = AceGUI:Create("InlineGroup")
+    frameGroup:SetTitle("Frame")
+    frameGroup:SetFullWidth(true)
+    frameGroup:SetLayout("Flow")
+    container:AddChild(frameGroup)
+
+    CreateCheckBox(frameGroup, {
         label = L["Lock"],
-        width = 60,
+        fullWidth = true,
         height = 22,
         value = db.profile.cttMenuOptions.lockFrameCheckButton,
         callback = CTT_LockFrameCheckBoxState,
         name = "lockFrameCheckButton",
     })
 
-    CreateCheckBox(container, {
-        label = "Hide Minimap",
-        width = 120,
-        height = 22,
-        value = db.profile.cttMenuOptions.minimapIconCheckButton,
-        callback = CTT_MinimapIconCheckButton,
-        name = "minimapIconCheckButton",
-    })
-
-    CreateCheckBox(container, {
+    CreateCheckBox(frameGroup, {
         label = "Show Target",
-        width = 115,
+        fullWidth = true,
         height = 22,
         value = db.profile.cttMenuOptions.toggleTarget,
         callback = CTT_ToggleTargetCheckButton,
         name = "toggleTarget",
     })
 
-    CreateCheckBox(container, {
+    -- Minimap
+    local minimapGroup = AceGUI:Create("InlineGroup")
+    minimapGroup:SetTitle("Minimap")
+    minimapGroup:SetFullWidth(true)
+    minimapGroup:SetLayout("Flow")
+    container:AddChild(minimapGroup)
+
+    CreateCheckBox(minimapGroup, {
+        label = "Hide Minimap Icon",
+        fullWidth = true,
+        height = 22,
+        value = db.profile.cttMenuOptions.minimapIconCheckButton,
+        callback = CTT_MinimapIconCheckButton,
+        name = "minimapIconCheckButton",
+    })
+
+    -- Behavior
+    local behaviorGroup = AceGUI:Create("InlineGroup")
+    behaviorGroup:SetTitle("Behavior")
+    behaviorGroup:SetFullWidth(true)
+    behaviorGroup:SetLayout("Flow")
+    container:AddChild(behaviorGroup)
+
+    CreateCheckBox(behaviorGroup, {
         label = "Toggle Messages",
-        width = 150,
+        fullWidth = true,
         height = 22,
         value = db.profile.cttMenuOptions.togglePrint,
         callback = CTT_TogglePrintCheckButton,
         name = "togglePrint",
     })
 
-    CreateCheckBox(container, {
+    CreateCheckBox(behaviorGroup, {
         label = "Reset After Combat",
-        width = 160,
+        fullWidth = true,
         height = 22,
         value = db.profile.cttMenuOptions.resetCounterOnEndOfCombat,
         callback = CTT_ResetTrackerOnCombatEnding,
@@ -2009,7 +2039,14 @@ end
 
 -- function that draws the Display section
 local function Display(container)
-    CreateColorPicker(container, {
+    -- Text Appearance
+    local textGroup = AceGUI:Create("InlineGroup")
+    textGroup:SetTitle("Text Appearance")
+    textGroup:SetFullWidth(true)
+    textGroup:SetLayout("Flow")
+    container:AddChild(textGroup)
+
+    CreateColorPicker(textGroup, {
         color = db.profile.cttMenuOptions.textColorPicker,
         label = L["Text Color"],
         width = 100,
@@ -2017,18 +2054,18 @@ local function Display(container)
         name = "textColorPicker",
     })
 
-    CreateCheckBox(container, {
+    CreateCheckBox(textGroup, {
         label = "TextOutline",
-        width = 125,
+        fullWidth = true,
         height = 22,
         value = db.profile.cttMenuOptions.textFlags,
         callback = CTT_ToggleTextFlagsButton,
         name = "textFlagsButton",
     })
 
-    CreateDropdown(container, {
+    CreateDropdown(textGroup, {
         label = L["Text Format"],
-        width = 125,
+        width = 200,
         list = db.profile.cttMenuOptions.cttTextFormatOptions,
         text = db.profile.cttMenuOptions.cttTextFormatOptions[db.profile.cttMenuOptions.dropdownValue],
         value = db.profile.cttMenuOptions.dropdownValue,
@@ -2036,9 +2073,16 @@ local function Display(container)
         name = "textStyleDropDown",
     })
 
-    CreateSlider(container, {
+    -- Size
+    local sizeGroup = AceGUI:Create("InlineGroup")
+    sizeGroup:SetTitle("Size")
+    sizeGroup:SetFullWidth(true)
+    sizeGroup:SetLayout("Flow")
+    container:AddChild(sizeGroup)
+
+    CreateSlider(sizeGroup, {
         label = L["Tracker Size"],
-        width = 150,
+        width = 200,
         isPercent = true,
         value = db.profile.cttMenuOptions.textFrameSizeSlider,
         sliderValues = { 0, 1, .01 },
@@ -2047,9 +2091,9 @@ local function Display(container)
         name = "textFrameSizeSlider",
     })
 
-    CreateSlider(container, {
+    CreateSlider(sizeGroup, {
         label = L["Backdrop Opacity"],
-        width = 150,
+        width = 200,
         isPercent = true,
         value = db.profile.cttMenuOptions.backDropAlphaSlider,
         sliderValues = { 0, 1, .01 },
@@ -2058,7 +2102,14 @@ local function Display(container)
         name = "backDropAlphaSlider",
     })
 
-    CreateDropdown(container, {
+    -- Font
+    local fontGroup = AceGUI:Create("InlineGroup")
+    fontGroup:SetTitle("Font")
+    fontGroup:SetFullWidth(true)
+    fontGroup:SetLayout("Flow")
+    container:AddChild(fontGroup)
+
+    CreateDropdown(fontGroup, {
         label = L["Choose Font"],
         width = 270,
         list = LSM:List("font"),
@@ -2071,9 +2122,15 @@ end
 
 -- function that draws the Visibility section
 local function Visibility(container)
-    CreateDropdown(container, {
+    local visGroup = AceGUI:Create("InlineGroup")
+    visGroup:SetTitle("Settings")
+    visGroup:SetFullWidth(true)
+    visGroup:SetLayout("Flow")
+    container:AddChild(visGroup)
+
+    CreateDropdown(visGroup, {
         label = "Show Tracker When?",
-        width = 150,
+        width = 200,
         list = instanceTypes,
         text = instanceTypes[db.profile.cttMenuOptions.instanceType],
         value = db.profile.cttMenuOptions.instanceType,
@@ -2081,9 +2138,9 @@ local function Visibility(container)
         name = "instanceType",
     })
 
-    CreateCheckBox(container, {
+    CreateCheckBox(visGroup, {
         label = "Click Through",
-        width = 120,
+        fullWidth = true,
         height = 22,
         value = db.profile.cttMenuOptions.clickThrough,
         callback = CTT_ToggleClickThroughCheckButton,
@@ -2093,7 +2150,13 @@ end
 
 -- function that draws the Sound section
 local function Sound(container)
-    CreateDropdown(container, {
+    local soundGroup = AceGUI:Create("InlineGroup")
+    soundGroup:SetTitle("Settings")
+    soundGroup:SetFullWidth(true)
+    soundGroup:SetLayout("Flow")
+    container:AddChild(soundGroup)
+
+    CreateDropdown(soundGroup, {
         label = "Choose Sound",
         width = 270,
         list = LSM:List("sound"),
@@ -2106,21 +2169,35 @@ end
 
 -- function that draws the Profiles section
 local function Profiles(container)
+    -- New Profile
+    local newProfileGroup = AceGUI:Create("InlineGroup")
+    newProfileGroup:SetTitle("New Profile")
+    newProfileGroup:SetFullWidth(true)
+    newProfileGroup:SetLayout("Flow")
+    container:AddChild(newProfileGroup)
+
     local profileName = AceGUI:Create("EditBox")
     profileName:SetLabel("New Profile Name")
     profileName:ClearAllPoints()
     profileName:SetCallback("OnEnterPressed", CTT_ProfileNameOnEnterPressed)
-    container:AddChild(profileName)
+    newProfileGroup:AddChild(profileName)
     container.profileName = profileName
 
-    CreateButton(container, {
+    CreateButton(newProfileGroup, {
         text = "Create Profile",
-        width = 125,
+        width = 150,
         callback = CTT_ProfileAddButton,
         name = "profileAddButton",
     })
 
-    CreateDropdown(container, {
+    -- Manage Profiles
+    local manageGroup = AceGUI:Create("InlineGroup")
+    manageGroup:SetTitle("Manage Profiles")
+    manageGroup:SetFullWidth(true)
+    manageGroup:SetLayout("Flow")
+    container:AddChild(manageGroup)
+
+    CreateDropdown(manageGroup, {
         label = "Choose Profile",
         multiselect = false,
         list = db:GetProfiles(),
@@ -2129,7 +2206,7 @@ local function Profiles(container)
         name = "profileDropDownPicker",
     })
 
-    CreateDropdown(container, {
+    CreateDropdown(manageGroup, {
         label = "Copy Profile",
         multiselect = false,
         list = db:GetProfiles(),
@@ -2137,7 +2214,7 @@ local function Profiles(container)
         name = "profileCopyDropdown",
     })
 
-    CreateDropdown(container, {
+    CreateDropdown(manageGroup, {
         label = "Delete Profile",
         multiselect = false,
         list = db:GetProfiles(),
@@ -2145,16 +2222,23 @@ local function Profiles(container)
         name = "profileDeleteDropdown",
     })
 
-    CreateCheckBox(container, {
+    -- Shared Profile
+    local sharedGroup = AceGUI:Create("InlineGroup")
+    sharedGroup:SetTitle("Shared Profile")
+    sharedGroup:SetFullWidth(true)
+    sharedGroup:SetLayout("Flow")
+    container:AddChild(sharedGroup)
+
+    CreateCheckBox(sharedGroup, {
         label = "Use Default For New Characters",
-        width = 230,
+        fullWidth = true,
         height = 22,
         value = db.global.useSharedDefaultProfile,
         callback = CTT_UseSharedDefaultProfile,
         name = "sharedDefaultProfile",
     })
 
-    CreateDropdown(container, {
+    CreateDropdown(sharedGroup, {
         label = "Shared Profile",
         multiselect = false,
         list = db:GetProfiles(),
@@ -2168,78 +2252,76 @@ end
 
 -- function that draws the dungeons tab
 local function Dungeons(container)
+    local comingSoonGroup = AceGUI:Create("InlineGroup")
+    comingSoonGroup:SetTitle("Dungeons")
+    comingSoonGroup:SetFullWidth(true)
+    comingSoonGroup:SetLayout("Flow")
+    container:AddChild(comingSoonGroup)
+
     local Label = AceGUI:Create("Label")
     Label:SetText("Feature Coming Soon!!")
     Label:SetColor(255, 255, 0)
-    -- Label:SetFontObject("GameFontNormal")
-    -- Label:SetFont("Fonts\\MORPHEUS_CYR.TTF", 12, nil)
-    Label:SetWidth(112)
-    Label:ClearAllPoints()
-    Label:SetPoint("LEFT", container.tab, "LEFT", 6, 10)
-    container:AddChild(Label)
+    Label:SetFullWidth(true)
+    comingSoonGroup:AddChild(Label)
     container.Label = Label
 end
 
 -- function that draws the raid tab
 local function Raids(container)
+    local configGroup = AceGUI:Create("InlineGroup")
+    configGroup:SetTitle("Configuration")
+    configGroup:SetFullWidth(true)
+    configGroup:SetLayout("Flow")
+    container:AddChild(configGroup)
+
     --select xpac
-    CreateDropdown(container, {
-        label = "Expasion",
+    CreateDropdown(configGroup, {
+        label = "Expansion",
         list = xpacs,
         text = xpacs[db.profile.cttMenuOptions.xpacKey],
         value = db.profile.cttMenuOptions.xpacKey,
         width = 125,
-        point = {"TOPLEFT", container.tab, "TOPLEFT", 6, 10},
         callback = CTT_ExpansionDropDownForRaidTab,
         name = "xpacDropdown"
     })
 
     -- Select Raid
-    CreateDropdown(container, {
+    CreateDropdown(configGroup, {
         label = "Raid",
         list = raidInstanceZones[db.profile.cttMenuOptions.xpacKey],
         text = raidInstanceZones[db.profile.cttMenuOptions.xpacKey][db.profile.cttMenuOptions.raidKey],
         value = db.profile.cttMenuOptions.raidKey,
         width = 225,
-        point = {"LEFT", container.tab, "LEFT", 12, 10},
         callback = CTT_AlertRaidDropDownForRaidTab,
         name = "raidDropdown"
     })
 
     -- Select Boss
-    CreateDropdown(container, {
+    CreateDropdown(configGroup, {
         label = "Boss",
         list = raidBosses[db.profile.cttMenuOptions.xpacKey][db.profile.cttMenuOptions.raidKey],
         text = raidBosses[db.profile.cttMenuOptions.xpacKey][db.profile.cttMenuOptions.raidKey][db.profile.cttMenuOptions.bossDropDownkey],
         value = db.profile.cttMenuOptions.bossDropDownkey,
         width = 250,
-        point = {"LEFT", container.tab, "LEFT", 6, 10},
         callback = CTT_AlertBossDropDownForRaidTab,
         name = "bossDropdown"
     })
 
-    -- Add alert to list
-    CreateButton(container, {
+    -- Clear All button
+    CreateButton(configGroup, {
         text = "Clear All",
         width = 125,
-        point = {"LEFT", container.tab, "LEFT", 6, 10},
         callback = CTT_ClearAlertBossRaidTab,
         name = "deleteKillsButton"
     })
 
-    -- scroll frame for timers
-    local scrollcontainer = AceGUI:Create("InlineGroup")
-    scrollcontainer:SetFullWidth(true)
-    scrollcontainer:SetFullHeight(true)
-    scrollcontainer:SetLayout("Fill")
-    container:AddChild(scrollcontainer)
-
-    local scroll = AceGUI:Create("ScrollFrame")
-    scroll:SetLayout("Flow")
-    scroll:SetStatusTable(db.profile.RaidKills)
-    scrollcontainer:AddChild(scroll)
-
     -- handle the scrollable alerts.
+    local listGroup = AceGUI:Create("InlineGroup")
+    listGroup:SetTitle("Kill Log")
+    listGroup:SetFullWidth(true)
+    listGroup:SetLayout("Flow")
+    container:AddChild(listGroup)
+
     if db.profile.RaidKills ~= nil and #db.profile.RaidKills > 0 then
         for i, v in ipairs(db.profile.RaidKills) do
             if (v.Expansion == xpacs[db.profile.cttMenuOptions.xpacKey]
@@ -2249,23 +2331,18 @@ local function Raids(container)
                 local label = AceGUI:Create("Label")
                 label:SetText(v.BossName .. " was killed on: " .. v.LocalKillTime ..", with a Kill Time of: " .. v.KillTime.. ", raid difficulty: " .. v.Difficulty .. ", with " .. v.GroupSize .. " players" .. ", and was killed successfully: " .. tostring(v.Success))
                 label:SetColor(255, 255, 0)
-                if (#db.profile.RaidKills > 10) then
-                    label:SetWidth(600)
-                else
-                    label:SetWidth(625)
-                end
+                label:SetWidth(400)
                 label:ClearAllPoints()
-                -- Do not use .frame, just set point relative to parent
-                label:SetPoint("LEFT", 6, 10)
-                scroll:AddChild(label)
+                listGroup:AddChild(label)
 
-                local deleteBtn = AceGUI:Create("Button")
-                deleteBtn:SetText("X")
-                deleteBtn:SetWidth(40)
+                local deleteBtn = AceGUI:Create("Icon")
+                deleteBtn:SetImage("Interface\\AddOns\\CombatTimeTracker\\Assets\\DeleteIcon")
+                deleteBtn:SetImageSize(24, 24)
+                deleteBtn:SetWidth(24)
+                deleteBtn:SetLabel("")
                 deleteBtn:ClearAllPoints()
-                deleteBtn:SetPoint("LEFT", 6, 10)
                 deleteBtn:SetCallback("OnClick", function(widget) CTT_AlertDeleteButtonClickedForRaidTab(widget, event, i) end)
-                scroll:AddChild(deleteBtn)
+                listGroup:AddChild(deleteBtn)
             end
         end
     end
@@ -2273,14 +2350,19 @@ end
 
 -- function that draws the Alert Times tab
 local function Alerts(container)
+    local addAlertGroup = AceGUI:Create("InlineGroup")
+    addAlertGroup:SetTitle("Add Alert")
+    addAlertGroup:SetFullWidth(true)
+    addAlertGroup:SetLayout("Flow")
+    container:AddChild(addAlertGroup)
+
     --select xpac
-    CreateDropdown(container, {
-        label = "Expasion",
+    CreateDropdown(addAlertGroup, {
+        label = "Expansion",
         list = xpacs,
         text = xpacs[db.profile.cttMenuOptions.xpacKey],
         value = db.profile.cttMenuOptions.xpacKey,
         width = 125,
-        point = {"TOPLEFT", container.tab, "TOPLEFT", 6, 10},
         callback = CTT_ExpansionDropDown,
         name = "xpacDropdown"
     })
@@ -2291,49 +2373,44 @@ local function Alerts(container)
     timeInput:SetWidth(85)
     timeInput:ClearAllPoints()
     if db.profile.cttMenuOptions.localStore ~= nil then timeInput:SetText(db.profile.cttMenuOptions.localStore) end
-    timeInput:SetPoint("LEFT", 6, 10)
     timeInput:SetCallback("OnEnterPressed", CTT_AlertTimeOnEnterPressed)
-    container:AddChild(timeInput)
+    addAlertGroup:AddChild(timeInput)
     container.timeInput = timeInput
 
     -- Select Raid
-    CreateDropdown(container, {
+    CreateDropdown(addAlertGroup, {
         label = "Raid",
         list = raidInstanceZones[db.profile.cttMenuOptions.xpacKey],
         text = raidInstanceZones[db.profile.cttMenuOptions.xpacKey][db.profile.cttMenuOptions.raidKey],
         value = db.profile.cttMenuOptions.raidKey,
         width = 225,
-        point = {"LEFT", 12, 10},
         callback = CTT_AlertRaidDropDown,
         name = "raidDropdown"
     })
 
     -- Select Boss
-    CreateDropdown(container, {
+    CreateDropdown(addAlertGroup, {
         label = "Boss",
         list = raidBosses[db.profile.cttMenuOptions.xpacKey][db.profile.cttMenuOptions.raidKey],
         text = raidBosses[db.profile.cttMenuOptions.xpacKey][db.profile.cttMenuOptions.raidKey][db.profile.cttMenuOptions.bossDropDownkey],
         value = db.profile.cttMenuOptions.bossDropDownkey,
         width = 250,
-        point = {"LEFT", 6, 10},
         callback = CTT_AlertBossDropDown,
         name = "bossDropdown"
     })
 
     -- Add alert to list
-    CreateButton(container, {
+    CreateButton(addAlertGroup, {
         text = "Add",
         width = 75,
-        point = {"LEFT", 6, 10},
         callback = CTT_AlertAddButtonClicked,
         name = "addAlertButton"
     })
 
-    -- Clear All Alerts button (far right under Boss dropdown)
-    CreateButton(container, {
+    -- Clear All Alerts button
+    CreateButton(addAlertGroup, {
         text = "Clear All Alerts",
         width = 140,
-        point = {"RIGHT", 410, 10}, -- far right, adjust as needed for your layout
         callback = function()
             db.profile.cttMenuOptions.alerts = {}
             CTT.menu.tree:SelectByValue("alerts")
@@ -2341,93 +2418,96 @@ local function Alerts(container)
         name = "clearAllAlertsButton"
     })
 
-    -- scroll frame for timers
-    local scrollcontainer = AceGUI:Create("InlineGroup")
-    scrollcontainer:SetFullWidth(true)
-    scrollcontainer:SetFullHeight(true)
-    scrollcontainer:SetLayout("Fill")
-    container:AddChild(scrollcontainer)
-
-    local scroll = AceGUI:Create("ScrollFrame")
-    scroll:SetLayout("Flow")
-    scroll:SetStatusTable(db.profile.cttMenuOptions.alerts)
-    scrollcontainer:AddChild(scroll)
+    local listGroup = AceGUI:Create("InlineGroup")
+    listGroup:SetTitle("Active Alerts")
+    listGroup:SetFullWidth(true)
+    listGroup:SetLayout("Flow")
+    container:AddChild(listGroup)
 
     for i, v in ipairs(db.profile.cttMenuOptions.alerts) do
         local label = AceGUI:Create("Label")
         label:SetText("Seconds into fight: " .. v[1] .. ", Raid: " .. v[2] .. ", Boss: " .. v[3])
         label:SetColor(255, 255, 0)
-        if (#db.profile.cttMenuOptions.alerts > 10) then
-            label:SetWidth(600)
-        else
-            label:SetWidth(625)
-        end
+        label:SetWidth(400)
         label:ClearAllPoints()
-        label:SetPoint("LEFT", 6, 10)
-        scroll:AddChild(label)
+        listGroup:AddChild(label)
 
-        local deleteBtn = AceGUI:Create("Button")
-        deleteBtn:SetText("X")
-        deleteBtn:SetWidth(40)
+        local deleteBtn = AceGUI:Create("Icon")
+        deleteBtn:SetImage("Interface\\AddOns\\CombatTimeTracker\\Assets\\DeleteIcon")
+        deleteBtn:SetImageSize(24, 24)
+        deleteBtn:SetWidth(24)
+        deleteBtn:SetLabel("")
         deleteBtn:ClearAllPoints()
-        deleteBtn:SetPoint("LEFT", 6, 10)
         deleteBtn:SetCallback("OnClick", function(widget) CTT_AlertDeleteButtonClicked(widget, event, i) end)
-        scroll:AddChild(deleteBtn)
+        listGroup:AddChild(deleteBtn)
     end
 end
+
+local scrollStatusTables = {}
 
 local function SelectGroup(container, event, group)
     container:ReleaseChildren()
     db.profile.cttMenuOptions.selectedTab = group
-    if group == "general" then
-        General(container)
-    elseif group == "display" then
-        Display(container)
-    elseif group == "visibility" then
-        Visibility(container)
-    elseif group == "sound" then
-        Sound(container)
-    elseif group == "profiles" then
-        Profiles(container)
-    elseif group == "dungeons" then
-        Dungeons(container)
-    elseif group == "raids" then
-        Raids(container)
-    elseif group == "alerts" then
-        Alerts(container)
+
+    local scroll = AceGUI:Create("ScrollFrame")
+    scroll:SetFullWidth(true)
+    scroll:SetFullHeight(true)
+    scroll:SetLayout("Flow")
+    if not scrollStatusTables[group] then
+        scrollStatusTables[group] = {}
     end
+    scroll:SetStatusTable(scrollStatusTables[group])
+    container:AddChild(scroll)
+
+    if group == "settings" then
+        General(scroll)
+        Display(scroll)
+        Visibility(scroll)
+        Sound(scroll)
+    elseif group == "profiles" then
+        Profiles(scroll)
+    elseif group == "dungeons" then
+        Dungeons(scroll)
+    elseif group == "raids" then
+        Raids(scroll)
+    elseif group == "alerts" then
+        Alerts(scroll)
+    end
+    scroll:DoLayout()
 end
 
 function CTT:CreateOptionsMenu()
     menu = AceGUI:Create("Frame")
     menu:SetTitle("Combat Time Tracker Options")
     menu:SetStatusText(C_AddOns.GetAddOnMetadata("CombatTimeTracker", "Version"))
-    menu:SetWidth(750)
-    menu:SetHeight(600)
+    menu:SetWidth(db.profile.cttMenuOptions.menuWidth or 750)
+    menu:SetHeight(db.profile.cttMenuOptions.menuHeight or 600)
     menu:SetLayout("Fill")
     menu:Hide()
     CTT.menu = menu
 
-    menu.frame:SetResizeBounds(750, 600, 750, 600)
+    menu.frame:SetResizeBounds(375, 300, 1125, 900)
     menu.frame:SetFrameStrata("HIGH")
     menu.frame:SetFrameLevel(1)
+
+    menu.frame:SetScript("OnSizeChanged", function(self, width, height)
+        db.profile.cttMenuOptions.menuWidth = math.floor(width)
+        db.profile.cttMenuOptions.menuHeight = math.floor(height)
+    end)
 
     local tree = AceGUI:Create("TreeGroup")
     tree:SetFullWidth(true)
     tree:SetFullHeight(true)
     tree:SetLayout("Flow")
     tree:SetTree({
-        { value = "general",    text = "General" },
-        { value = "display",    text = "Display" },
-        { value = "visibility", text = "Visibility" },
-        { value = "sound",      text = "Sound" },
-        { value = "profiles",   text = "Profiles" },
-        { value = "dungeons",   text = "Dungeons" },
-        { value = "raids",      text = "Raids" },
-        { value = "alerts",     text = "Alert Times" },
+        { value = "settings",  text = "Settings" },
+        { value = "profiles",  text = "Profiles" },
+        { value = "dungeons",  text = "Dungeons" },
+        { value = "raids",     text = "Raids" },
+        { value = "alerts",    text = "Alert Times" },
     })
     tree:SetCallback("OnGroupSelected", SelectGroup)
-    tree:SelectByValue("general")
+    tree:SelectByValue("settings")
     menu:AddChild(tree)
     menu.tree = tree
 
