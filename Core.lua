@@ -2322,6 +2322,9 @@ local function Raids(container)
     listGroup:SetLayout("Flow")
     container:AddChild(listGroup)
 
+    -- 20px = InlineGroup content inset (10px each side), 24px = icon, 10px = spacing
+    local labelWidth = math.max(200, listGroup.frame:GetWidth() - 54)
+
     if db.profile.RaidKills ~= nil and #db.profile.RaidKills > 0 then
         for i, v in ipairs(db.profile.RaidKills) do
             if (v.Expansion == xpacs[db.profile.cttMenuOptions.xpacKey]
@@ -2331,7 +2334,7 @@ local function Raids(container)
                 local label = AceGUI:Create("Label")
                 label:SetText(v.BossName .. " was killed on: " .. v.LocalKillTime ..", with a Kill Time of: " .. v.KillTime.. ", raid difficulty: " .. v.Difficulty .. ", with " .. v.GroupSize .. " players" .. ", and was killed successfully: " .. tostring(v.Success))
                 label:SetColor(255, 255, 0)
-                label:SetWidth(400)
+                label:SetWidth(labelWidth)
                 label:ClearAllPoints()
                 listGroup:AddChild(label)
 
@@ -2424,11 +2427,14 @@ local function Alerts(container)
     listGroup:SetLayout("Flow")
     container:AddChild(listGroup)
 
+    -- 20px = InlineGroup content inset (10px each side), 24px = icon, 10px = spacing
+    local labelWidth = math.max(200, listGroup.frame:GetWidth() - 54)
+
     for i, v in ipairs(db.profile.cttMenuOptions.alerts) do
         local label = AceGUI:Create("Label")
         label:SetText("Seconds into fight: " .. v[1] .. ", Raid: " .. v[2] .. ", Boss: " .. v[3])
         label:SetColor(255, 255, 0)
-        label:SetWidth(400)
+        label:SetWidth(labelWidth)
         label:ClearAllPoints()
         listGroup:AddChild(label)
 
