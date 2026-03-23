@@ -13,5 +13,4 @@
 
 embeds.xml
 Locales\Locales.xml
-Stopwatch.xml
 Core.lua
