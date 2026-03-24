@@ -1879,7 +1879,7 @@ end
 function CTT_ProfileDropDownPicker(widget, event, key)
     db:SetProfile(db:GetProfiles()[key])
     CTT_SetActiveProfile(db:GetProfiles()[key])
-    CTT.menu.tree:SelectByValue("general")
+    CTT.menu.tree:SelectByValue("settings")
     CTT:Print(activeProfile .. " profile is now the active profile!")
     CTT_SetTrackerSizeOnLogin()
 end
@@ -1888,13 +1888,13 @@ function CTT_ProfileAddButton(widget, event)
     db:SetProfile(newProfileName)
     CTT_SetActiveProfile(newProfileName)
     CTT:Print("New profile with the name of " .. newProfileName .. " has been created!")
-    CTT.menu.tree:SelectByValue("general")
+    CTT.menu.tree:SelectByValue("settings")
 end
 
 function CTT_ProfileCopyDropdown(widget, event, key)
     CTT:Print(activeProfile .. " has been updated to a copy of " .. db:GetProfiles()[key] .. "!")
     db:CopyProfile(db:GetProfiles()[key], true)
-    CTT.menu.tree:SelectByValue("general")
+    CTT.menu.tree:SelectByValue("settings")
 end
 
 function CTT_ProfileDeleteDropdown(widget, event, key)
@@ -1905,7 +1905,7 @@ function CTT_ProfileDeleteDropdown(widget, event, key)
         db.global.sharedProfileName = db:GetCurrentProfile()
     end
     CTT_SetActiveProfile(db:GetCurrentProfile())
-    CTT.menu.tree:SelectByValue("general")
+    CTT.menu.tree:SelectByValue("settings")
 end
 
 function CTT_UseSharedDefaultProfile(widget, event, value)
@@ -1934,7 +1934,7 @@ function CTT_UseSharedDefaultProfile(widget, event, value)
     CTT_SetActiveProfile(targetProfileName)
     CTT:Print("New characters will " ..
         (value and ("start on the " .. targetProfileName .. " profile.") or "use character-specific profiles."))
-    CTT.menu.tree:SelectByValue("general")
+    CTT.menu.tree:SelectByValue("settings")
 end
 
 function CTT_SharedProfileDropDown(widget, event, key)
@@ -1947,7 +1947,7 @@ function CTT_SharedProfileDropDown(widget, event, key)
         db:SetProfile(selectedProfileName)
         CTT_SetActiveProfile(selectedProfileName)
         CTT_SetTrackerSizeOnLogin()
-        CTT.menu.tree:SelectByValue("general")
+        CTT.menu.tree:SelectByValue("settings")
     end
 end
 
