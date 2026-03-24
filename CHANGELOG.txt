@@ -14,6 +14,3 @@
 * Fixed "Create Profile" button text being truncated (width increased to 150px)
 * Fixed typo "Expasion" corrected to "Expansion" in raid configuration
 * Migrated legacy selectedTab values (general/display/visibility/sound) to the new combined "settings" tab
-
-###Previous
-* Fix function declarations
