@@ -21,8 +21,8 @@ jobs:
         id: changelog
         run: |
           VERSION="${{ github.event.workflow_run.head_branch }}"
-          # Try matching the versioned heading first, then fall back to the @project-version@ placeholder.
-          NOTES=$(awk "/^## ${VERSION}/{found=1; next} found && /^## /{exit} found{print}" CHANGELOG.md)
+          # Pass VERSION as an awk variable to avoid embedding it in a double-quoted program string.
+          NOTES=$(awk -v ver="$VERSION" '/^## /{found=0} $0=="## "ver{found=1; next} found{print}' CHANGELOG.md)
           if [ -z "$NOTES" ]; then
             NOTES=$(awk '/^## @project-version@/{found=1; next} found && /^## /{exit} found{print}' CHANGELOG.md)
           fi
