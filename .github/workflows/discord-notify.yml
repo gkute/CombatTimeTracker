@@ -35,10 +35,7 @@ jobs:
           if [ -z "$NOTES" ]; then
             NOTES="No changelog entries found for ${VERSION}."
           fi
-          # Escape special characters for JSON
-          NOTES="${NOTES//$'\\'/$'\\\\'}"
-          NOTES="${NOTES//$'"'/$'\\"'}"
-          NOTES="${NOTES//$'\n'/\\n}"
+          # Write raw — jq will handle all escaping in the next step.
           echo "notes<<EOF" >> "$GITHUB_OUTPUT"
           echo "$NOTES" >> "$GITHUB_OUTPUT"
           echo "EOF" >> "$GITHUB_OUTPUT"
@@ -52,31 +49,30 @@ jobs:
           NOTES="${{ steps.changelog.outputs.notes }}"
           CURSEFORGE_URL="https://www.curseforge.com/wow/addons/combattimetracker"
           GITHUB_URL="https://github.com/${{ github.repository }}/releases/tag/${VERSION}"
+          AVATAR_URL="https://raw.githubusercontent.com/${{ github.repository }}/master/Assets/CombatTimeTracker.png"
 
-          PAYLOAD=$(cat <<EOF
-          {
-            "username": "Combat Time Tracker",
-            "avatar_url": "https://raw.githubusercontent.com/${{ github.repository }}/master/Assets/CombatTimeTracker.png",
-            "embeds": [
-              {
-                "title": "Combat Time Tracker ${VERSION} Released!",
-                "color": 16724736,
-                "description": "${NOTES}",
-                "fields": [
-                  {
-                    "name": "Download",
-                    "value": "[CurseForge](${CURSEFORGE_URL}) • [GitHub](${GITHUB_URL})",
-                    "inline": false
-                  }
-                ],
-                "footer": {
-                  "text": "Combat Time Tracker"
-                }
-              }
-            ]
-          }
-          EOF
-          )
+          # Use jq to build the payload so all special characters (backticks, quotes,
+          # newlines) are escaped correctly — no manual string interpolation into JSON.
+          PAYLOAD=$(jq -n \
+            --arg title "Combat Time Tracker ${VERSION} Released!" \
+            --arg description "$NOTES" \
+            --arg download "[CurseForge](${CURSEFORGE_URL}) • [GitHub](${GITHUB_URL})" \
+            --arg avatar "$AVATAR_URL" \
+            '{
+              username: "Combat Time Tracker",
+              avatar_url: $avatar,
+              embeds: [{
+                title: $title,
+                color: 16724736,
+                description: $description,
+                fields: [{
+                  name: "Download",
+                  value: $download,
+                  inline: false
+                }],
+                footer: { text: "Combat Time Tracker" }
+              }]
+            }')
 
           curl -s -o /dev/null -w "%{http_code}" \
             -H "Content-Type: application/json" \
