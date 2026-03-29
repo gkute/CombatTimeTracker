@@ -256,7 +256,6 @@ function CTT:PLAYER_REGEN_DISABLED()
             cttElapsedSeconds = 0
         end
         CTT_InstanceTypeDisplay(db.profile.cttMenuOptions.instanceType)
-        --self:Print(L["Entering Combat!"])
     else
         return
     end
@@ -270,7 +269,6 @@ function CTT:PLAYER_REGEN_ENABLED()
             CTT_ToggleMenu()
             loadOptionsAfterCombat = false
         end
-        --self:Print(L["Leaving Combat!"])
         db.profile.cttMenuOptions.timeValues = { hours, minutes, seconds, totalSeconds, miliseconds }
         local min = 0
         local sec = 0
@@ -316,16 +314,6 @@ function CTT:Encounter_Start(...)
     local eventName, encounterID, encounterName, difficultyID, groupSize = ...
 
     bossEncounterName = encounterID
-    --CTT:Print(L["Encounter Started!"])
-    -- local members = {}
-    -- local numMembers = GetNumGroupMembers()
-    -- if numMembers > 1 then
-    --     for i=1,GetNumGroupMembers(),1 do
-    --         members[i] = select(1, GetRaidRosterInfo(i))
-    --     end
-    -- else
-    --     members = {UnitName("player")}
-    -- end
 
     if db.profile.cttMenuOptions.resetCounterOnEndOfCombat then
         time = GetTime()
@@ -343,7 +331,6 @@ function CTT:Encounter_End(...)
         loadOptionsAfterCombat = false
         CTT_ToggleMenu()
     end
-    --CTT:Print(L["Encounter Ended!"])
     local eventName, encounterID, encounterName, difficultyID, groupSize, success = ...
 
     local xpacValue = CTT_GetExpansionByEncounterId(encounterID)
@@ -361,8 +348,13 @@ end
 
 -- event function for knowing when a m+ dungeon ends
 function CTT:CHALLENGE_MODE_COMPLETED()
-    local mapID, level, runTimeMs, onTime = C_ChallengeMode.GetCompletionInfo()
-    if not mapID or not level then return end
+    local info = C_ChallengeMode.GetChallengeCompletionInfo()
+    if not info or not info.mapChallengeModeID or not info.level then return end
+
+    local mapID = info.mapChallengeModeID
+    local level = info.level
+    local runTimeMs = info.time
+    local onTime = info.onTime
 
     local dungeonName = GetRealZoneText() or "Unknown Dungeon"
     local difficultyName = CTT_GetDifficultyById(8) or "Mythic Keystone"
@@ -381,18 +373,6 @@ function CTT:CHALLENGE_MODE_START(mapID)
         time = GetTime()
     end
 end
-
--- function CTT:COMBAT_LOG_EVENT_UNFILTERED()
---     local playerGUID = UnitGUID("player")
---     local timestamp, subevent, _, sourceGUID, sourceName, sourceFlags, sourceRaidFlags, destGUID, destName, destFlags, destRaidFlags, spellId, spellName, spellSchool, amount, overkill, school, resisted, blocked, absorbed, critical, glancing, crushing, isOffHand =
---         CombatLogGetCurrentEventInfo()
-
---     if sourceGUID == playerGUID and subevent == "SPELL_CAST_SUCCESS" and
---         not CTT_TableContainsValue(NonHearthstones, spellName) and
---         string.find(spellName, "Hearthstone") then
---         ResetInstances();
---     end
--- end
 
 function CTT:CHALLENGE_MODE_RESET(mapID)
 

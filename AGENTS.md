@@ -6,10 +6,27 @@ After completing any code change, bug fix, or new feature, you **must**:
 
 ### 1. Update `CHANGELOG.md`
 
-- Add a bullet point describing the change under the `## @project-version@` heading.
-- Keep entries concise (one line per change).
-- **Only the current unreleased version's entries belong in this file.** Do not include entries from previous releases. When a release ships, the section will be tagged — only maintain the current `@project-version@` block.
-- Use past tense for fixes, present tense for features. Examples:
+`CHANGELOG.md` is structured by version. The top section is always `## @project-version@ (Unreleased)` for the current working changes, followed by the last 5 tagged versions below it.
+
+**When adding a new entry:**
+- Read the file first.
+- Add your bullet under `## @project-version@ (Unreleased)` only.
+- Do **not** create a new heading, duplicate the unreleased section, or modify past version sections.
+- Do **not** re-add entries that are already listed.
+
+**When the unreleased section feels stale or incomplete:**
+- Run `git log <latest-tag>..HEAD --pretty=format:"* %s" --no-merges` to see all commits since the last tag.
+- Reconcile: add any missing commit summaries into the unreleased section, consolidating duplicates into clean user-facing descriptions.
+
+**When a new tag/release is made:**
+- Rename `## @project-version@ (Unreleased)` to `## vX.Y.Z - YYYY-MM-DD` (the new tag and date).
+- Add a fresh `## @project-version@ (Unreleased)` section at the top for the next cycle.
+- Keep only the last 5 tagged versions below the unreleased section — remove anything older.
+
+**Entry style:**
+- One bullet per logical change.
+- Past tense for fixes, present tense for features.
+- Examples:
   - `* Fixed scroll position resetting when deleting an alert`
   - `* Added option to display target name inside the tracker frame`
 
