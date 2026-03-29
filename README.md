@@ -3,6 +3,7 @@
 # Combat Time Tracker
 
 ## What's New:
+* Filter your M+ run log by expansion (Midnight) and by M+ season
 * Full localization support across 12 languages using AceLocale-3.0 (deDE, esES, esMX, frFR, itIT, koKR, ptBR, ruRU, zhCN, zhTW, enGB)
 * All UI text — menus, tooltips, popups, and printed messages — is now fully translated
 * Option to make new characters use a selected shared profile instead of auto-creating character-specific profiles
@@ -14,6 +15,7 @@
 * Automatically starts a custom stopwatch when entering combat
 * Automatically stops the stopwatch when exiting combat
 * Check to see if it's your longest fight, then updates if it was
+* M+ Run Log with filterable history — filter by expansion, M+ season, and dungeon name
 * Option to change text color
 * Option to change the text format on the tracker
 * Option to resize the tracker(within reason)

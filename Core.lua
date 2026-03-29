@@ -87,7 +87,11 @@ local defaults = {
             menuWidth = 750,
             menuHeight = 600,
             dungeonFilterKey = 1,
-            dungeonFilterName = "All"
+            dungeonFilterName = "All",
+            dungeonExpansionKey = 1,
+            dungeonExpansionName = "All",
+            dungeonSeasonKey = 1,
+            dungeonSeasonName = "All"
         }
     }
 }
@@ -702,6 +706,7 @@ end
 
 -- Store a completed M+ dungeon run
 function CTT_StoreDungeonRun(dungeonName, mapID, keyLevel, runTimeMs, onTime, difficulty)
+    local seasonID = (isRetail and C_MythicPlus and C_MythicPlus.GetCurrentSeason()) or 0
     local data = {
         Dungeon           = dungeonName,
         MapID             = mapID,
@@ -710,6 +715,7 @@ function CTT_StoreDungeonRun(dungeonName, mapID, keyLevel, runTimeMs, onTime, di
         RunTimeMs         = runTimeMs,
         OnTime            = onTime,
         Difficulty        = difficulty,
+        SeasonID          = seasonID,
         LocalCompletionTime = date("%m/%d/%Y %I:%M%p")
     }
     if db.profile.DungeonKills == nil then
@@ -1373,9 +1379,35 @@ function CTT_DeleteDungeonRun(widget, event, key)
 end
 
 function CTT_DungeonFilterDropDown(widget, event, key, checked)
-    local dungeonNames = CTT_BuildDungeonFilterList()
+    local expansionName = db.profile.cttMenuOptions.dungeonExpansionName or "All"
+    local seasonName = db.profile.cttMenuOptions.dungeonSeasonName or "All"
+    local staticList = CTT_GetDungeonDropdownList(expansionName, seasonName)
+    local dungeonNames = staticList or CTT_BuildDungeonFilterList()
     db.profile.cttMenuOptions.dungeonFilterKey = key
     db.profile.cttMenuOptions.dungeonFilterName = dungeonNames[key] or "All"
+    CTT.menu.tree:SelectByValue("dungeons")
+end
+
+function CTT_DungeonExpansionDropDown(widget, event, key, checked)
+    local expansionList = CTT_GetMPlusExpansionFilterList()
+    db.profile.cttMenuOptions.dungeonExpansionKey = key
+    db.profile.cttMenuOptions.dungeonExpansionName = expansionList[key] or "All"
+    -- Changing expansion resets both the season and dungeon filter
+    db.profile.cttMenuOptions.dungeonSeasonKey = 1
+    db.profile.cttMenuOptions.dungeonSeasonName = "All"
+    db.profile.cttMenuOptions.dungeonFilterKey = 1
+    db.profile.cttMenuOptions.dungeonFilterName = "All"
+    CTT.menu.tree:SelectByValue("dungeons")
+end
+
+function CTT_DungeonSeasonDropDown(widget, event, key, checked)
+    local expansionName = db.profile.cttMenuOptions.dungeonExpansionName or "All"
+    local seasonList = CTT_GetMPlusSeasonFilterList(expansionName)
+    db.profile.cttMenuOptions.dungeonSeasonKey = key
+    db.profile.cttMenuOptions.dungeonSeasonName = seasonList[key] or "All"
+    -- Changing season resets the dungeon name filter
+    db.profile.cttMenuOptions.dungeonFilterKey = 1
+    db.profile.cttMenuOptions.dungeonFilterName = "All"
     CTT.menu.tree:SelectByValue("dungeons")
 end
 
@@ -1825,9 +1857,52 @@ local function Dungeons(container)
     configGroup:SetLayout("Flow")
     container:AddChild(configGroup)
 
-    local dungeonNames = CTT_BuildDungeonFilterList()
+    -- Expansion filter
+    local expansionList = CTT_GetMPlusExpansionFilterList()
+    local savedExpKey = db.profile.cttMenuOptions.dungeonExpansionKey or 1
+    if savedExpKey > #expansionList then
+        savedExpKey = 1
+        db.profile.cttMenuOptions.dungeonExpansionKey = 1
+        db.profile.cttMenuOptions.dungeonExpansionName = "All"
+    end
+    local selectedExpansion = expansionList[savedExpKey]
 
-    -- Clamp saved key in case runs were deleted
+    CreateDropdown(configGroup, {
+        label = L["Expansion"],
+        list = expansionList,
+        text = expansionList[savedExpKey],
+        value = savedExpKey,
+        width = 200,
+        callback = CTT_DungeonExpansionDropDown,
+        name = "dungeonExpansionFilter"
+    })
+
+    -- Season filter (depends on selected expansion)
+    local seasonList = CTT_GetMPlusSeasonFilterList(selectedExpansion)
+    local savedSeaKey = db.profile.cttMenuOptions.dungeonSeasonKey or 1
+    if savedSeaKey > #seasonList then
+        savedSeaKey = 1
+        db.profile.cttMenuOptions.dungeonSeasonKey = 1
+        db.profile.cttMenuOptions.dungeonSeasonName = "All"
+    end
+    local selectedSeason = seasonList[savedSeaKey]
+
+    CreateDropdown(configGroup, {
+        label = L["Season"],
+        list = seasonList,
+        text = seasonList[savedSeaKey],
+        value = savedSeaKey,
+        width = 175,
+        callback = CTT_DungeonSeasonDropDown,
+        name = "dungeonSeasonFilter"
+    })
+
+    -- Dungeon filter: use static season pool when expansion/season is selected,
+    -- otherwise fall back to the run-based list.
+    local staticDungeonList = CTT_GetDungeonDropdownList(selectedExpansion, selectedSeason)
+    local dungeonNames = staticDungeonList or CTT_BuildDungeonFilterList()
+
+    -- Clamp saved key — when switching to a new season pool the old index may be out of range
     local savedKey = db.profile.cttMenuOptions.dungeonFilterKey or 1
     if savedKey > #dungeonNames then
         savedKey = 1
@@ -1852,6 +1927,10 @@ local function Dungeons(container)
             db.profile.DungeonKills = {}
             db.profile.cttMenuOptions.dungeonFilterKey = 1
             db.profile.cttMenuOptions.dungeonFilterName = "All"
+            db.profile.cttMenuOptions.dungeonExpansionKey = 1
+            db.profile.cttMenuOptions.dungeonExpansionName = "All"
+            db.profile.cttMenuOptions.dungeonSeasonKey = 1
+            db.profile.cttMenuOptions.dungeonSeasonName = "All"
             CTT.menu.tree:SelectByValue("dungeons")
         end,
         name = "clearDungeonsButton"
@@ -1865,12 +1944,31 @@ local function Dungeons(container)
     container:AddChild(listGroup)
 
     local labelWidth = math.max(200, listGroup.frame:GetWidth() - 54)
-    local filter = db.profile.cttMenuOptions.dungeonFilterName or "All"
+    local dungeonFilter = db.profile.cttMenuOptions.dungeonFilterName or "All"
+
+    -- Pre-compute matching season IDs for the current expansion/season selection
+    local filterBySeasonID = (selectedExpansion ~= "All" or selectedSeason ~= "All")
+    local matchingSeasonIDs = filterBySeasonID and CTT_GetMPlusSeasonIDs(selectedExpansion, selectedSeason) or nil
 
     if db.profile.DungeonKills ~= nil and #db.profile.DungeonKills > 0 then
         local anyShown = false
         for i, v in ipairs(db.profile.DungeonKills) do
-            if filter == "All" or v.Dungeon == filter then
+            -- Season/expansion filter
+            local seasonMatch = true
+            if filterBySeasonID then
+                local runSeasonID = v.SeasonID
+                if runSeasonID and runSeasonID > 0 then
+                    seasonMatch = matchingSeasonIDs[runSeasonID] == true
+                else
+                    -- Legacy run with no SeasonID — only visible under All/All
+                    seasonMatch = false
+                end
+            end
+
+            -- Dungeon name filter
+            local dungeonMatch = (dungeonFilter == "All") or (v.Dungeon == dungeonFilter)
+
+            if seasonMatch and dungeonMatch then
                 anyShown = true
                 local timedText = v.OnTime and "|cff00ff00Timed|r" or "|cffff4444Depleted|r"
                 local text = string.format(

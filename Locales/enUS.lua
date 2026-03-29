@@ -71,6 +71,7 @@ L["Use Default For New Characters"] = true
 -- Dungeons tab
 L["Filter"] = true
 L["Dungeon"] = true
+L["Season"] = true
 L["Clear All"] = true
 L["M+ Run Log"] = true
 L["No runs recorded for this dungeon."] = true

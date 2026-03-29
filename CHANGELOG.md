@@ -2,6 +2,8 @@
 
 ## @project-version@
 
+* Dungeon dropdown now populates with the static season pool when an expansion/season is selected, rather than only showing dungeons from recorded runs
+* Dungeon runs now record the current M+ season ID alongside the dungeon name and key level
 * Full localization support for all UI text using AceLocale-3.0
 * Translated all menu labels, tooltips, popup dialogs, and printed messages into 12 languages: enUS, enGB, deDE, esES, esMX, frFR, itIT, koKR, ptBR, ruRU, zhCN, zhTW
 * Replaced Locales.xml with direct TOC entries for cleaner locale loading
