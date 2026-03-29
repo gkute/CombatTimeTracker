@@ -58,7 +58,7 @@ jobs:
           PAYLOAD=$(cat <<EOF
           {
             "username": "Combat Time Tracker",
-            "avatar_url": "https://raw.githubusercontent.com/${{ github.repository }}/master/Assets/CombatTimeTracker.tga",
+            "avatar_url": "https://raw.githubusercontent.com/${{ github.repository }}/master/Assets/CombatTimeTracker.png",
             "embeds": [
               {
                 "title": "Combat Time Tracker ${VERSION} Released!",
