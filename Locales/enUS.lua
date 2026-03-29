@@ -15,12 +15,11 @@ L["/ctt - to open the options menu!"] = true
 L["/ctt show - to show the tracker if hidden!"] = true
 L["/ctt hide - to hide the tracker if shown!"] = true
 L["/ctt lock -  to lock or unlock the window!"] = true
+L["/ctt reset - reset the time on the tracker(done automatically)!"] = true
+L["/ctt longest - print longest fight!"] = true
+L["/ctt resetfull - restore addon to default settings."] = true
 L["Options menu hidden, for other commands use /ctt help!"] = true
 L["Options menu loaded, for other commands use /ctt help!"] = true
-L["Encounter Started!"] = true
-L["Encounter Ended!"] = true
-L["Entering Combat!"] = true
-L["Leaving Combat!"] = true
 L["You have successfully killed "] = true
 L["after"] = true
 L["seconds"] = true
@@ -30,3 +29,85 @@ L["Fight ended in "] = true
 L["Your longest fight took (MM:SS): "] = true
 L["Tracker has been unlocked!"] = true
 L["Tracker has been locked!"] = true
+-- Minimap tooltip
+L["Click to open Options Menu"] = true
+L["Middle-Click to hide minimap Button"] = true
+L["Right-click to lock Minimap Button"] = true
+-- In-combat message
+L["Options menu cannot be loaded while in combat, try again after combat has ended!"] = true
+-- Options menu frame
+L["Combat Time Tracker Options"] = true
+-- Tree navigation
+L["Settings"] = true
+L["Profiles"] = true
+L["Dungeons"] = true
+L["Raids"] = true
+L["Alert Times"] = true
+-- Settings tab
+L["Show Target"] = true
+L["Minimap"] = true
+L["Hide Minimap Icon"] = true
+L["Behavior"] = true
+L["Toggle Messages"] = true
+L["Reset After Combat"] = true
+-- Display tab
+L["Text Appearance"] = true
+L["TextOutline"] = true
+-- Visibility tab
+L["Show Tracker When?"] = true
+L["Click Through"] = true
+-- Sound tab
+L["Choose Sound"] = true
+-- Profiles tab
+L["New Profile"] = true
+L["New Profile Name"] = true
+L["Create Profile"] = true
+L["Manage Profiles"] = true
+L["Choose Profile"] = true
+L["Copy Profile"] = true
+L["Delete Profile"] = true
+L["Shared Profile"] = true
+L["Use Default For New Characters"] = true
+-- Dungeons tab
+L["Filter"] = true
+L["Dungeon"] = true
+L["Clear All"] = true
+L["M+ Run Log"] = true
+L["No runs recorded for this dungeon."] = true
+L["No M+ runs recorded yet. Complete a Mythic Keystone dungeon to see your run times here."] = true
+-- Raids tab
+L["Configuration"] = true
+L["Expansion"] = true
+L["Raid"] = true
+L["Boss"] = true
+L["Kill Log"] = true
+L["%s was killed on: %s, with a Kill Time of: %s, raid difficulty: %s, with %s players, and was killed successfully: %s"] = true
+-- Alerts tab
+L["Add Alert"] = true
+L["Time(sec)"] = true
+L["Add"] = true
+L["Clear All Alerts"] = true
+L["Active Alerts"] = true
+L["Seconds into fight: %s, Raid: %s, Boss: %s"] = true
+-- Section titles (Display tab)
+L["Frame"] = true
+L["Size"] = true
+L["Font"] = true
+-- Version update popup
+L["Combat Time Tracker has been updated, the tracker needs to be reset to work properly!"] = true
+L["Reset Now"] = true
+L["Reset Later"] = true
+-- Alert validation popups
+L["You must enter values!"] = true
+L["You must enter a valid time in seconds (no decimal values!!! e.g. 100 not 100.1)!"] = true
+L["You must select a raid!"] = true
+L["You must select a boss!"] = true
+L["Ok"] = true
+-- Profile name validation
+L["You have entered an invalid profile name, please try again!"] = true
+L["New profile '%s' has been created!"] = true
+L["%s has been updated to a copy of %s!"] = true
+L["%s profile has been deleted!"] = true
+L["New characters will start on the %s profile."] = true
+L["New characters will use character-specific profiles."] = true
+L["Shared profile is now set to %s."] = true

@@ -145,9 +145,9 @@ local cttLBD = LibStub("LibDataBroker-1.1"):NewDataObject("CombatTimeTracker", {
     OnTooltipShow = function(tooltip)
         if not tooltip or not tooltip.AddLine then return end
         tooltip:AddLine("|cffff930fCombat Time Tracker|r")
-        tooltip:AddLine("Click to open Options Menu")
-        tooltip:AddLine("Middle-Click to hide minimap Button")
-        tooltip:AddLine("Right-click to lock Minimap Button")
+        tooltip:AddLine(L["Click to open Options Menu"])
+        tooltip:AddLine(L["Middle-Click to hide minimap Button"])
+        tooltip:AddLine(L["Right-click to lock Minimap Button"])
     end,
 })
 
@@ -400,7 +400,6 @@ end
 
 -- event function to handle persistence on the settings of the tracker when the player enters the world
 function CTT:PLAYER_ENTERING_WORLD()
-    CTT:Print("player entering world")
     CTT_InstanceTypeDisplay(db.profile.cttMenuOptions.instanceType)
     if db.profile.cttMenuOptions.timeTrackerSize then
         CTT_SetTrackerSizeOnLogin()
@@ -497,10 +496,10 @@ function CTT:SlashCommands(input)
         CTT:Print(L["/ctt - to open the options menu!"])
         CTT:Print(L["/ctt show - to show the tracker if hidden!"])
         CTT:Print(L["/ctt hide - to hide the tracker if shown!"])
-        CTT:Print("/ctt reset - reset the time on the tracker(done automatically)!")
-        CTT:Print("/ctt longest - print longest fight!")
+        CTT:Print(L["/ctt reset - reset the time on the tracker(done automatically)!"])
+        CTT:Print(L["/ctt longest - print longest fight!"])
         CTT:Print(L["/ctt lock -  to lock or unlock the window!"])
-        CTT:Print("/ctt resetfull - restore addon to default settings.")
+        CTT:Print(L["/ctt resetfull - restore addon to default settings."])
         CTT:Print("=================================")
     elseif command == "reset" then
         db.profile.cttMenuOptions.timeValues = { "00", "00", "00", "00" }
@@ -525,7 +524,7 @@ function CTT:SlashCommands(input)
         activeProfileKey = nil
         CTT:Print(L["Combat Time Tracker has been reset to default settings!"])
     elseif command == "longest" then
-        CTT:Print("Your longest fight took (MM:SS): " .. longestMin .. ":" .. longestSec .. ".")
+        CTT:Print(L["Your longest fight took (MM:SS): "] .. longestMin .. ":" .. longestSec .. ".")
     elseif command == "lock" then
         if db.profile.cttMenuOptions.lockFrameCheckButton then
             db.profile.cttMenuOptions.lockFrameCheckButton = false
@@ -662,9 +661,9 @@ end
 -- display a popup message
 function CTT_PopUpMessage()
     StaticPopupDialogs["NEW_VERSION"] = {
-        text = "Combat Time Tracker has been updated, the tracker needs to be reset to work properly!",
-        button1 = "Reset Now",
-        button2 = "Reset Later",
+        text = L["Combat Time Tracker has been updated, the tracker needs to be reset to work properly!"],
+        button1 = L["Reset Now"],
+        button2 = L["Reset Later"],
         OnAccept = function()
             db.profile.cttMenuOptions.uiReset = false
             ReloadUI()
@@ -1040,7 +1039,7 @@ end
 function CTT_ToggleMenu()
     if UnitAffectingCombat("player") or bossEncounter then
         loadOptionsAfterCombat = true
-        CTT:Print("Options menu cannot be loaded while in combat, try again after combat has ended!")
+        CTT:Print(L["Options menu cannot be loaded while in combat, try again after combat has ended!"])
     else
         if CTT.menu == nil then
             CTT:CreateOptionsMenu()
@@ -1401,19 +1400,19 @@ function CTT_DungeonFilterDropDown(widget, event, key, checked)
 end
 
 function CTT_AlertsErrorPopup(errorCode)
-    local text = "You must enter values!"
+    local text = L["You must enter values!"]
 
     if errorCode == 1 then
-        text = "You must enter a valid time in seconds (no decimal vaues!!! e.g. 100 not 100.1)!"
+        text = L["You must enter a valid time in seconds (no decimal values!!! e.g. 100 not 100.1)!"]
     elseif errorCode == 2 then
-        text = "You must select a raid!"
+        text = L["You must select a raid!"]
     elseif errorCode == 3 then
-        text = "You must select a boss!"
+        text = L["You must select a boss!"]
     end
 
     StaticPopupDialogs["AlertError"] = {
         text = text,
-        button1 = "Ok",
+        button1 = L["Ok"],
         -- button2 = "Reset Later",
         OnAccept = function()
         end,
@@ -1431,8 +1430,8 @@ function CTT_ProfileNameOnEnterPressed(widget, event, text)
         newProfileName = text
     else
         StaticPopupDialogs["ProfileNameError"] = {
-            text = "You have entered and invalid profile name, please try again!",
-            button1 = "Ok",
+            text = L["You have entered an invalid profile name, please try again!"],
+            button1 = L["Ok"],
             -- button2 = "Reset Later",
             OnAccept = function()
             end,
@@ -1456,19 +1455,19 @@ end
 function CTT_ProfileAddButton(widget, event)
     db:SetProfile(newProfileName)
     CTT_SetActiveProfile(newProfileName)
-    CTT:Print("New profile with the name of " .. newProfileName .. " has been created!")
+    CTT:Print(string.format(L["New profile '%s' has been created!"], newProfileName))
     CTT.menu.tree:SelectByValue("settings")
 end
 
 function CTT_ProfileCopyDropdown(widget, event, key)
-    CTT:Print(activeProfile .. " has been updated to a copy of " .. db:GetProfiles()[key] .. "!")
+    CTT:Print(string.format(L["%s has been updated to a copy of %s!"], activeProfile, db:GetProfiles()[key]))
     db:CopyProfile(db:GetProfiles()[key], true)
     CTT.menu.tree:SelectByValue("settings")
 end
 
 function CTT_ProfileDeleteDropdown(widget, event, key)
     local deletedProfileName = db:GetProfiles()[key]
-    CTT:Print(deletedProfileName .. " profile has been deleted!")
+    CTT:Print(string.format(L["%s profile has been deleted!"], deletedProfileName))
     db:DeleteProfile(deletedProfileName, true)
     if db.global.sharedProfileName == deletedProfileName then
         db.global.sharedProfileName = db:GetCurrentProfile()
@@ -1501,8 +1500,11 @@ function CTT_UseSharedDefaultProfile(widget, event, value)
     end
 
     CTT_SetActiveProfile(targetProfileName)
-    CTT:Print("New characters will " ..
-        (value and ("start on the " .. targetProfileName .. " profile.") or "use character-specific profiles."))
+    if value then
+        CTT:Print(string.format(L["New characters will start on the %s profile."], targetProfileName))
+    else
+        CTT:Print(L["New characters will use character-specific profiles."])
+    end
     CTT.menu.tree:SelectByValue("settings")
 end
 
@@ -1510,7 +1512,7 @@ function CTT_SharedProfileDropDown(widget, event, key)
     local selectedProfileName = db:GetProfiles()[key]
 
     db.global.sharedProfileName = selectedProfileName
-    CTT:Print("Shared profile is now set to " .. selectedProfileName .. ".")
+    CTT:Print(string.format(L["Shared profile is now set to %s."], selectedProfileName))
 
     if db.global.useSharedDefaultProfile then
         db:SetProfile(selectedProfileName)
@@ -1541,7 +1543,7 @@ end
 local function General(container)
     -- Frame Controls
     local frameGroup = AceGUI:Create("InlineGroup")
-    frameGroup:SetTitle("Frame")
+    frameGroup:SetTitle(L["Frame"])
     frameGroup:SetFullWidth(true)
     frameGroup:SetLayout("Flow")
     container:AddChild(frameGroup)
@@ -1556,7 +1558,7 @@ local function General(container)
     })
 
     CreateCheckBox(frameGroup, {
-        label = "Show Target",
+        label = L["Show Target"],
         fullWidth = true,
         height = 22,
         value = db.profile.cttMenuOptions.toggleTarget,
@@ -1566,13 +1568,13 @@ local function General(container)
 
     -- Minimap
     local minimapGroup = AceGUI:Create("InlineGroup")
-    minimapGroup:SetTitle("Minimap")
+    minimapGroup:SetTitle(L["Minimap"])
     minimapGroup:SetFullWidth(true)
     minimapGroup:SetLayout("Flow")
     container:AddChild(minimapGroup)
 
     CreateCheckBox(minimapGroup, {
-        label = "Hide Minimap Icon",
+        label = L["Hide Minimap Icon"],
         fullWidth = true,
         height = 22,
         value = db.profile.cttMenuOptions.minimapIconCheckButton,
@@ -1582,13 +1584,13 @@ local function General(container)
 
     -- Behavior
     local behaviorGroup = AceGUI:Create("InlineGroup")
-    behaviorGroup:SetTitle("Behavior")
+    behaviorGroup:SetTitle(L["Behavior"])
     behaviorGroup:SetFullWidth(true)
     behaviorGroup:SetLayout("Flow")
     container:AddChild(behaviorGroup)
 
     CreateCheckBox(behaviorGroup, {
-        label = "Toggle Messages",
+        label = L["Toggle Messages"],
         fullWidth = true,
         height = 22,
         value = db.profile.cttMenuOptions.togglePrint,
@@ -1597,7 +1599,7 @@ local function General(container)
     })
 
     CreateCheckBox(behaviorGroup, {
-        label = "Reset After Combat",
+        label = L["Reset After Combat"],
         fullWidth = true,
         height = 22,
         value = db.profile.cttMenuOptions.resetCounterOnEndOfCombat,
@@ -1610,7 +1612,7 @@ end
 local function Display(container)
     -- Text Appearance
     local textGroup = AceGUI:Create("InlineGroup")
-    textGroup:SetTitle("Text Appearance")
+    textGroup:SetTitle(L["Text Appearance"])
     textGroup:SetFullWidth(true)
     textGroup:SetLayout("Flow")
     container:AddChild(textGroup)
@@ -1624,7 +1626,7 @@ local function Display(container)
     })
 
     CreateCheckBox(textGroup, {
-        label = "TextOutline",
+        label = L["TextOutline"],
         fullWidth = true,
         height = 22,
         value = db.profile.cttMenuOptions.textFlags,
@@ -1644,7 +1646,7 @@ local function Display(container)
 
     -- Size
     local sizeGroup = AceGUI:Create("InlineGroup")
-    sizeGroup:SetTitle("Size")
+    sizeGroup:SetTitle(L["Size"])
     sizeGroup:SetFullWidth(true)
     sizeGroup:SetLayout("Flow")
     container:AddChild(sizeGroup)
@@ -1673,7 +1675,7 @@ local function Display(container)
 
     -- Font
     local fontGroup = AceGUI:Create("InlineGroup")
-    fontGroup:SetTitle("Font")
+    fontGroup:SetTitle(L["Font"])
     fontGroup:SetFullWidth(true)
     fontGroup:SetLayout("Flow")
     container:AddChild(fontGroup)
@@ -1692,13 +1694,13 @@ end
 -- function that draws the Visibility section
 local function Visibility(container)
     local visGroup = AceGUI:Create("InlineGroup")
-    visGroup:SetTitle("Settings")
+    visGroup:SetTitle(L["Settings"])
     visGroup:SetFullWidth(true)
     visGroup:SetLayout("Flow")
     container:AddChild(visGroup)
 
     CreateDropdown(visGroup, {
-        label = "Show Tracker When?",
+        label = L["Show Tracker When?"],
         width = 200,
         list = instanceTypes,
         text = instanceTypes[db.profile.cttMenuOptions.instanceType],
@@ -1708,7 +1710,7 @@ local function Visibility(container)
     })
 
     CreateCheckBox(visGroup, {
-        label = "Click Through",
+        label = L["Click Through"],
         fullWidth = true,
         height = 22,
         value = db.profile.cttMenuOptions.clickThrough,
@@ -1720,13 +1722,13 @@ end
 -- function that draws the Sound section
 local function Sound(container)
     local soundGroup = AceGUI:Create("InlineGroup")
-    soundGroup:SetTitle("Settings")
+    soundGroup:SetTitle(L["Settings"])
     soundGroup:SetFullWidth(true)
     soundGroup:SetLayout("Flow")
     container:AddChild(soundGroup)
 
     CreateDropdown(soundGroup, {
-        label = "Choose Sound",
+        label = L["Choose Sound"],
         width = 270,
         list = LSM:List("sound"),
         text = soundTableOptions[db.profile.cttMenuOptions.soundDropDownValue],
@@ -1740,20 +1742,20 @@ end
 local function Profiles(container)
     -- New Profile
     local newProfileGroup = AceGUI:Create("InlineGroup")
-    newProfileGroup:SetTitle("New Profile")
+    newProfileGroup:SetTitle(L["New Profile"])
     newProfileGroup:SetFullWidth(true)
     newProfileGroup:SetLayout("Flow")
     container:AddChild(newProfileGroup)
 
     local profileName = AceGUI:Create("EditBox")
-    profileName:SetLabel("New Profile Name")
+    profileName:SetLabel(L["New Profile Name"])
     profileName:ClearAllPoints()
     profileName:SetCallback("OnEnterPressed", CTT_ProfileNameOnEnterPressed)
     newProfileGroup:AddChild(profileName)
     container.profileName = profileName
 
     CreateButton(newProfileGroup, {
-        text = "Create Profile",
+        text = L["Create Profile"],
         width = 150,
         callback = CTT_ProfileAddButton,
         name = "profileAddButton",
@@ -1761,13 +1763,13 @@ local function Profiles(container)
 
     -- Manage Profiles
     local manageGroup = AceGUI:Create("InlineGroup")
-    manageGroup:SetTitle("Manage Profiles")
+    manageGroup:SetTitle(L["Manage Profiles"])
     manageGroup:SetFullWidth(true)
     manageGroup:SetLayout("Flow")
     container:AddChild(manageGroup)
 
     CreateDropdown(manageGroup, {
-        label = "Choose Profile",
+        label = L["Choose Profile"],
         multiselect = false,
         list = db:GetProfiles(),
         value = activeProfileKey,
@@ -1776,7 +1778,7 @@ local function Profiles(container)
     })
 
     CreateDropdown(manageGroup, {
-        label = "Copy Profile",
+        label = L["Copy Profile"],
         multiselect = false,
         list = db:GetProfiles(),
         callback = CTT_ProfileCopyDropdown,
@@ -1784,7 +1786,7 @@ local function Profiles(container)
     })
 
     CreateDropdown(manageGroup, {
-        label = "Delete Profile",
+        label = L["Delete Profile"],
         multiselect = false,
         list = db:GetProfiles(),
         callback = CTT_ProfileDeleteDropdown,
@@ -1793,13 +1795,13 @@ local function Profiles(container)
 
     -- Shared Profile
     local sharedGroup = AceGUI:Create("InlineGroup")
-    sharedGroup:SetTitle("Shared Profile")
+    sharedGroup:SetTitle(L["Shared Profile"])
     sharedGroup:SetFullWidth(true)
     sharedGroup:SetLayout("Flow")
     container:AddChild(sharedGroup)
 
     CreateCheckBox(sharedGroup, {
-        label = "Use Default For New Characters",
+        label = L["Use Default For New Characters"],
         fullWidth = true,
         height = 22,
         value = db.global.useSharedDefaultProfile,
@@ -1808,7 +1810,7 @@ local function Profiles(container)
     })
 
     CreateDropdown(sharedGroup, {
-        label = "Shared Profile",
+        label = L["Shared Profile"],
         multiselect = false,
         list = db:GetProfiles(),
         value = CTT_GetProfileKey(CTT_GetSharedProfileName()),
@@ -1838,7 +1840,7 @@ end
 local function Dungeons(container)
     -- Filter configuration
     local configGroup = AceGUI:Create("InlineGroup")
-    configGroup:SetTitle("Filter")
+    configGroup:SetTitle(L["Filter"])
     configGroup:SetFullWidth(true)
     configGroup:SetLayout("Flow")
     container:AddChild(configGroup)
@@ -1854,7 +1856,7 @@ local function Dungeons(container)
     end
 
     CreateDropdown(configGroup, {
-        label = "Dungeon",
+        label = L["Dungeon"],
         list = dungeonNames,
         text = dungeonNames[savedKey],
         value = savedKey,
@@ -1864,7 +1866,7 @@ local function Dungeons(container)
     })
 
     CreateButton(configGroup, {
-        text = "Clear All",
+        text = L["Clear All"],
         width = 125,
         callback = function()
             db.profile.DungeonKills = {}
@@ -1877,7 +1879,7 @@ local function Dungeons(container)
 
     -- Run log
     local listGroup = AceGUI:Create("InlineGroup")
-    listGroup:SetTitle("M+ Run Log")
+    listGroup:SetTitle(L["M+ Run Log"])
     listGroup:SetFullWidth(true)
     listGroup:SetLayout("Flow")
     container:AddChild(listGroup)
@@ -1919,14 +1921,14 @@ local function Dungeons(container)
         end
         if not anyShown then
             local noDataLabel = AceGUI:Create("Label")
-            noDataLabel:SetText("No runs recorded for this dungeon.")
+            noDataLabel:SetText(L["No runs recorded for this dungeon."])
             noDataLabel:SetColor(200, 200, 200)
             noDataLabel:SetFullWidth(true)
             listGroup:AddChild(noDataLabel)
         end
     else
         local noDataLabel = AceGUI:Create("Label")
-        noDataLabel:SetText("No M+ runs recorded yet. Complete a Mythic Keystone dungeon to see your run times here.")
+        noDataLabel:SetText(L["No M+ runs recorded yet. Complete a Mythic Keystone dungeon to see your run times here."])
         noDataLabel:SetColor(200, 200, 200)
         noDataLabel:SetFullWidth(true)
         listGroup:AddChild(noDataLabel)
@@ -1936,14 +1938,14 @@ end
 -- function that draws the raid tab
 local function Raids(container)
     local configGroup = AceGUI:Create("InlineGroup")
-    configGroup:SetTitle("Configuration")
+    configGroup:SetTitle(L["Configuration"])
     configGroup:SetFullWidth(true)
     configGroup:SetLayout("Flow")
     container:AddChild(configGroup)
 
     --select xpac
     CreateDropdown(configGroup, {
-        label = "Expansion",
+        label = L["Expansion"],
         list = CTT_GetExpansionNames(),
         text = CTT_GetExpansionNames()[db.profile.cttMenuOptions.xpacKey],
         value = db.profile.cttMenuOptions.xpacKey,
@@ -1954,7 +1956,7 @@ local function Raids(container)
 
     -- Select Raid
     CreateDropdown(configGroup, {
-        label = "Raid",
+        label = L["Raid"],
         list = CTT_GetRaidNames(db.profile.cttMenuOptions.xpacKey),
         text = CTT_GetRaidNames(db.profile.cttMenuOptions.xpacKey)[db.profile.cttMenuOptions.raidKey],
         value = db.profile.cttMenuOptions.raidKey,
@@ -1965,7 +1967,7 @@ local function Raids(container)
 
     -- Select Boss
     CreateDropdown(configGroup, {
-        label = "Boss",
+        label = L["Boss"],
         list = CTT_GetRaidBossNames(db.profile.cttMenuOptions.xpacKey, db.profile.cttMenuOptions.raidKey),
         text = CTT_GetRaidBossNames(db.profile.cttMenuOptions.xpacKey, db.profile.cttMenuOptions.raidKey)[db.profile.cttMenuOptions.bossDropDownkey],
         value = db.profile.cttMenuOptions.bossDropDownkey,
@@ -1976,7 +1978,7 @@ local function Raids(container)
 
     -- Clear All button
     CreateButton(configGroup, {
-        text = "Clear All",
+        text = L["Clear All"],
         width = 125,
         callback = CTT_ClearAlertBossRaidTab,
         name = "deleteKillsButton"
@@ -1984,7 +1986,7 @@ local function Raids(container)
 
     -- handle the scrollable alerts.
     local listGroup = AceGUI:Create("InlineGroup")
-    listGroup:SetTitle("Kill Log")
+    listGroup:SetTitle(L["Kill Log"])
     listGroup:SetFullWidth(true)
     listGroup:SetLayout("Flow")
     container:AddChild(listGroup)
@@ -1999,7 +2001,7 @@ local function Raids(container)
                 and v.BossName == CTT_GetRaidBossNames(db.profile.cttMenuOptions.xpacKey, db.profile.cttMenuOptions.raidKey)[db.profile.cttMenuOptions.bossDropDownkey])
             then
                 local label = AceGUI:Create("Label")
-                label:SetText(v.BossName .. " was killed on: " .. v.LocalKillTime ..", with a Kill Time of: " .. v.KillTime.. ", raid difficulty: " .. v.Difficulty .. ", with " .. v.GroupSize .. " players" .. ", and was killed successfully: " .. tostring(v.Success))
+                label:SetText(string.format(L["%s was killed on: %s, with a Kill Time of: %s, raid difficulty: %s, with %s players, and was killed successfully: %s"], v.BossName, v.LocalKillTime, v.KillTime, v.Difficulty, v.GroupSize, tostring(v.Success)))
                 label:SetColor(255, 255, 0)
                 label:SetWidth(labelWidth)
                 label:ClearAllPoints()
@@ -2021,14 +2023,14 @@ end
 -- function that draws the Alert Times tab
 local function Alerts(container)
     local addAlertGroup = AceGUI:Create("InlineGroup")
-    addAlertGroup:SetTitle("Add Alert")
+    addAlertGroup:SetTitle(L["Add Alert"])
     addAlertGroup:SetFullWidth(true)
     addAlertGroup:SetLayout("Flow")
     container:AddChild(addAlertGroup)
 
     --select xpac
     CreateDropdown(addAlertGroup, {
-        label = "Expansion",
+        label = L["Expansion"],
         list = CTT_GetExpansionNames(),
         text = CTT_GetExpansionNames()[db.profile.cttMenuOptions.xpacKey],
         value = db.profile.cttMenuOptions.xpacKey,
@@ -2039,7 +2041,7 @@ local function Alerts(container)
 
     -- Input field to get the time (in seconds)
     local timeInput = AceGUI:Create("EditBox")
-    timeInput:SetLabel("Time(sec)")
+    timeInput:SetLabel(L["Time(sec)"])
     timeInput:SetWidth(85)
     timeInput:ClearAllPoints()
     if db.profile.cttMenuOptions.localStore ~= nil then timeInput:SetText(db.profile.cttMenuOptions.localStore) end
@@ -2049,7 +2051,7 @@ local function Alerts(container)
 
     -- Select Raid
     CreateDropdown(addAlertGroup, {
-        label = "Raid",
+        label = L["Raid"],
         list = CTT_GetRaidNames(db.profile.cttMenuOptions.xpacKey),
         text = CTT_GetRaidNames(db.profile.cttMenuOptions.xpacKey)[db.profile.cttMenuOptions.raidKey],
         value = db.profile.cttMenuOptions.raidKey,
@@ -2060,7 +2062,7 @@ local function Alerts(container)
 
     -- Select Boss
     CreateDropdown(addAlertGroup, {
-        label = "Boss",
+        label = L["Boss"],
         list = CTT_GetRaidBossNames(db.profile.cttMenuOptions.xpacKey, db.profile.cttMenuOptions.raidKey),
         text = CTT_GetRaidBossNames(db.profile.cttMenuOptions.xpacKey, db.profile.cttMenuOptions.raidKey)[db.profile.cttMenuOptions.bossDropDownkey],
         value = db.profile.cttMenuOptions.bossDropDownkey,
@@ -2071,7 +2073,7 @@ local function Alerts(container)
 
     -- Add alert to list
     CreateButton(addAlertGroup, {
-        text = "Add",
+        text = L["Add"],
         width = 75,
         callback = CTT_AlertAddButtonClicked,
         name = "addAlertButton"
@@ -2079,7 +2081,7 @@ local function Alerts(container)
 
     -- Clear All Alerts button
     CreateButton(addAlertGroup, {
-        text = "Clear All Alerts",
+        text = L["Clear All Alerts"],
         width = 140,
         callback = function()
             db.profile.cttMenuOptions.alerts = {}
@@ -2089,7 +2091,7 @@ local function Alerts(container)
     })
 
     local listGroup = AceGUI:Create("InlineGroup")
-    listGroup:SetTitle("Active Alerts")
+    listGroup:SetTitle(L["Active Alerts"])
     listGroup:SetFullWidth(true)
     listGroup:SetLayout("Flow")
     container:AddChild(listGroup)
@@ -2099,7 +2101,7 @@ local function Alerts(container)
 
     for i, v in ipairs(db.profile.cttMenuOptions.alerts) do
         local label = AceGUI:Create("Label")
-        label:SetText("Seconds into fight: " .. v[1] .. ", Raid: " .. v[2] .. ", Boss: " .. v[3])
+        label:SetText(string.format(L["Seconds into fight: %s, Raid: %s, Boss: %s"], v[1], v[2], v[3]))
         label:SetColor(255, 255, 0)
         label:SetWidth(labelWidth)
         label:ClearAllPoints()
@@ -2151,7 +2153,7 @@ end
 
 function CTT:CreateOptionsMenu()
     menu = AceGUI:Create("Frame")
-    menu:SetTitle("Combat Time Tracker Options")
+    menu:SetTitle(L["Combat Time Tracker Options"])
     menu:SetStatusText(C_AddOns.GetAddOnMetadata("CombatTimeTracker", "Version"))
     menu:SetWidth(db.profile.cttMenuOptions.menuWidth or 750)
     menu:SetHeight(db.profile.cttMenuOptions.menuHeight or 600)
@@ -2173,11 +2175,11 @@ function CTT:CreateOptionsMenu()
     tree:SetFullHeight(true)
     tree:SetLayout("Flow")
     tree:SetTree({
-        { value = "settings",  text = "Settings" },
-        { value = "profiles",  text = "Profiles" },
-        { value = "dungeons",  text = "Dungeons" },
-        { value = "raids",     text = "Raids" },
-        { value = "alerts",    text = "Alert Times" },
+        { value = "settings",  text = L["Settings"] },
+        { value = "profiles",  text = L["Profiles"] },
+        { value = "dungeons",  text = L["Dungeons"] },
+        { value = "raids",     text = L["Raids"] },
+        { value = "alerts",    text = L["Alert Times"] },
     })
     tree:SetCallback("OnGroupSelected", SelectGroup)
     tree:SelectByValue("settings")
