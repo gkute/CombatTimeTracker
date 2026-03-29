@@ -1,13 +1,15 @@
 name: Notify Discord on Release
 
 on:
-  push:
-    tags:
-      - '*'
+  workflow_run:
+    workflows: ["Package and release CTT"]
+    types:
+      - completed
 
 jobs:
   discord-notify:
     runs-on: ubuntu-latest
+    if: github.event.workflow_run.conclusion == 'success'
 
     steps:
       - name: Checkout
@@ -15,21 +17,10 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Verify tag points to master
-        id: tagged_master
-        run: |
-          git fetch --force origin master
-          if git branch -r --contains "$GITHUB_SHA" | grep -q "origin/master"; then
-            echo "run=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "run=false" >> "$GITHUB_OUTPUT"
-          fi
-
       - name: Extract changelog for this version
-        if: steps.tagged_master.outputs.run == 'true'
         id: changelog
         run: |
-          VERSION="${GITHUB_REF_NAME}"
+          VERSION="${{ github.event.workflow_run.head_branch }}"
           # Try matching the versioned heading first, then fall back to the @project-version@ placeholder.
           NOTES=$(awk "/^## ${VERSION}/{found=1; next} found && /^## /{exit} found{print}" CHANGELOG.md)
           if [ -z "$NOTES" ]; then
@@ -48,7 +39,6 @@ jobs:
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
 
       - name: Post to Discord
-        if: steps.tagged_master.outputs.run == 'true'
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
         run: |
