@@ -30,8 +30,9 @@ jobs:
         id: changelog
         run: |
           VERSION="${GITHUB_REF_NAME}"
-          # Extract the section between this version heading and the next heading
-          NOTES=$(awk "/^## ${VERSION}/{found=1; next} found && /^## /{exit} found{print}" CHANGELOG.md)
+          # Extract the section between this version heading and the next heading.
+          # Also matches @project-version@ for repos where the heading hasn't been renamed yet.
+          NOTES=$(awk "/^## (${VERSION}|@project-version@)/{found=1; next} found && /^## /{exit} found{print}" CHANGELOG.md)
           if [ -z "$NOTES" ]; then
             NOTES="No changelog entries found for ${VERSION}."
           fi

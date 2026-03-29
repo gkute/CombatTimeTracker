@@ -1,6 +1,6 @@
 # Changelog
 
-## @project-version@
+## @project-version@ (Unreleased)
 
 * Dungeon dropdown now populates with the static season pool when an expansion/season is selected, rather than only showing dungeons from recorded runs
 * Dungeon runs now record the current M+ season ID alongside the dungeon name and key level
