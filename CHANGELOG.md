@@ -9,18 +9,18 @@
 * Replaced Locales.xml with direct TOC entries for cleaner locale loading
 * Replaced deprecated `C_ChallengeMode.GetCompletionInfo()` with `C_ChallengeMode.GetChallengeCompletionInfo()`
 
-## v12.0.8 - 2026-03-29
+## v12.0.8
 
 * Added localization skill instruction file (.github/instructions) for locale enforcement
 * Updated all UI elements to use localized strings via AceLocale
 * Expanded dungeon and raid configuration coverage
 * Added all raid entries to raid configuration
 
-## v12.0.7 - 2026-03-24
+## v12.0.7
 
 * Updated changelog
 
-## v12.0.6 - 2026-03-24
+## v12.0.6
 
 * Restructured all options menu tabs to use labeled InlineGroup sections for better visual organization
 * Consolidated General, Display, Visibility, and Sound tabs into a single "Settings" tree entry
@@ -38,10 +38,10 @@
 * Migrated legacy selectedTab values (general/display/visibility/sound) to the new combined "settings" tab
 * Removed unused XML templates
 
-## v12.0.5 - 2026-03-22
+## v12.0.5
 
 * Fixed function declaration issues
 
-## v12.0.4 - 2026-03-22
+## v12.0.4
 
 * Added option to make new characters use a selected shared default profile instead of auto-creating character-specific profiles

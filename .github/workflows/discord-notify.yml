@@ -27,7 +27,7 @@ jobs:
             echo "No tag found for commit ${{ github.event.workflow_run.head_sha }}, skipping."
             exit 0
           fi
-          # $2 is the version token in both "## vX.Y.Z" and "## vX.Y.Z - DATE" headings.
+          # $2 is the version token — headings use the simple "## vX.Y.Z" format.
           NOTES=$(awk -v ver="$VERSION" '/^## /{found=($2==ver); next} found&&/^## /{exit} found{print}' CHANGELOG.md)
           if [ -z "$NOTES" ]; then
             NOTES=$(awk '/^## @project-version@/{found=1; next} found && /^## /{exit} found{print}' CHANGELOG.md)

@@ -19,7 +19,7 @@ After completing any code change, bug fix, or new feature, you **must**:
 - Reconcile: add any missing commit summaries into the unreleased section, consolidating duplicates into clean user-facing descriptions.
 
 **When a new tag/release is made:**
-- Rename `## @project-version@ (Unreleased)` to `## vX.Y.Z - YYYY-MM-DD` (the new tag and date).
+- Rename `## @project-version@ (Unreleased)` to `## vX.Y.Z` (the new tag, no date).
 - Add a fresh `## @project-version@ (Unreleased)` section at the top for the next cycle.
 - Keep only the last 5 tagged versions below the unreleased section — remove anything older.
 - The `.github/workflows/discord-notify.yml` workflow will automatically post the release notes to Discord when the tag is pushed.
