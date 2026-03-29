@@ -3,10 +3,12 @@
 # Combat Time Tracker
 
 ## What's New:
+* Full localization support across 12 languages using AceLocale-3.0 (deDE, esES, esMX, frFR, itIT, koKR, ptBR, ruRU, zhCN, zhTW, enGB)
+* All UI text — menus, tooltips, popups, and printed messages — is now fully translated
+* Option to make new characters use a selected shared profile instead of auto-creating character-specific profiles
 * Option to choose if combat end text prints
 * Retaining values when adding alerts
 * Added new time format of MM:SS.MS
-* Option to make new characters use a selected shared profile instead of auto-creating character-specific profiles
 
 ## Features:
 * Automatically starts a custom stopwatch when entering combat
