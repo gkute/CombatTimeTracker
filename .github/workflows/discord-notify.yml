@@ -44,15 +44,15 @@ jobs:
       - name: Post to Discord
         env:
           DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
+          VERSION: ${{ steps.changelog.outputs.version }}
+          NOTES: ${{ steps.changelog.outputs.notes }}
         run: |
-          VERSION="${{ steps.changelog.outputs.version }}"
-          NOTES="${{ steps.changelog.outputs.notes }}"
           CURSEFORGE_URL="https://www.curseforge.com/wow/addons/combattimetracker"
           GITHUB_URL="https://github.com/${{ github.repository }}/releases/tag/${VERSION}"
           AVATAR_URL="https://raw.githubusercontent.com/${{ github.repository }}/master/Assets/CombatTimeTracker.png"
 
-          # Use jq to build the payload so all special characters (backticks, quotes,
-          # newlines) are escaped correctly — no manual string interpolation into JSON.
+          # VERSION and NOTES come from env vars — never inlined into the script source.
+          # jq handles all escaping (backticks, quotes, newlines) safely.
           PAYLOAD=$(jq -n \
             --arg title "Combat Time Tracker ${VERSION} Released!" \
             --arg description "$NOTES" \
