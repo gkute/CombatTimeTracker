@@ -92,68 +92,119 @@ local defaults = {
 local xpacs = {
     "Classic",
     "Burning Crusade",
-    -- "Wrath of the Lich King",
-    -- "Cataclysm",
-    -- "Mists of Pandaria",
-    -- "Warlords of Draenor",
-    -- "Legion",
-    -- "Battle for Azeroth",
+    "Wrath of the Lich King",
+    "Cataclysm",
+    "Mists of Pandaria",
+    "Warlords of Draenor",
+    "Legion",
+    "Battle for Azeroth",
     "Shadowlands",
-    "DragonFlight",
-    "The War Within"
+    "Dragonflight",
+    "The War Within",
+    "Midnight"
 }
 
 local raidInstanceZones = {
-    --Classic
+    -- Classic
     {
-        "Blackwing Lair",
+        "Onyxia's Lair",
         "Molten Core",
+        "Blackwing Lair",
         "Ruins of Ahn'Qiraj",
-        "Temple of Ahn'Qiraj"
+        "Ahn'Qiraj Temple"
     },
-    --TBC
+    -- Burning Crusade
     {
         "Karazhan",
-        "Guul's Lair",
+        "Gruul's Lair",
         "Magtheridon's Lair",
-        "Serpentshrine Cavern",
-        "The Eye",
+        "Coilfang: Serpentshrine Cavern",
+        "Tempest Keep",
         "The Battle for Mount Hyjal",
         "Black Temple",
-        "Sunwell Plateau"
+        "The Sunwell"
     },
-    -- SL
+    -- Wrath of the Lich King
+    {
+        "Naxxramas",
+        "The Obsidian Sanctum",
+        "The Eye of Eternity",
+        "Vault of Archavon",
+        "Ulduar",
+        "Trial of the Crusader",
+        "Icecrown Citadel",
+        "The Ruby Sanctum"
+    },
+    -- Cataclysm
+    {
+        "Blackwing Descent",
+        "Throne of the Four Winds",
+        "The Bastion of Twilight",
+        "Baradin Hold",
+        "Firelands",
+        "Dragon Soul"
+    },
+    -- Mists of Pandaria
+    {
+        "Mogu'shan Vaults",
+        "Heart of Fear",
+        "Terrace of Endless Spring",
+        "Throne of Thunder",
+        "Siege of Orgrimmar"
+    },
+    -- Warlords of Draenor
+    {
+        "Highmaul",
+        "Blackrock Foundry",
+        "Hellfire Citadel"
+    },
+    -- Legion
+    {
+        "The Emerald Nightmare",
+        "Trial of Valor",
+        "The Nighthold",
+        "Tomb of Sargeras",
+        "Antorus, the Burning Throne"
+    },
+    -- Battle for Azeroth
+    {
+        "Uldir",
+        "Battle of Dazar'alor",
+        "Crucible of Storms",
+        "The Eternal Palace",
+        "Ny'alotha, the Waking City"
+    },
+    -- Shadowlands
     {
         "Castle Nathria",
         "Sanctum of Domination",
         "Sepulcher of the First Ones"
     },
-    -- DF
+    -- Dragonflight
     {
         "Vault of the Incarnates",
         "Aberrus, the Shadowed Crucible",
         "Amirdrassil, the Dream's Hope"
     },
-    -- TWW
+    -- The War Within
     {
         "Nerub-ar Palace",
         "Liberation of Undermine"
+    },
+    -- Midnight
+    {
+        "The Voidspire",
+        "March on Quel'Danas",
+        "The Dreamrift"
     }
 }
 
 local raidBosses = {
     -- Classic
     {
-        -- Blackwing Lair
+        -- Onyxia's Lair
         {
-            "Razorgore the Untamed",
-            "Vaelastrasz the Corrupt",
-            "Broodlord Lashlayer",
-            "Firemaw",
-            "Ebonroc",
-            "Flamegor",
-            "Chromaggus",
-            "Nefarian"
+            "Onyxia"
         },
         -- Molten Core
         {
@@ -168,6 +219,17 @@ local raidBosses = {
             "Majordomo Executus",
             "Ragnaros"
         },
+        -- Blackwing Lair
+        {
+            "Razorgore the Untamed",
+            "Vaelastrasz the Corrupt",
+            "Broodlord Lashlayer",
+            "Firemaw",
+            "Ebonroc",
+            "Flamegor",
+            "Chromaggus",
+            "Nefarian"
+        },
         -- Ruins of Ahn'Qiraj
         {
             "Kurinnaxx",
@@ -177,7 +239,7 @@ local raidBosses = {
             "Ayamiss the Hunter",
             "Ossirian the Unscarred"
         },
-        -- Temple of Ahn'Qiraj
+        -- Ahn'Qiraj Temple
         {
             "The Prophet Skeram",
             "Silithid Royalty",
@@ -185,7 +247,7 @@ local raidBosses = {
             "Fankriss the Unyielding",
             "Viscidus",
             "Princess Huhuran",
-            "The Twin Emperors",
+            "Twin Emperors",
             "Ouro",
             "C'Thun"
         }
@@ -199,8 +261,8 @@ local raidBosses = {
             "Maiden of Virtue",
             "Opera Hall",
             "The Curator",
-            "Shade of Aran",
             "Terestian Illhoof",
+            "Shade of Aran",
             "Netherspite",
             "Chess Event",
             "Prince Malchezaar",
@@ -208,14 +270,14 @@ local raidBosses = {
         },
         -- Gruul's Lair
         {
-            "High Kind Maulgar",
+            "High King Maulgar",
             "Gruul the Dragonkiller"
         },
         -- Magtheridon's Lair
         {
             "Magtheridon"
         },
-        -- Serpentshrine Cavern
+        -- Coilfang: Serpentshrine Cavern
         {
             "Hydross the Unstable",
             "The Lurker Below",
@@ -224,14 +286,14 @@ local raidBosses = {
             "Morogrim Tidewalker",
             "Lady Vashj"
         },
-        -- The Eye
+        -- Tempest Keep
         {
             "Al'ar",
             "Void Reaver",
             "High Astromancer Solarian",
             "Kael'thas Sunstrider"
         },
-        -- The battle for mount hyjal
+        -- The Battle for Mount Hyjal
         {
             "Rage Winterchill",
             "Anetheron",
@@ -251,99 +313,458 @@ local raidBosses = {
             "The Illidari Council",
             "Illidan Stormrage"
         },
-        -- Sunwell Plateau
+        -- The Sunwell
         {
             "Kalecgos",
             "Brutallus",
             "Felmyst",
-            "The Eredar Twins",
+            "Eredar Twins",
             "M'uru",
-            "Kil'jaedon"
+            "Kil'jaeden"
+        }
+    },
+    -- Wrath of the Lich King
+    {
+        -- Naxxramas
+        {
+            "Anub'Rekhan",
+            "Grand Widow Faerlina",
+            "Maexxna",
+            "Noth the Plaguebringer",
+            "Heigan the Unclean",
+            "Loatheb",
+            "Instructor Razuvious",
+            "Gothik the Harvester",
+            "The Four Horsemen",
+            "Patchwerk",
+            "Grobbulus",
+            "Gluth",
+            "Thaddius",
+            "Sapphiron",
+            "Kel'Thuzad"
+        },
+        -- The Obsidian Sanctum
+        {
+            "Tenebron",
+            "Shadron",
+            "Vesperon",
+            "Sartharion"
+        },
+        -- The Eye of Eternity
+        {
+            "Malygos"
+        },
+        -- Vault of Archavon
+        {
+            "Archavon the Stone Watcher",
+            "Emalon the Storm Watcher",
+            "Koralon the Flame Watcher",
+            "Toravon the Ice Watcher"
+        },
+        -- Ulduar
+        {
+            "Flame Leviathan",
+            "Ignis the Furnace Master",
+            "Razorscale",
+            "XT-002 Deconstructor",
+            "The Assembly of Iron",
+            "Kologarn",
+            "Auriaya",
+            "Hodir",
+            "Thorim",
+            "Freya",
+            "Mimiron",
+            "General Vezax",
+            "Yogg-Saron",
+            "Algalon the Observer"
+        },
+        -- Trial of the Crusader
+        {
+            "Northrend Beasts",
+            "Lord Jaraxxus",
+            "Faction Champions",
+            "Val'kyr Twins",
+            "Anub'arak"
+        },
+        -- Icecrown Citadel
+        {
+            "Lord Marrowgar",
+            "Lady Deathwhisper",
+            "Icecrown Gunship Battle",
+            "Deathbringer Saurfang",
+            "Festergut",
+            "Rotface",
+            "Professor Putricide",
+            "Blood Council",
+            "Queen Lana'thel",
+            "Valithria Dreamwalker",
+            "Sindragosa",
+            "The Lich King"
+        },
+        -- The Ruby Sanctum
+        {
+            "Baltharus the Warborn",
+            "Saviana Ragefire",
+            "General Zarithrian",
+            "Halion"
+        }
+    },
+    -- Cataclysm
+    {
+        -- Blackwing Descent
+        {
+            "Omnotron Defense System",
+            "Magmaw",
+            "Atramedes",
+            "Chimaeron",
+            "Maloriak",
+            "Nefarian's End"
+        },
+        -- Throne of the Four Winds
+        {
+            "Conclave of Wind",
+            "Al'Akir"
+        },
+        -- The Bastion of Twilight
+        {
+            "Halfus Wyrmbreaker",
+            "Theralion and Valiona",
+            "Ascendant Council",
+            "Cho'gall",
+            "Sinestra"
+        },
+        -- Baradin Hold
+        {
+            "Argaloth",
+            "Occu'thar",
+            "Alizabal"
+        },
+        -- Firelands
+        {
+            "Shannox",
+            "Beth'tilac",
+            "Lord Rhyolith",
+            "Alysrazor",
+            "Baleroc",
+            "Majordomo Staghelm",
+            "Ragnaros"
+        },
+        -- Dragon Soul
+        {
+            "Morchok",
+            "Warlord Zon'ozz",
+            "Yor'sahj the Unsleeping",
+            "Hagara the Stormbinder",
+            "Ultraxion",
+            "Warmaster Blackhorn",
+            "Spine of Deathwing",
+            "Madness of Deathwing"
+        }
+    },
+    -- Mists of Pandaria
+    {
+        -- Mogu'shan Vaults
+        {
+            "The Stone Guard",
+            "Feng the Accursed",
+            "Gara'jal the Spiritbinder",
+            "The Spirit Kings",
+            "Elegon",
+            "Will of the Emperor"
+        },
+        -- Heart of Fear
+        {
+            "Imperial Vizier Zor'lok",
+            "Blade Lord Ta'yak",
+            "Garalon",
+            "Wind Lord Mel'jarak",
+            "Amber-Shaper Un'sok",
+            "Grand Empress Shek'zeer"
+        },
+        -- Terrace of Endless Spring
+        {
+            "Protectors of the Endless",
+            "Tsulong",
+            "Lei Shi",
+            "Sha of Fear"
+        },
+        -- Throne of Thunder
+        {
+            "Jin'rokh the Breaker",
+            "Horridon",
+            "Council of Elders",
+            "Tortos",
+            "Megaera",
+            "Ji-Kun",
+            "Durumu the Forgotten",
+            "Primordius",
+            "Dark Animus",
+            "Iron Qon",
+            "Twin Empyreans",
+            "Lei Shen",
+            "Ra-den"
+        },
+        -- Siege of Orgrimmar
+        {
+            "Immerseus",
+            "Fallen Protectors",
+            "Norushen",
+            "Sha of Pride",
+            "Galakras",
+            "Iron Juggernaut",
+            "Kor'kron Dark Shaman",
+            "General Nazgrim",
+            "Malkorok",
+            "Spoils of Pandaria",
+            "Thok the Bloodthirsty",
+            "Siegecrafter Blackfuse",
+            "Paragons of the Klaxxi",
+            "Garrosh Hellscream"
+        }
+    },
+    -- Warlords of Draenor
+    {
+        -- Highmaul
+        {
+            "Kargath Bladefist",
+            "The Butcher",
+            "Brackenspore",
+            "Tectus",
+            "Twin Ogron",
+            "Ko'ragh",
+            "Imperator Mar'gok"
+        },
+        -- Blackrock Foundry
+        {
+            "Oregorger the Devourer",
+            "Gruul",
+            "Hans'gar and Franzok",
+            "Beastlord Darmac",
+            "Flamebender Ka'graz",
+            "Operator Thogar",
+            "Blast Furnace",
+            "Kromog",
+            "The Iron Maidens",
+            "Blackhand"
+        },
+        -- Hellfire Citadel
+        {
+            "Hellfire Assault",
+            "Iron Reaver",
+            "Kormrok",
+            "Hellfire High Council",
+            "Kilrogg Deadeye",
+            "Gorefiend",
+            "Shadow-Lord Iskar",
+            "Socrethar the Eternal",
+            "Fel Lord Zakuun",
+            "Xhul'horac",
+            "Tyrant Velhari",
+            "Mannoroth",
+            "Archimonde"
+        }
+    },
+    -- Legion
+    {
+        -- The Emerald Nightmare
+        {
+            "Nythendra",
+            "Ursoc",
+            "Il'gynoth, The Heart of Corruption",
+            "Dragons of Nightmare",
+            "Elerethe Renferal",
+            "Cenarius",
+            "Xavius"
+        },
+        -- Trial of Valor
+        {
+            "Odyn",
+            "Guarm",
+            "Helya"
+        },
+        -- The Nighthold
+        {
+            "Skorpyron",
+            "Chronomatic Anomaly",
+            "Trilliax",
+            "Spellblade Aluriel",
+            "Tichondrius",
+            "High Botanist Tel'arn",
+            "Krosus",
+            "Star Augur Etraeus",
+            "Grand Magistrix Elisande",
+            "Gul'dan"
+        },
+        -- Tomb of Sargeras
+        {
+            "Goroth",
+            "Demonic Inquisition",
+            "Harjatan",
+            "Sisters of the Moon",
+            "Mistress Sassz'ine",
+            "The Desolate Host",
+            "Maiden of Vigilance",
+            "Fallen Avatar",
+            "Kil'jaeden"
+        },
+        -- Antorus, the Burning Throne
+        {
+            "Garothi Worldbreaker",
+            "Felhounds of Sargeras",
+            "Portal Keeper Hasabel",
+            "Antoran High Command",
+            "The Defense of Eonar",
+            "Imonar the Soulhunter",
+            "Kin'garoth",
+            "Varimathras",
+            "The Coven of Shivarra",
+            "Aggramar",
+            "Argus the Unmaker"
+        }
+    },
+    -- Battle for Azeroth
+    {
+        -- Uldir
+        {
+            "Taloc",
+            "MOTHER",
+            "Zek'voz, Herald of N'zoth",
+            "Fetid Devourer",
+            "Vectis",
+            "Zul, Reborn",
+            "Mythrax the Unraveler",
+            "G'huun"
+        },
+        -- Battle of Dazar'alor (Alliance: Champion/Grong/Jadefire; Horde: Grong Revenant/Jadefire/Champion)
+        {
+            "Champion of the Light",
+            "Grong",
+            "Grong the Revenant",
+            "Jadefire Masters",
+            "Jadefire Masters (Horde)",
+            "Opulence",
+            "Conclave of the Chosen",
+            "King Rastakhan",
+            "Mekkatorque",
+            "Stormwall Blockade",
+            "Lady Jaina Proudmoore"
+        },
+        -- Crucible of Storms
+        {
+            "The Restless Cabal",
+            "Uu'nat, Harbinger of the Void"
+        },
+        -- The Eternal Palace
+        {
+            "Abyssal Commander Sivara",
+            "Radiance of Azshara",
+            "Blackwater Behemoth",
+            "Lady Ashvane",
+            "Orgozoa",
+            "The Queen's Court",
+            "Za'qul",
+            "Queen Azshara"
+        },
+        -- Ny'alotha, the Waking City
+        {
+            "Wrathion",
+            "Prophet Skitra",
+            "Maut",
+            "Dark Inquisitor Xanesh",
+            "Vexiona",
+            "The Hivemind",
+            "Ra-den the Despoiled",
+            "Shad'har the Insatiable",
+            "Drest'agath",
+            "Il'gynoth, Corruption Reborn",
+            "Carapace of N'Zoth",
+            "N'Zoth the Corruptor"
         }
     },
     -- Shadowlands
     {
-        -- CN
+        -- Castle Nathria
         {
             "Shriekwing",
             "Huntsman Altimor",
             "Sun King's Salvation",
-            "Artificer Xy'mox",
             "Hungering Destroyer",
+            "Artificer Xy'mox",
             "Lady Inerva Darkvein",
             "The Council of Blood",
             "Sludgefist",
             "Stone Legion Generals",
             "Sire Denathrius"
         },
-        -- SOD
+        -- Sanctum of Domination
         {
             "The Tarragrue",
             "The Eye of the Jailer",
             "The Nine",
-            "Remnat of Ner'zhul",
             "Soulrender Dormazain",
+            "Remnant of Ner'zhul",
             "Painsmith Raznal",
             "Guardian of the First Ones",
             "Fatescribe Roh-Kalo",
             "Kel'Thuzad",
             "Sylvanas Windrunner"
         },
-        -- SOFTO
+        -- Sepulcher of the First Ones
         {
             "Vigilant Guardian",
-            "Skolex, the Insatiable Ravener",
-            "Artificer Xy'mox",
             "Dausegne, the Fallen Oracle",
+            "Artificer Xy'mox",
             "Prototype Pantheon",
-            "Lihuvim, Principal Architect",
+            "Skolex, the Insatiable Ravener",
             "Halondrus the Reclaimer",
+            "Lihuvim, Principal Architect",
             "Anduin Wrynn",
             "Lords of Dread",
             "Rygelon",
             "The Jailer"
         }
     },
-    -- DF
+    -- Dragonflight
     {
-        -- Vault
+        -- Vault of the Incarnates
         {
             "Eranog",
             "Terros",
-            "The Prime council",
-            "Sennarth, the Cold Breath",
+            "The Primal Council",
+            "Sennarth, The Cold Breath",
             "Dathea, Ascended",
             "Kurog Grimtotem",
             "Broodkeeper Diurna",
             "Raszageth the Storm-Eater"
         },
-        -- Aberrus
+        -- Aberrus, the Shadowed Crucible
         {
             "Kazzara, the Hellforged",
-            "The Amalgamation chamber",
+            "The Amalgamation Chamber",
             "The Forgotten Experiments",
             "Assault of the Zaqali",
             "Rashok, the Elder",
-            "The Vigilent Steward, Zskarn",
+            "The Vigilant Steward, Zskarn",
+            "Magmorax",
             "Echo of Neltharion",
             "Scalecommander Sarkareth"
         },
-        -- Amirdrassil
+        -- Amirdrassil, the Dream's Hope
         {
             "Gnarlroot",
             "Igira the Cruel",
             "Volcoross",
-            "Council of Dreams",
             "Larodar, Keeper of the Flame",
+            "Council of Dreams",
             "Nymue, Weaver of the Cycle",
             "Smolderon",
             "Tindral Sageswift, Seer of the Flame",
             "Fyrakk the Blazing"
         }
     },
-    -- TWW
+    -- The War Within
     {
-        --  Nerub-ar Palace
+        -- Nerub-ar Palace
         {
             "Ulgrax the Devourer",
             "The Bloodbound Horror",
@@ -365,36 +786,61 @@ local raidBosses = {
             "Mug'Zee, Heads of Security",
             "Chrome King Gallywix"
         }
+    },
+    -- Midnight
+    {
+        -- The Voidspire
+        {
+            "Imperator Averzian",
+            "Vorasius",
+            "Fallen-King Salhadaar",
+            "Vaelgor & Ezzorak",
+            "Lightblinded Vanguard",
+            "Crown of the Cosmos"
+        },
+        -- March on Quel'Danas
+        {
+            "Belo'ren, Child of Al'ar",
+            "Midnight Falls"
+        },
+        -- The Dreamrift
+        {
+            "Chimaerus the Undreamt God"
+        }
     }
 }
 
 local raidEncounterIDs = {
     -- Classic
     {
-        -- BL
+        -- Onyxia's Lair
         {
-            610, 611, 612, 613, 614, 615, 616, 617
+            1084
         },
-        -- MC
+        -- Molten Core
         {
             663, 664, 665, 666, 667, 668, 669, 670, 671, 672
         },
-        -- RoAQ
+        -- Blackwing Lair
+        {
+            610, 611, 612, 613, 614, 615, 616, 617
+        },
+        -- Ruins of Ahn'Qiraj
         {
             718, 719, 720, 721, 722, 723
         },
-        -- ToAQ
+        -- Ahn'Qiraj Temple
         {
             709, 710, 711, 712, 713, 714, 715, 716, 717
         }
     },
-    -- TBC
+    -- Burning Crusade
     {
-        -- Kara
+        -- Karazhan
         {
-            652, 653, 654, 655, 656, 658, 657, 659, 660, 661, 662
+            652, 653, 654, 655, 656, 657, 658, 659, 660, 661, 662
         },
-        -- Gruuls Lair
+        -- Gruul's Lair
         {
             649, 650
         },
@@ -402,11 +848,11 @@ local raidEncounterIDs = {
         {
             651
         },
-        -- Serpenshrine Cavern
+        -- Coilfang: Serpentshrine Cavern
         {
             623, 624, 625, 626, 627, 628
         },
-        -- The Eye
+        -- Tempest Keep
         {
             730, 731, 732, 733
         },
@@ -418,27 +864,173 @@ local raidEncounterIDs = {
         {
             601, 602, 603, 604, 605, 606, 607, 608, 609
         },
-        -- Sunwell Plateau
+        -- The Sunwell
         {
             724, 725, 726, 727, 728, 729
         }
     },
-    -- SL
+    -- Wrath of the Lich King
+    {
+        -- Naxxramas
+        {
+            1107, 1110, 1116, 1117, 1112, 1115, 1113, 1109, 1121, 1118, 1111, 1108, 1120, 1119, 1114
+        },
+        -- The Obsidian Sanctum
+        {
+            1092, 1091, 1093, 1090
+        },
+        -- The Eye of Eternity
+        {
+            1094
+        },
+        -- Vault of Archavon
+        {
+            1126, 1127, 1128, 1129
+        },
+        -- Ulduar
+        {
+            1132, 1136, 1139, 1142, 1140, 1137, 1131, 1135, 1141, 1133, 1138, 1134, 1143, 1130
+        },
+        -- Trial of the Crusader
+        {
+            1088, 1087, 1086, 1089, 1085
+        },
+        -- Icecrown Citadel
+        {
+            1101, 1100, 1099, 1096, 1097, 1104, 1102, 1095, 1103, 1098, 1105, 1106
+        },
+        -- The Ruby Sanctum
+        {
+            1147, 1149, 1148, 1150
+        }
+    },
+    -- Cataclysm
+    {
+        -- Blackwing Descent
+        {
+            1027, 1024, 1022, 1023, 1025, 1026
+        },
+        -- Throne of the Four Winds
+        {
+            1035, 1034
+        },
+        -- The Bastion of Twilight
+        {
+            1030, 1032, 1028, 1029, 1082
+        },
+        -- Baradin Hold
+        {
+            1033, 1250, 1332
+        },
+        -- Firelands
+        {
+            1205, 1197, 1204, 1206, 1200, 1185, 1203
+        },
+        -- Dragon Soul
+        {
+            1292, 1294, 1295, 1296, 1297, 1298, 1291, 1299
+        }
+    },
+    -- Mists of Pandaria
+    {
+        -- Mogu'shan Vaults
+        {
+            1395, 1390, 1434, 1436, 1500, 1407
+        },
+        -- Heart of Fear
+        {
+            1507, 1504, 1463, 1498, 1499, 1501
+        },
+        -- Terrace of Endless Spring
+        {
+            1409, 1505, 1506, 1431
+        },
+        -- Throne of Thunder
+        {
+            1577, 1575, 1570, 1565, 1578, 1573, 1572, 1574, 1576, 1559, 1560, 1579, 1580
+        },
+        -- Siege of Orgrimmar
+        {
+            1602, 1598, 1624, 1604, 1622, 1600, 1606, 1603, 1595, 1594, 1599, 1601, 1593, 1623
+        }
+    },
+    -- Warlords of Draenor
+    {
+        -- Highmaul
+        {
+            1721, 1706, 1720, 1722, 1719, 1723, 1705
+        },
+        -- Blackrock Foundry
+        {
+            1696, 1691, 1693, 1694, 1689, 1692, 1690, 1713, 1695, 1704
+        },
+        -- Hellfire Citadel
+        {
+            1778, 1785, 1787, 1798, 1786, 1783, 1788, 1794, 1777, 1800, 1784, 1795, 1799
+        }
+    },
+    -- Legion
+    {
+        -- The Emerald Nightmare
+        {
+            1853, 1841, 1873, 1854, 1876, 1877, 1864
+        },
+        -- Trial of Valor
+        {
+            1958, 1962, 2008
+        },
+        -- The Nighthold
+        {
+            1849, 1865, 1867, 1871, 1862, 1886, 1842, 1863, 1872, 1866
+        },
+        -- Tomb of Sargeras
+        {
+            2032, 2048, 2036, 2050, 2037, 2054, 2052, 2038, 2051
+        },
+        -- Antorus, the Burning Throne
+        {
+            2076, 2074, 2064, 2070, 2075, 2082, 2088, 2069, 2073, 2063, 2092
+        }
+    },
+    -- Battle for Azeroth
+    {
+        -- Uldir
+        {
+            2144, 2141, 2136, 2128, 2134, 2145, 2135, 2122
+        },
+        -- Battle of Dazar'alor
+        {
+            2265, 2263, 2284, 2266, 2285, 2271, 2268, 2272, 2276, 2280, 2281
+        },
+        -- Crucible of Storms
+        {
+            2269, 2273
+        },
+        -- The Eternal Palace
+        {
+            2298, 2305, 2289, 2304, 2303, 2311, 2293, 2299
+        },
+        -- Ny'alotha, the Waking City
+        {
+            2329, 2334, 2327, 2328, 2336, 2333, 2331, 2335, 2343, 2345, 2337, 2344
+        }
+    },
+    -- Shadowlands
     {
         -- Castle Nathria
         {
-            2398, 2418, 2402, 2405, 2383, 2406, 2412, 2399, 2417, 2407
+            2398, 2418, 2402, 2383, 2405, 2406, 2412, 2399, 2417, 2407
         },
-        -- Sanctum Of Domination
+        -- Sanctum of Domination
         {
-            2423, 2433, 2429, 2432, 2434, 2430, 2436, 2431, 2422, 2435
+            2423, 2433, 2429, 2434, 2432, 2430, 2436, 2431, 2422, 2435
         },
-        -- Sepulchar of the First Ones
+        -- Sepulcher of the First Ones
         {
-            2512, 2542, 2553, 2540, 2544, 2539, 2529, 2546, 2543, 2549, 2537
+            2512, 2540, 2553, 2544, 2542, 2529, 2539, 2546, 2543, 2549, 2537
         }
     },
-    -- DF
+    -- Dragonflight
     {
         -- Vault of the Incarnates
         {
@@ -450,18 +1042,33 @@ local raidEncounterIDs = {
         },
         -- Amirdrassil, the Dream's Hope
         {
-            2820, 2709, 2737, 2728, 2731, 2708, 2824, 2786, 2677
+            2820, 2709, 2737, 2731, 2728, 2708, 2824, 2786, 2677
         }
     },
-    -- TWW
+    -- The War Within
     {
-        -- Nerub-ar Palance
+        -- Nerub-ar Palace
         {
             2902, 2917, 2898, 2918, 2919, 2920, 2921, 2922
         },
         -- Liberation of Undermine
         {
             3009, 3010, 3011, 3012, 3013, 3014, 3015, 3016
+        }
+    },
+    -- Midnight
+    {
+        -- The Voidspire
+        {
+            3176, 3177, 3179, 3178, 3180, 3181
+        },
+        -- March on Quel'Danas
+        {
+            3182, 3183
+        },
+        -- The Dreamrift
+        {
+            3306
         }
     }
 }
