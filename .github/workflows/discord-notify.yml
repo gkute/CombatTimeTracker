@@ -1,0 +1,85 @@
+name: Notify Discord on Release
+
+on:
+  push:
+    tags:
+      - '*'
+
+jobs:
+  discord-notify:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Verify tag points to master
+        id: tagged_master
+        run: |
+          git fetch --force origin master
+          if git branch -r --contains "$GITHUB_SHA" | grep -q "origin/master"; then
+            echo "run=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "run=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Extract changelog for this version
+        if: steps.tagged_master.outputs.run == 'true'
+        id: changelog
+        run: |
+          VERSION="${GITHUB_REF_NAME}"
+          # Extract the section between this version heading and the next heading
+          NOTES=$(awk "/^## ${VERSION}/{found=1; next} found && /^## /{exit} found{print}" CHANGELOG.md)
+          if [ -z "$NOTES" ]; then
+            NOTES="No changelog entries found for ${VERSION}."
+          fi
+          # Escape special characters for JSON
+          NOTES="${NOTES//$'\\'/$'\\\\'}"
+          NOTES="${NOTES//$'"'/$'\\"'}"
+          NOTES="${NOTES//$'\n'/\\n}"
+          echo "notes<<EOF" >> "$GITHUB_OUTPUT"
+          echo "$NOTES" >> "$GITHUB_OUTPUT"
+          echo "EOF" >> "$GITHUB_OUTPUT"
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Post to Discord
+        if: steps.tagged_master.outputs.run == 'true'
+        env:
+          DISCORD_WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: |
+          VERSION="${{ steps.changelog.outputs.version }}"
+          NOTES="${{ steps.changelog.outputs.notes }}"
+          CURSEFORGE_URL="https://www.curseforge.com/wow/addons/combattimetracker"
+          GITHUB_URL="https://github.com/${{ github.repository }}/releases/tag/${VERSION}"
+
+          PAYLOAD=$(cat <<EOF
+          {
+            "username": "Combat Time Tracker",
+            "avatar_url": "https://raw.githubusercontent.com/${{ github.repository }}/master/Assets/CombatTimeTracker.tga",
+            "embeds": [
+              {
+                "title": "Combat Time Tracker ${VERSION} Released!",
+                "color": 16724736,
+                "description": "${NOTES}",
+                "fields": [
+                  {
+                    "name": "Download",
+                    "value": "[CurseForge](${CURSEFORGE_URL}) • [GitHub](${GITHUB_URL})",
+                    "inline": false
+                  }
+                ],
+                "footer": {
+                  "text": "Combat Time Tracker"
+                }
+              }
+            ]
+          }
+          EOF
+          )
+
+          curl -s -o /dev/null -w "%{http_code}" \
+            -H "Content-Type: application/json" \
+            -d "$PAYLOAD" \
+            "$DISCORD_WEBHOOK"

@@ -22,6 +22,7 @@ After completing any code change, bug fix, or new feature, you **must**:
 - Rename `## @project-version@ (Unreleased)` to `## vX.Y.Z - YYYY-MM-DD` (the new tag and date).
 - Add a fresh `## @project-version@ (Unreleased)` section at the top for the next cycle.
 - Keep only the last 5 tagged versions below the unreleased section — remove anything older.
+- The `.github/workflows/discord-notify.yml` workflow will automatically post the release notes to Discord when the tag is pushed.
 
 **Entry style:**
 - One bullet per logical change.
