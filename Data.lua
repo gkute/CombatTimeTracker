@@ -2548,9 +2548,34 @@ CTT_MythicPlusSeasonData = {
     },
 }
 
--- Returns the ordered list of expansion names that have M+ seasons, prefixed with "All"
+-- Returns the ordered list of expansion names that have M+ seasons, prefixed with "All".
+-- Derived dynamically from CTT_MythicPlusSeasonData so only expansions with defined
+-- season entries appear; sorted by their order in CTT_Data.expansions.
 function CTT_GetMPlusExpansionFilterList()
-    return { "All", "Shadowlands", "Dragonflight", "The War Within", "Midnight" }
+    local seen = {}
+    local expansions = {}
+    for _, data in pairs(CTT_MythicPlusSeasonData) do
+        if not seen[data.expansion] then
+            seen[data.expansion] = true
+            tinsert(expansions, data.expansion)
+        end
+    end
+
+    local orderMap = {}
+    local idx = 0
+    for _, exp in ipairs(CTT_Data.expansions) do
+        idx = idx + 1
+        orderMap[exp.name] = idx
+    end
+    table.sort(expansions, function(a, b)
+        return (orderMap[a] or 999) < (orderMap[b] or 999)
+    end)
+
+    local result = { "All" }
+    for _, name in ipairs(expansions) do
+        tinsert(result, name)
+    end
+    return result
 end
 
 -- Returns season display names for an expansion, prefixed with "All".

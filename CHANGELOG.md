@@ -1,6 +1,10 @@
 # Changelog
 
-## @project-version@ (Unreleased)
+## @project-version@
+
+* Fixed dungeon menu showing pre-Midnight expansions that have no defined season data
+
+## v12.0.17
 
 * Dungeon dropdown now populates with the static season pool when an expansion/season is selected, rather than only showing dungeons from recorded runs
 * Dungeon runs now record the current M+ season ID alongside the dungeon name and key level
@@ -42,6 +46,3 @@
 
 * Fixed function declaration issues
 
-## v12.0.4
-
-* Added option to make new characters use a selected shared default profile instead of auto-creating character-specific profiles

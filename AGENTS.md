@@ -6,11 +6,17 @@ After completing any code change, bug fix, or new feature, you **must**:
 
 ### 1. Update `CHANGELOG.md`
 
-`CHANGELOG.md` is structured by version. The top section is always `## @project-version@ (Unreleased)` for the current working changes, followed by the last 5 tagged versions below it.
+`CHANGELOG.md` is structured by version. The top section is always `## @project-version@` for the current working changes, followed by the last 5 tagged versions below it.
+
+**Before making any CHANGELOG edit, always:**
+1. Run `git tag --sort=-version:refname | head -1` to find the latest tag.
+2. Run `git describe --exact-match HEAD 2>$null` to check if HEAD is itself tagged.
+   - If HEAD **is** tagged: the unreleased section must be promoted to that tag (see below) before adding any new entry.
+   - If HEAD **is not** tagged: add your entry under `## @project-version@` normally.
 
 **When adding a new entry:**
 - Read the file first.
-- Add your bullet under `## @project-version@ (Unreleased)` only.
+- Add your bullet under `## @project-version@` only.
 - Do **not** create a new heading, duplicate the unreleased section, or modify past version sections.
 - Do **not** re-add entries that are already listed.
 
@@ -18,11 +24,11 @@ After completing any code change, bug fix, or new feature, you **must**:
 - Run `git log <latest-tag>..HEAD --pretty=format:"* %s" --no-merges` to see all commits since the last tag.
 - Reconcile: add any missing commit summaries into the unreleased section, consolidating duplicates into clean user-facing descriptions.
 
-**When a new tag/release is made:**
-- Rename `## @project-version@ (Unreleased)` to `## vX.Y.Z` (the new tag, no date).
-- Add a fresh `## @project-version@ (Unreleased)` section at the top for the next cycle.
-- Keep only the last 5 tagged versions below the unreleased section — remove anything older.
-- The `.github/workflows/discord-notify.yml` workflow will automatically post the release notes to Discord when the tag is pushed.
+**When a new tag/release is made (or HEAD is already tagged):**
+1. Rename `## @project-version@ (Unreleased)` → `## vX.Y.Z` using the tag name.
+2. Add a fresh `## @project-version@` section at the very top for the next cycle.
+3. Keep only the last 5 tagged sections below the unreleased section — remove anything older.
+4. The `.github/workflows/discord-notify.yml` workflow will automatically post the release notes to Discord when the tag is pushed.
 
 **Entry style:**
 - One bullet per logical change.
