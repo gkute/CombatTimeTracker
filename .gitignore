@@ -455,3 +455,6 @@ $RECYCLE.BIN/
 
 # WoW Addon Libs (downloaded at build time via .pkgmeta externals)
 Libs/
+
+# Claude Code settings
+.claude/

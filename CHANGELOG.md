@@ -2,6 +2,15 @@
 
 ## @project-version@
 
+* Split Core.lua into three focused files: Core.lua (addon lifecycle and events), Utils.lua (utility and calculation functions), and UI.lua (options menu, widget factories, and callbacks)
+* Removed broken legacy raid difficulty functions that referenced undefined globals (CTT_UpdateMenuTexts, CTT_CoSUpdateMenuTexts, CTT_tepUpdateMenuTexts and their callers)
+* Removed unused variables and dead forward declarations from Core.lua
+* Fixed floating point precision issue in centisecond calculation — time display now uses integer arithmetic throughout to avoid rounding errors
+* Fixed CTT_StoreBossKills using unnecessary branching and a dead variable; now consistent with CTT_StoreDungeonRun
+* Added .claude/ to .gitignore
+
+## v12.0.18
+
 * Fixed dungeon menu showing pre-Midnight expansions that have no defined season data
 
 ## v12.0.17
@@ -41,8 +50,3 @@
 * Fixed typo "Expasion" corrected to "Expansion" in raid configuration
 * Migrated legacy selectedTab values (general/display/visibility/sound) to the new combined "settings" tab
 * Removed unused XML templates
-
-## v12.0.5
-
-* Fixed function declaration issues
-
