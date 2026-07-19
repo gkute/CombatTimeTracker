@@ -46,6 +46,7 @@ L["Behavior"] = true
 L["Toggle Messages"] = true
 L["Reset After Combat"] = true
 L["Text Appearance"] = true
+L["Class Color"] = true
 L["TextOutline"] = true
 L["Show Tracker When?"] = true
 L["Click Through"] = true

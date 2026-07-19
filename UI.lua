@@ -89,6 +89,69 @@ local function CreateSlider(container, opts)
 end
 
 --|------------------------|
+--| Class Color Popup Btn  |
+--|------------------------|
+
+local classColorButton      -- lazily created, parented to the global ColorPickerFrame
+local activeTextColorWidget -- the AceGUI ColorPicker widget whose swatch most recently opened the picker
+
+local function CTT_ClassColorButton_OnClick()
+    if not activeTextColorWidget then return end
+    local r, g, b = CTT_GetPlayerClassColor()
+
+    -- Best-effort visual sync of Blizzard's wheel/preview (matches a manual drag visually).
+    -- Defensive existence checks since ColorPickerFrame.Content internals are undocumented
+    -- Blizzard structure that could change in a future patch.
+    local content = ColorPickerFrame.Content
+    if content and content.ColorPicker and content.ColorPicker.SetColorRGB then
+        content.ColorPicker:SetColorRGB(r, g, b)
+    end
+    if content and content.ColorSwatchCurrent and content.ColorSwatchCurrent.SetColorTexture then
+        content.ColorSwatchCurrent:SetColorTexture(r, g, b)
+    end
+
+    -- Authoritative apply path — same effect as confirming a manually-picked color.
+    activeTextColorWidget:SetColor(r, g, b, 1)
+    CTT_ColorPickerConfirmed(activeTextColorWidget, "OnValueChanged", r, g, b, 1)
+end
+
+local function CTT_EnsureClassColorButton()
+    if classColorButton then return classColorButton end
+    classColorButton = CreateFrame("Button", nil, ColorPickerFrame, "UIPanelButtonTemplate")
+    classColorButton:SetSize(100, 22)
+    classColorButton:SetText(CTT.L["Class Color"])
+    classColorButton:SetScript("OnClick", CTT_ClassColorButton_OnClick)
+    classColorButton:Hide()
+    -- Always hide when the shared global picker closes, regardless of who closed it.
+    -- Safe no-op if some other addon's session closes it; the button only ever gets
+    -- shown again via our own swatch's OnClick hook below.
+    ColorPickerFrame:HookScript("OnHide", function() classColorButton:Hide() end)
+    return classColorButton
+end
+
+-- Fired via HookScript whenever OUR text-color swatch button is clicked and opens the
+-- shared Blizzard ColorPickerFrame. frame.obj is the live AceGUI widget instance for
+-- this swatch (set internally by AceGUI's RegisterAsWidget). Read it at click time
+-- (not a closure captured at Display()-time) since AceGUI can recycle widget frames.
+local function CTT_TextColorSwatch_OnClick(frame)
+    activeTextColorWidget = frame.obj
+    local btn = CTT_EnsureClassColorButton()
+    btn:ClearAllPoints()
+    local content = ColorPickerFrame.Content
+    if content and content.ColorSwatchOriginal then
+        btn:SetPoint("TOPLEFT", content.ColorSwatchOriginal, "BOTTOMLEFT", -6, -30)
+    else
+        local footer = ColorPickerFrame.Footer
+        if footer then
+            btn:SetPoint("TOP", footer, "BOTTOM", 0, -4)
+        else
+            btn:SetPoint("TOP", ColorPickerFrame, "BOTTOM", 0, -4)
+        end
+    end
+    btn:Show()
+end
+
+--|------------------------|
 --| UI Callback Handlers   |
 --|------------------------|
 
@@ -152,9 +215,9 @@ function CTT_ResizeFrameSliderUpdater(widget, event, value)
         cttStopwatchGuiTargetIcon2:SetSize(iconSize, iconSize)
     end
     if CTT.db.profile.cttMenuOptions.fontName then
-        cttStopwatchGuiTimeText:SetFont(CTT.db.profile.cttMenuOptions.fontName, fontVal, CTT.db.profile.cttMenuOptions.fontFlags)
+        CTT_SafeSetFont(cttStopwatchGuiTimeText, CTT.db.profile.cttMenuOptions.fontName, fontVal, CTT.db.profile.cttMenuOptions.fontFlags)
         if CTT.db.profile.cttMenuOptions.toggleTarget then
-            cttStopwatchGuiTargetText:SetFont(CTT.db.profile.cttMenuOptions.fontName, fontVal / 2, CTT.db.profile.cttMenuOptions.fontFlags)
+            CTT_SafeSetFont(cttStopwatchGuiTargetText, CTT.db.profile.cttMenuOptions.fontName, fontVal / 2, CTT.db.profile.cttMenuOptions.fontFlags)
         end
         CTT.db.profile.cttMenuOptions.fontVal = fontVal
     else
@@ -181,7 +244,7 @@ function CTT_FontPickerDropDownState(widget, event, key, checked)
         cttStopwatchGui:SetHeight(CTT.db.profile.cttMenuOptions.timeTrackerSize[2])
         cttStopwatchGuiTimeText:SetSize(CTT.db.profile.cttMenuOptions.timeTrackerSize[1],
             CTT.db.profile.cttMenuOptions.timeTrackerSize[2])
-        cttStopwatchGuiTimeText:SetFont(CTT.db.profile.cttMenuOptions.fontName, CTT.db.profile.cttMenuOptions.fontVal,
+        CTT_SafeSetFont(cttStopwatchGuiTimeText, CTT.db.profile.cttMenuOptions.fontName, CTT.db.profile.cttMenuOptions.fontVal,
             CTT.db.profile.cttMenuOptions.fontFlags)
         CTT_UpdateText(CTT.db.profile.cttMenuOptions.timeValues[1], CTT.db.profile.cttMenuOptions.timeValues[2],
             CTT.db.profile.cttMenuOptions.timeValues[3], CTT.db.profile.cttMenuOptions.timeValues[5],
@@ -605,13 +668,18 @@ local function Display(container)
     textGroup:SetLayout("Flow")
     container:AddChild(textGroup)
 
-    CreateColorPicker(textGroup, {
+    local colorPicker = CreateColorPicker(textGroup, {
         color = CTT.db.profile.cttMenuOptions.textColorPicker,
         label = CTT.L["Text Color"],
         width = 100,
         callback = CTT_ColorPickerConfirmed,
         name = "textColorPicker",
     })
+
+    if not colorPicker.frame.cttClassColorHooked then
+        colorPicker.frame.cttClassColorHooked = true
+        colorPicker.frame:HookScript("OnClick", CTT_TextColorSwatch_OnClick)
+    end
 
     CreateCheckBox(textGroup, {
         label = CTT.L["TextOutline"],

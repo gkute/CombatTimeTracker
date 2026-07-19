@@ -16,7 +16,7 @@
 * Automatically stops the stopwatch when exiting combat
 * Check to see if it's your longest fight, then updates if it was
 * M+ Run Log with filterable history — filter by expansion, M+ season, and dungeon name
-* Option to change text color
+* Option to change text color, with a "Use Class Color" button built into the color picker popup for one-click matching
 * Option to change the text format on the tracker
 * Option to resize the tracker(within reason)
 * Option to select which font to use for the text

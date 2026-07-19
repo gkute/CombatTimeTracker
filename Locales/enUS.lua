@@ -52,6 +52,7 @@ L["Toggle Messages"] = true
 L["Reset After Combat"] = true
 -- Display tab
 L["Text Appearance"] = true
+L["Class Color"] = true
 L["TextOutline"] = true
 -- Visibility tab
 L["Show Tracker When?"] = true

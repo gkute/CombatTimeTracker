@@ -556,7 +556,7 @@ function CTT_SetTrackerSizeOnLogin()
         cttStopwatchGui:SetHeight(CTT.db.profile.cttMenuOptions.timeTrackerSize[2])
         cttStopwatchGuiTimeText:SetSize(CTT.db.profile.cttMenuOptions.timeTrackerSize[1],
             CTT.db.profile.cttMenuOptions.timeTrackerSize[2])
-        cttStopwatchGuiTimeText:SetFont(CTT.db.profile.cttMenuOptions.fontName, CTT.db.profile.cttMenuOptions.fontVal,
+        CTT_SafeSetFont(cttStopwatchGuiTimeText, CTT.db.profile.cttMenuOptions.fontName, CTT.db.profile.cttMenuOptions.fontVal,
             CTT.db.profile.cttMenuOptions.fontFlags)
         cttStopwatchGui:SetBackdrop(backdropSettings)
         cttStopwatchGui:SetBackdropColor(0, 0, 0, CTT.db.profile.cttMenuOptions.backDropAlphaSlider)

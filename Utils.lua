@@ -13,6 +13,43 @@ function CalculateTimeParts(elapsed)
     return string.format("%02d", h), string.format("%02d", m), string.format("%02d", s), tostring(total), string.format("%02d", ms)
 end
 
+-- function to safely set a fontstring's font, falling back to a known-good font if the saved font path is missing/invalid
+function CTT_SafeSetFont(fontString, fontPath, fontSize, fontFlags)
+    local ok, result = pcall(fontString.SetFont, fontString, fontPath, fontSize, fontFlags)
+    if ok and result ~= false then return end
+
+    local fallbackFont = CTT.LSM:Fetch("font") or "Fonts\\MORPHEUS.ttf"
+    if CTT.db.profile.cttMenuOptions.fontName ~= fallbackFont then
+        CTT.db.profile.cttMenuOptions.fontName = fallbackFont
+        CTT.db.profile.cttMenuOptions.fontPickerDropDown = nil
+    end
+    local fallbackOk = pcall(fontString.SetFont, fontString, fallbackFont, fontSize, fontFlags)
+    if fallbackOk then return end
+
+    pcall(fontString.SetFont, fontString, "Fonts\\MORPHEUS.ttf", fontSize, fontFlags)
+end
+
+-- function to safely get the player's class color, falling back to white if unavailable
+function CTT_GetPlayerClassColor()
+    local _, classToken = UnitClass("player")
+
+    if C_ClassColor then
+        local ok, color = pcall(C_ClassColor.GetClassColor, classToken)
+        if ok and color then
+            return color.r, color.g, color.b
+        end
+    end
+
+    if RAID_CLASS_COLORS then
+        local color = RAID_CLASS_COLORS[classToken]
+        if color then
+            return color.r, color.g, color.b
+        end
+    end
+
+    return 1, 1, 1
+end
+
 -- function to check if a ui reset is needed.
 function CTT_CheckForReload()
     if CTT.db.profile.cttMenuOptions.lastVersion == nil then
