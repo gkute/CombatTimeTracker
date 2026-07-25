@@ -236,8 +236,11 @@ function CTT_ResizeFrameSliderDone(widget, event, value)
 end
 
 function CTT_FontPickerDropDownState(widget, event, key, checked)
+    local fontList = CTT.LSM:List("font")
+    if not fontList or not fontList[key] then return end
+
     CTT.db.profile.cttMenuOptions.fontPickerDropDown = key
-    CTT.db.profile.cttMenuOptions.fontName = CTT.LSM:Fetch("font", CTT.fontTableOptions[key])
+    CTT.db.profile.cttMenuOptions.fontName = CTT.LSM:Fetch("font", fontList[key])
     if #CTT.db.profile.cttMenuOptions.timeTrackerSize == 2 and CTT.db.profile.cttMenuOptions.fontVal and
         CTT.db.profile.cttMenuOptions.fontName then
         cttStopwatchGui:SetWidth(CTT.db.profile.cttMenuOptions.timeTrackerSize[1])
@@ -734,12 +737,16 @@ local function Display(container)
     fontGroup:SetLayout("Flow")
     container:AddChild(fontGroup)
 
+    -- resolve the selection from the font actually in use, the saved index can drift as fonts are registered or removed
+    local fontKey, fontLabel = CTT_GetFontDropDownEntry(CTT.db.profile.cttMenuOptions.fontName)
+    CTT.db.profile.cttMenuOptions.fontPickerDropDown = fontKey
+
     CreateDropdown(fontGroup, {
         label = CTT.L["Choose Font"],
         width = 270,
         list = CTT.LSM:List("font"),
-        text = CTT.fontTableOptions[CTT.db.profile.cttMenuOptions.fontPickerDropDown],
-        value = CTT.db.profile.cttMenuOptions.fontPickerDropDown,
+        text = fontLabel,
+        value = fontKey,
         callback = CTT_FontPickerDropDownState,
         name = "fontPickerDropDown",
     })

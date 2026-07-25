@@ -2,6 +2,11 @@
 
 ## @project-version@
 
+* Fixed the font dropdown in the options menu showing a blank selection after the addon fell back to a default font because the saved font was missing
+* Fixed the font dropdown selection drifting to the wrong font when other addons registered or removed shared media fonts — the menu now always reflects the font actually in use
+
+## v12.0.20
+
 * "Use Class Color" is now a button inside the color picker popup itself (instead of a separate button in the options panel) — click it while picking your text color to instantly apply your class color
 * Shortened the "Use Class Color" button label to "Class Color" so it fits better in the color picker popup
 
@@ -34,7 +39,3 @@
 * Updated all UI elements to use localized strings via AceLocale
 * Expanded dungeon and raid configuration coverage
 * Added all raid entries to raid configuration
-
-## v12.0.7
-
-* Updated changelog

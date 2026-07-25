@@ -13,6 +13,28 @@ function CalculateTimeParts(elapsed)
     return string.format("%02d", h), string.format("%02d", m), string.format("%02d", s), tostring(total), string.format("%02d", ms)
 end
 
+-- function to normalize a media path so paths that only differ by case or slash direction still compare equal
+local function CTT_NormalizeMediaPath(path)
+    if type(path) ~= "string" then return nil end
+    return (path:gsub("/", "\\"):lower())
+end
+
+-- function to find the font dropdown entry (index and display name) matching a font path
+function CTT_GetFontDropDownEntry(fontPath)
+    local target = CTT_NormalizeMediaPath(fontPath)
+    if not target then return nil end
+
+    local fontList = CTT.LSM:List("font")
+    if not fontList then return nil end
+
+    for index, name in ipairs(fontList) do
+        if CTT_NormalizeMediaPath(CTT.LSM:Fetch("font", name, true)) == target then
+            return index, name
+        end
+    end
+    return nil
+end
+
 -- function to safely set a fontstring's font, falling back to a known-good font if the saved font path is missing/invalid
 function CTT_SafeSetFont(fontString, fontPath, fontSize, fontFlags)
     local ok, result = pcall(fontString.SetFont, fontString, fontPath, fontSize, fontFlags)
@@ -21,7 +43,7 @@ function CTT_SafeSetFont(fontString, fontPath, fontSize, fontFlags)
     local fallbackFont = CTT.LSM:Fetch("font") or "Fonts\\MORPHEUS.ttf"
     if CTT.db.profile.cttMenuOptions.fontName ~= fallbackFont then
         CTT.db.profile.cttMenuOptions.fontName = fallbackFont
-        CTT.db.profile.cttMenuOptions.fontPickerDropDown = nil
+        CTT.db.profile.cttMenuOptions.fontPickerDropDown = CTT_GetFontDropDownEntry(fallbackFont)
     end
     local fallbackOk = pcall(fontString.SetFont, fontString, fallbackFont, fontSize, fontFlags)
     if fallbackOk then return end
