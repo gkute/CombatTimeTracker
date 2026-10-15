@@ -3,19 +3,21 @@
 # Combat Time Tracker
 
 ## What's New:
+* In-game What's New window (`/ctt whatsnew` or the About tab) with the release history, GitHub issues and Discord links — releases with important changes prompt you once after updating
+* Midnight Season 2 support — the M+ run log filter includes the Season 2 dungeon pool, and the Venomous Abyss, Tidebound Grotto and Unbinding of Kith'ix (patch 12.1.5) raids and the Altar of Fangs dungeon are tracked
+* Season dropdown on the Raids and Alert Times tabs — pick Midnight Season 1 or 2 to narrow the raid list, and filter your kill log by the season the kill happened in
 * Filter your M+ run log by expansion (Midnight) and by M+ season
 * Full localization support across 12 languages using AceLocale-3.0 (deDE, esES, esMX, frFR, itIT, koKR, ptBR, ruRU, zhCN, zhTW, enGB)
 * All UI text — menus, tooltips, popups, and printed messages — is now fully translated
 * Option to make new characters use a selected shared profile instead of auto-creating character-specific profiles
-* Option to choose if combat end text prints
-* Retaining values when adding alerts
-* Added new time format of MM:SS.MS
 
 ## Features:
 * Automatically starts a custom stopwatch when entering combat
 * Automatically stops the stopwatch when exiting combat
 * Check to see if it's your longest fight, then updates if it was
-* M+ Run Log with filterable history — filter by expansion, M+ season, and dungeon name
+* M+ Run Log with filterable history — filter by expansion, M+ season (Midnight Season 1 & 2), and dungeon name
+* Raid Kill Log with filterable history — filter by expansion, season (Midnight Season 1 & 2), raid, and boss
+* Boss alerts — play a sound a set number of seconds into a chosen raid boss fight, with the raid list filterable by season
 * Option to change text color, with a "Use Class Color" button built into the color picker popup for one-click matching
 * Option to change the text format on the tracker
 * Option to resize the tracker(within reason)
@@ -32,6 +34,7 @@
     * Can play sound of your choice by whats available in-game
 * Option to toggle showing current target inside tracker frame
 * Profiles (create/copy/delete) to prevent having to setup the addon each time!
+* What's New window showing recent release notes, with quick links to GitHub issues and Discord
 
 ## Coming Soon:
 * More UI Customizations
@@ -47,6 +50,7 @@
 * /ctt show - shows the tracker if it's hidden
 * /ctt hide - hides the tracker if it's visible
 * /ctt longest - prints out the longest recorded fight
+* /ctt whatsnew - opens the What's New window with recent release notes
 
 ## Third-Party Libraries:
 

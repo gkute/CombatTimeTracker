@@ -2304,6 +2304,41 @@ CTT_Data = {
                         { name = "Chimaerus the Undreamt God", encounterID = 3306 },
                     }
                 },
+                {
+                    name = "Sporefall",
+                    mapID = 1592,
+                    bosses = {
+                        { name = "Rotmire", encounterID = 3159 },
+                    }
+                },
+                {
+                    name = "The Venomous Abyss",
+                    mapID = 3004,
+                    bosses = {
+                        { name = "Nek'zali the Soulcoiler", encounterID = 3470 },
+                        { name = "Entombed Sentinels",      encounterID = 3445 },
+                        { name = "The Lost Explorers",      encounterID = 3497 },
+                        { name = "Vashnik the Malignant",   encounterID = 3455 },
+                        { name = "Sszorak",                 encounterID = 3420 },
+                        { name = "The Twin Fangs",          encounterID = 3421 },
+                        { name = "The Coiled Altar",        encounterID = 3429 },
+                        { name = "Ula'tek",                 encounterID = 3492 },
+                    }
+                },
+                {
+                    name = "The Tidebound Grotto",
+                    mapID = 2987,
+                    bosses = {
+                        { name = "Nymrissa Wavecaller", encounterID = 3379 },
+                    }
+                },
+                {
+                    name = "The Unbinding of Kith'ix",
+                    mapID = 3095,
+                    bosses = {
+                        { name = "Kith'ix", encounterID = 3513 },
+                    }
+                },
             },
             dungeons = {
                 {
@@ -2380,6 +2415,15 @@ CTT_Data = {
                         { name = "Taz'Rah",  encounterID = 3285 },
                         { name = "Atroxus",  encounterID = 3286 },
                         { name = "Charonus", encounterID = 3287 },
+                    }
+                },
+                {
+                    name = "Altar of Fangs",
+                    mapID = 2993,
+                    bosses = {
+                        { name = "Rav'i",             encounterID = 3456 },
+                        { name = "The Writhing Coil", encounterID = 3457 },
+                        { name = "Zul'jan",           encounterID = 3458 },
                     }
                 },
             },
@@ -2529,12 +2573,14 @@ function CTT_GetDungeonByZoneText()
     return nil
 end
 
--- M+ season metadata keyed by the value returned from C_MythicPlus.GetCurrentSeason().
+-- Season metadata keyed by the value returned from C_MythicPlus.GetCurrentSeason().
 -- Season numbers match the global cumulative M+ season count (from DisplaySeason game data).
--- expansionName must match expansion names used in CTT_Data.expansions.
+-- expansion must match expansion names used in CTT_Data.expansions.
 -- dungeons lists the dungeon names (as stored in CTT_Data) active in that season's M+ pool.
--- Seasons without a dungeons list will fall back to showing all dungeons for that expansion.
-CTT_MythicPlusSeasonData = {
+-- raids lists the raid names (as stored in CTT_Data) that are current for that season.
+-- Seasons without a dungeons/raids list fall back to showing everything for that expansion.
+-- Shared by the Dungeons, Raids and Alert Times tabs.
+CTT_SeasonData = {
     -- Midnight (ExpansionID 11)
     -- S1: 4 new Midnight dungeons + 4 returning (Algeth'ar Academy, Pit of Saron, Seat of the Triumvirate, Skyreach)
     [17] = {
@@ -2544,17 +2590,31 @@ CTT_MythicPlusSeasonData = {
         dungeons = {
             "Windrunner Spire", "Magisters' Terrace", "Maisara Caverns", "Nexus-Point Xenas",
             "Algeth'ar Academy", "Pit of Saron", "Seat of the Triumvirate", "Skyreach",
-        }
+        },
+        raids = { "The Voidspire", "March on Quel'Danas", "The Dreamrift", "Sporefall" },
+    },
+    -- S2 (patch 12.1): Altar of Fangs + the 4 Midnight dungeons unused in S1
+    --                  + 3 returning (Kings' Rest, Temple of Sethraliss, Ruby Life Pools)
+    -- 12.1.5: The Unbinding of Kith'ix (single-boss raid)
+    [18] = {
+        expansion = "Midnight",
+        seasonNum = 2,
+        name = "Season 2",
+        dungeons = {
+            "Altar of Fangs", "Murder Row", "Den of Nalorakk", "The Blinding Vale", "Voidscar Arena",
+            "Kings' Rest", "Temple of Sethraliss", "Ruby Life Pools",
+        },
+        raids = { "The Venomous Abyss", "The Tidebound Grotto", "The Unbinding of Kith'ix" },
     },
 }
 
 -- Returns the ordered list of expansion names that have M+ seasons, prefixed with "All".
--- Derived dynamically from CTT_MythicPlusSeasonData so only expansions with defined
+-- Derived dynamically from CTT_SeasonData so only expansions with defined
 -- season entries appear; sorted by their order in CTT_Data.expansions.
 function CTT_GetMPlusExpansionFilterList()
     local seen = {}
     local expansions = {}
-    for _, data in pairs(CTT_MythicPlusSeasonData) do
+    for _, data in pairs(CTT_SeasonData) do
         if not seen[data.expansion] then
             seen[data.expansion] = true
             tinsert(expansions, data.expansion)
@@ -2580,12 +2640,12 @@ end
 
 -- Returns season display names for an expansion, prefixed with "All".
 -- Returns {"All"} when expansionName is "All" or unknown.
-function CTT_GetMPlusSeasonFilterList(expansionName)
+function CTT_GetSeasonFilterList(expansionName)
     if not expansionName or expansionName == "All" then
         return { "All" }
     end
     local seasons = {}
-    for _, data in pairs(CTT_MythicPlusSeasonData) do
+    for _, data in pairs(CTT_SeasonData) do
         if data.expansion == expansionName then
             tinsert(seasons, { num = data.seasonNum, name = data.name })
         end
@@ -2600,9 +2660,9 @@ end
 
 -- Returns a set (table keyed by seasonID → true) of all season IDs that match the given
 -- expansion and season name filters. Pass "All" to match any value in that dimension.
-function CTT_GetMPlusSeasonIDs(expansionName, seasonName)
+function CTT_GetSeasonIDs(expansionName, seasonName)
     local ids = {}
-    for seasonID, data in pairs(CTT_MythicPlusSeasonData) do
+    for seasonID, data in pairs(CTT_SeasonData) do
         local expMatch = (not expansionName or expansionName == "All") or (data.expansion == expansionName)
         local seaMatch = (not seasonName or seasonName == "All") or (data.name == seasonName)
         if expMatch and seaMatch then
@@ -2610,6 +2670,56 @@ function CTT_GetMPlusSeasonIDs(expansionName, seasonName)
         end
     end
     return ids
+end
+
+-- Returns the raid names for an expansion index, restricted to the raid pool of the named
+-- season when one is defined in CTT_SeasonData. Falls back to every raid in the expansion when
+-- seasonName is "All", unknown, or the season has no raids list. Order follows CTT_Data.
+function CTT_GetRaidNamesForSeason(expansionIndex, seasonName)
+    local allNames = CTT_GetRaidNames(expansionIndex)
+    if not seasonName or seasonName == "All" then
+        return allNames
+    end
+    local exp = CTT_Data.expansions[expansionIndex]
+    if not exp then
+        return allNames
+    end
+
+    local pool
+    for _, data in pairs(CTT_SeasonData) do
+        if data.expansion == exp.name and data.name == seasonName then
+            pool = data.raids
+            break
+        end
+    end
+    if not pool then
+        return allNames
+    end
+
+    local poolSet = {}
+    for _, name in ipairs(pool) do
+        poolSet[name] = true
+    end
+    local names = {}
+    for _, name in ipairs(allNames) do
+        if poolSet[name] then
+            tinsert(names, name)
+        end
+    end
+    if #names == 0 then
+        return allNames
+    end
+    return names
+end
+
+-- Returns the index of raidName within the full raid list of the given expansion index, or nil.
+function CTT_GetRaidIndexByName(expansionIndex, raidName)
+    for i, name in ipairs(CTT_GetRaidNames(expansionIndex)) do
+        if name == raidName then
+            return i
+        end
+    end
+    return nil
 end
 
 -- Returns all dungeon names for a named expansion (matches CTT_Data expansion name).
@@ -2639,7 +2749,7 @@ function CTT_GetDungeonDropdownList(expansionName, seasonName)
     local dungeons
     if seasonName and seasonName ~= "All" then
         -- Find the specific season entry and return its pool
-        for _, data in pairs(CTT_MythicPlusSeasonData) do
+        for _, data in pairs(CTT_SeasonData) do
             if data.expansion == expansionName and data.name == seasonName then
                 dungeons = data.dungeons
                 break

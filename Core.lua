@@ -31,6 +31,7 @@ local defaults = {
     global = {
         useSharedDefaultProfile = false,
         sharedProfileName = nil,
+        -- whatsNewLastVersion: last addon version the What's New check ran for (nil until first login)
     },
     profile = {
         minimap = {
@@ -83,7 +84,9 @@ local defaults = {
             dungeonExpansionKey = 1,
             dungeonExpansionName = "All",
             dungeonSeasonKey = 1,
-            dungeonSeasonName = "All"
+            dungeonSeasonName = "All",
+            raidSeasonKey = 1,
+            raidSeasonName = "All"
         }
     }
 }
@@ -198,7 +201,7 @@ function CTT:ADDON_LOADED()
         CTT.db.profile.RaidKills = {}
     end
 
-    local validTabs = { settings=true, profiles=true, dungeons=true, raids=true, alerts=true }
+    local validTabs = { settings=true, profiles=true, dungeons=true, raids=true, alerts=true, about=true }
     -- migrate any old per-section tab values to the combined settings tab
     local legacyTabs = { general=true, display=true, visibility=true, sound=true }
     if legacyTabs[CTT.db.profile.cttMenuOptions.selectedTab] then
@@ -404,6 +407,8 @@ function CTT:PLAYER_ENTERING_WORLD()
             CTT.db.profile.cttMenuOptions.yOfs = yOfs
         end
     end)
+
+    CTT_CheckWhatsNew()
 end
 
 function CTT:ZONE_CHANGED()
@@ -463,6 +468,7 @@ function CTT:SlashCommands(input)
         CTT:Print(CTT.L["/ctt longest - print longest fight!"])
         CTT:Print(CTT.L["/ctt lock -  to lock or unlock the window!"])
         CTT:Print(CTT.L["/ctt resetfull - restore addon to default settings."])
+        CTT:Print(CTT.L["/ctt whatsnew - open the What's New window!"])
         CTT:Print("=================================")
     elseif command == "reset" then
         CTT.db.profile.cttMenuOptions.timeValues = { "00", "00", "00", "00" }
@@ -486,6 +492,8 @@ function CTT:SlashCommands(input)
         activeProfile = nil
         activeProfileKey = nil
         CTT:Print(CTT.L["Combat Time Tracker has been reset to default settings!"])
+    elseif command == "whatsnew" then
+        CTT_ToggleWhatsNew()
     elseif command == "longest" then
         CTT:Print(CTT.L["Your longest fight took (MM:SS): "] .. longestMin .. ":" .. longestSec .. ".")
     elseif command == "lock" then
@@ -606,6 +614,7 @@ function CTT:CreateOptionsMenu()
         { value = "dungeons",  text = CTT.L["Dungeons"] },
         { value = "raids",     text = CTT.L["Raids"] },
         { value = "alerts",    text = CTT.L["Alert Times"] },
+        { value = "about",     text = CTT.L["About"] },
     })
     tree:SetCallback("OnGroupSelected", CTT.SelectGroup)
     tree:SelectByValue("settings")

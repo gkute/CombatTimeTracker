@@ -37,7 +37,45 @@ After completing any code change, bug fix, or new feature, you **must**:
   - `* Fixed scroll position resetting when deleting an alert`
   - `* Added option to display target name inside the tracker frame`
 
-### 2. Update `README.md`
+### 2. Update `Changelog.lua` (in-game What's New window)
+
+`Changelog.lua` holds `CTT_Changelog`, the data behind the in-game **What's New** window (`/ctt whatsnew`, `WhatsNew.lua`). It mirrors `CHANGELOG.md` and must be updated in the same commit as any `CHANGELOG.md` change.
+
+**Structure:** newest release first, at most **10** releases. Each entry is:
+```lua
+{
+    version = "v12.0.21",          -- git tag name
+    date = "2026-07-25",           -- tag date, YYYY-MM-DD
+    breaking = true,               -- optional, see below
+    actions = { "..." },          -- required when breaking: what the player must do
+    sections = {
+        { title = "Added",   items = { "..." } },
+        { title = "Fixed",   items = { "..." } },
+        { title = "Changed", items = { "..." } },
+    },
+},
+```
+- Section titles must be exactly `Added`, `Fixed` or `Changed` (they are localized). Only include sections that have items.
+- Items are player-facing sentences that mirror the `CHANGELOG.md` bullets for that version. Leave out developer-only items (CI, .gitignore, refactors with no user impact).
+
+**Unreleased entry:** the top entry uses the packager keywords `version = "@project-version@"` and `date = "@project-date-iso@"`; the release packager substitutes the tag name and date. Add your items to this entry whenever you add a bullet under `## @project-version@` in `CHANGELOG.md`.
+
+**When HEAD is tagged (same check as for `CHANGELOG.md`):**
+1. Replace the keywords in the top entry with the tag name and the tag date (`git log -1 --format=%as <tag>`).
+2. Add a fresh top entry with the keywords and `sections = {}`.
+3. Remove entries beyond the 10 most recent.
+
+**Deciding `breaking`:** set `breaking = true` on the unreleased entry when the release contains anything the player needs to know about before they keep playing. On first login after updating, such a release shows a popup offering to open What's New; regular releases only print a chat hint. Mark a release as breaking when it:
+- changes which dungeons/raids/seasons are tracked (new season pools, new expansion data, renamed instances)
+- changes the shape or meaning of saved data (kill logs, run logs, alerts, profiles) or migrates/clears it
+- removes, renames or relocates a feature, option, slash command or tab
+- requires the player to redo setup (reset the tracker, re-add alerts, re-pick a font)
+
+Every breaking entry **must** also have `actions`: one to three plain sentences telling the player exactly what to do (e.g. "Use Clear All on the Raids tab if you want a clean Season 2 log", "Re-add your boss alerts"). Say what is kept and what is not. These lines are shown first in the entry under **What you need to do** and repeated in the update popup, so keep them short and concrete.
+
+Do **not** mark bug fixes, translations, cosmetic tweaks or purely additive options as breaking.
+
+### 3. Update `README.md`
 
 - If the change introduces a new feature, slash command, or meaningfully changes user-facing behavior, update the relevant section:
   - **What's New** — top 4–6 highlights of the current release cycle (most important changes)
@@ -49,4 +87,4 @@ After completing any code change, bug fix, or new feature, you **must**:
 
 ## Localization Rules
 
-Any time you add or modify a UI element in `Core.lua` — menu labels, tooltips, popup dialogs, printed messages, or any text visible to the user — you **must** localize it using AceLocale-3.0. See `.github/instructions/localization.instructions.md` for full details.
+Any time you add or modify a UI element in `Core.lua`, `UI.lua` or `WhatsNew.lua` — menu labels, tooltips, popup dialogs, printed messages, or any text visible to the user — you **must** localize it using AceLocale-3.0. Changelog item text in `Changelog.lua` is the one exception: it stays in English. See `.github/instructions/localization.instructions.md` for full details.

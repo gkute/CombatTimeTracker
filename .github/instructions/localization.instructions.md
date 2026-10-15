@@ -1,14 +1,14 @@
 ---
-applyTo: "Core.lua,Locales/*.lua"
+applyTo: "Core.lua,UI.lua,WhatsNew.lua,Locales/*.lua"
 ---
 
 # Localization Rules for CombatTimeTracker
 
-Any time you add or modify a UI element in `Core.lua` — menu labels, tooltips, popup dialogs, printed messages, or any text visible to the user — you **must** localize it using AceLocale-3.0. Hardcoded strings are not acceptable.
+Any time you add or modify a UI element in `Core.lua`, `UI.lua` or `WhatsNew.lua` — menu labels, tooltips, popup dialogs, printed messages, or any text visible to the user — you **must** localize it using AceLocale-3.0. Hardcoded strings are not acceptable.
 
 ## Step-by-step: adding a localized string
 
-1. **Use `L[...]` in Core.lua** for every user-visible string:
+1. **Use `L[...]` (or `CTT.L[...]`) in Core.lua / UI.lua / WhatsNew.lua** for every user-visible string:
    ```lua
    label = L["My Label"]
    CTT:Print(L["Something happened."])
@@ -60,3 +60,4 @@ Any time you add or modify a UI element in `Core.lua` — menu labels, tooltips,
 - The LDB broker `name` field (addon identifier)
 - ASCII separator lines (e.g., `"========"`)
 - Commented-out debug strings
+- Changelog item text in `Changelog.lua` (English only by design)

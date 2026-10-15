@@ -234,9 +234,14 @@ function CTT_FormatRunTime(ms)
     return string.format("%02d:%02d", minutes, seconds)
 end
 
+-- Returns the current season ID (shared by M+ and raids, see CTT_SeasonData), or 0 when unavailable
+function CTT_GetCurrentSeasonID()
+    return (CTT.isRetail and C_MythicPlus and C_MythicPlus.GetCurrentSeason()) or 0
+end
+
 -- Store a completed M+ dungeon run
 function CTT_StoreDungeonRun(dungeonName, mapID, keyLevel, runTimeMs, onTime, difficulty)
-    local seasonID = (CTT.isRetail and C_MythicPlus and C_MythicPlus.GetCurrentSeason()) or 0
+    local seasonID = CTT_GetCurrentSeasonID()
     local data = {
         Dungeon           = dungeonName,
         MapID             = mapID,
@@ -265,6 +270,7 @@ function CTT_StoreBossKills(expansion, raidInstance, bossName, groupSize, diffic
         Success = success,
         Difficulty = difficulty,
         GroupSize = groupSize,
+        SeasonID = CTT_GetCurrentSeasonID(),
         LocalKillTime = date("%m/%d/%Y %I:%M%p")
     }
 

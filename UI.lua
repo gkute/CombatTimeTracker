@@ -340,25 +340,120 @@ function CTT_AlertTimeOnEnterPressed(widget, event, text)
     CTT.db.profile.cttMenuOptions.localStore = text
 end
 
+--|------------------------|
+--| Raid / Season Selection|
+--|------------------------|
+-- The Raids and Alert Times tabs share xpacKey, raidSeasonKey, raidKey and bossDropDownkey.
+-- raidKey always indexes the expansion's full raid list (CTT_GetRaidNames); the Raid dropdown
+-- only shows the raids in the selected season, so positions in that list are mapped back to
+-- raidKey by name.
+
+-- Selects the raid at `position` within the season-filtered raid list and resets the boss.
+local function SelectRaidByPosition(position)
+    local opts = CTT.db.profile.cttMenuOptions
+    local raidList = CTT_GetRaidNamesForSeason(opts.xpacKey, opts.raidSeasonName)
+    local raidName = raidList[position] or raidList[1]
+    opts.raidKey = CTT_GetRaidIndexByName(opts.xpacKey, raidName) or 1
+    opts.raidDropdown = raidName
+    opts.bossDropDownkey = 1
+    opts.bossDropdown = CTT_GetRaidBossNames(opts.xpacKey, opts.raidKey)[1]
+end
+
+local function SelectRaidSeason(key)
+    local opts = CTT.db.profile.cttMenuOptions
+    local seasonList = CTT_GetSeasonFilterList(CTT_GetExpansionNames()[opts.xpacKey])
+    opts.raidSeasonKey = key
+    opts.raidSeasonName = seasonList[key] or "All"
+    SelectRaidByPosition(1)
+end
+
+local function SelectRaidExpansion(key)
+    local opts = CTT.db.profile.cttMenuOptions
+    opts.xpacKey = key
+    opts.raidSeasonKey = 1
+    opts.raidSeasonName = "All"
+    SelectRaidByPosition(1)
+end
+
+-- Validates the saved selection against the current data and returns everything the
+-- Raids / Alert Times dropdowns need to render. Stale or out-of-range keys (e.g. after a
+-- season pool changes) are snapped to the first valid entry.
+local function GetRaidSelectionState()
+    local opts = CTT.db.profile.cttMenuOptions
+    local expansionNames = CTT_GetExpansionNames()
+    if not expansionNames[opts.xpacKey] then
+        opts.xpacKey = 1
+    end
+    local expansionName = expansionNames[opts.xpacKey]
+
+    local seasonList = CTT_GetSeasonFilterList(expansionName)
+    local seasonKey = opts.raidSeasonKey or 1
+    if seasonKey > #seasonList then
+        seasonKey = 1
+    end
+    opts.raidSeasonKey = seasonKey
+    opts.raidSeasonName = seasonList[seasonKey]
+
+    local raidList = CTT_GetRaidNamesForSeason(opts.xpacKey, opts.raidSeasonName)
+    local currentRaidName = CTT_GetRaidNames(opts.xpacKey)[opts.raidKey]
+    local raidPos
+    for i, name in ipairs(raidList) do
+        if name == currentRaidName then
+            raidPos = i
+            break
+        end
+    end
+    if not raidPos then
+        SelectRaidByPosition(1)
+        raidPos = 1
+    end
+
+    local bossList = CTT_GetRaidBossNames(opts.xpacKey, opts.raidKey)
+    if not bossList[opts.bossDropDownkey] then
+        opts.bossDropDownkey = 1
+        opts.bossDropdown = bossList[1]
+    end
+
+    return {
+        expansionName = expansionName,
+        seasonList    = seasonList,
+        seasonKey     = seasonKey,
+        seasonName    = opts.raidSeasonName,
+        raidList      = raidList,
+        raidPos       = raidPos,
+        raidName      = raidList[raidPos],
+        bossList      = bossList,
+        bossName      = bossList[opts.bossDropDownkey],
+    }
+end
+
 function CTT_AlertRaidDropDown(widget, event, key, checked)
-    CTT.db.profile.cttMenuOptions.raidKey = key
-    CTT.db.profile.cttMenuOptions.raidDropdown = CTT_GetRaidNames(CTT.db.profile.cttMenuOptions.xpacKey)[key]
+    SelectRaidByPosition(key)
     CTT.menu.tree:SelectByValue("alerts")
 end
 
 function CTT_AlertRaidDropDownForRaidTab(widget, event, key, checked)
-    CTT.db.profile.cttMenuOptions.raidKey = key
-    CTT.db.profile.cttMenuOptions.raidDropdown = CTT_GetRaidNames(CTT.db.profile.cttMenuOptions.xpacKey)[key]
+    SelectRaidByPosition(key)
+    CTT.menu.tree:SelectByValue("raids")
+end
+
+function CTT_RaidSeasonDropDown(widget, event, key, checked)
+    SelectRaidSeason(key)
+    CTT.menu.tree:SelectByValue("alerts")
+end
+
+function CTT_RaidSeasonDropDownForRaidTab(widget, event, key, checked)
+    SelectRaidSeason(key)
     CTT.menu.tree:SelectByValue("raids")
 end
 
 function CTT_ExpansionDropDown(widget, event, key, checked)
-    CTT.db.profile.cttMenuOptions.xpacKey = key
+    SelectRaidExpansion(key)
     CTT.menu.tree:SelectByValue("alerts")
 end
 
 function CTT_ExpansionDropDownForRaidTab(widget, event, key, checked)
-    CTT.db.profile.cttMenuOptions.xpacKey = key
+    SelectRaidExpansion(key)
     CTT.menu.tree:SelectByValue("raids")
 end
 
@@ -453,7 +548,7 @@ end
 
 function CTT_DungeonSeasonDropDown(widget, event, key, checked)
     local expansionName = CTT.db.profile.cttMenuOptions.dungeonExpansionName or "All"
-    local seasonList = CTT_GetMPlusSeasonFilterList(expansionName)
+    local seasonList = CTT_GetSeasonFilterList(expansionName)
     CTT.db.profile.cttMenuOptions.dungeonSeasonKey = key
     CTT.db.profile.cttMenuOptions.dungeonSeasonName = seasonList[key] or "All"
     -- Changing season resets the dungeon name filter
@@ -902,7 +997,7 @@ local function Dungeons(container)
         name = "dungeonExpansionFilter"
     })
 
-    local seasonList = CTT_GetMPlusSeasonFilterList(selectedExpansion)
+    local seasonList = CTT_GetSeasonFilterList(selectedExpansion)
     local savedSeaKey = CTT.db.profile.cttMenuOptions.dungeonSeasonKey or 1
     if savedSeaKey > #seasonList then
         savedSeaKey = 1
@@ -970,7 +1065,7 @@ local function Dungeons(container)
     local dungeonFilter = CTT.db.profile.cttMenuOptions.dungeonFilterName or "All"
 
     local filterBySeasonID = (selectedExpansion ~= "All" or selectedSeason ~= "All")
-    local matchingSeasonIDs = filterBySeasonID and CTT_GetMPlusSeasonIDs(selectedExpansion, selectedSeason) or nil
+    local matchingSeasonIDs = filterBySeasonID and CTT_GetSeasonIDs(selectedExpansion, selectedSeason) or nil
 
     if CTT.db.profile.DungeonKills ~= nil and #CTT.db.profile.DungeonKills > 0 then
         local anyShown = false
@@ -1040,21 +1135,34 @@ local function Raids(container)
     configGroup:SetLayout("Flow")
     container:AddChild(configGroup)
 
+    local opts = CTT.db.profile.cttMenuOptions
+    local state = GetRaidSelectionState()
+
     CreateDropdown(configGroup, {
         label = CTT.L["Expansion"],
         list = CTT_GetExpansionNames(),
-        text = CTT_GetExpansionNames()[CTT.db.profile.cttMenuOptions.xpacKey],
-        value = CTT.db.profile.cttMenuOptions.xpacKey,
+        text = state.expansionName,
+        value = opts.xpacKey,
         width = 125,
         callback = CTT_ExpansionDropDownForRaidTab,
         name = "xpacDropdown"
     })
 
     CreateDropdown(configGroup, {
+        label = CTT.L["Season"],
+        list = state.seasonList,
+        text = state.seasonName,
+        value = state.seasonKey,
+        width = 125,
+        callback = CTT_RaidSeasonDropDownForRaidTab,
+        name = "raidSeasonDropdown"
+    })
+
+    CreateDropdown(configGroup, {
         label = CTT.L["Raid"],
-        list = CTT_GetRaidNames(CTT.db.profile.cttMenuOptions.xpacKey),
-        text = CTT_GetRaidNames(CTT.db.profile.cttMenuOptions.xpacKey)[CTT.db.profile.cttMenuOptions.raidKey],
-        value = CTT.db.profile.cttMenuOptions.raidKey,
+        list = state.raidList,
+        text = state.raidName,
+        value = state.raidPos,
         width = 225,
         callback = CTT_AlertRaidDropDownForRaidTab,
         name = "raidDropdown"
@@ -1062,9 +1170,9 @@ local function Raids(container)
 
     CreateDropdown(configGroup, {
         label = CTT.L["Boss"],
-        list = CTT_GetRaidBossNames(CTT.db.profile.cttMenuOptions.xpacKey, CTT.db.profile.cttMenuOptions.raidKey),
-        text = CTT_GetRaidBossNames(CTT.db.profile.cttMenuOptions.xpacKey, CTT.db.profile.cttMenuOptions.raidKey)[CTT.db.profile.cttMenuOptions.bossDropDownkey],
-        value = CTT.db.profile.cttMenuOptions.bossDropDownkey,
+        list = state.bossList,
+        text = state.bossName,
+        value = opts.bossDropDownkey,
         width = 250,
         callback = CTT_AlertBossDropDownForRaidTab,
         name = "bossDropdown"
@@ -1085,11 +1193,23 @@ local function Raids(container)
 
     local labelWidth = math.max(200, listGroup.frame:GetWidth() - 54)
 
+    -- When a season is selected only kills recorded during that season are shown.
+    -- Kills recorded before season tracking existed have no SeasonID and only appear under "All".
+    local seasonIDs = nil
+    if state.seasonName ~= "All" then
+        seasonIDs = CTT_GetSeasonIDs(state.expansionName, state.seasonName)
+    end
+
     if CTT.db.profile.RaidKills ~= nil and #CTT.db.profile.RaidKills > 0 then
         for i, v in ipairs(CTT.db.profile.RaidKills) do
-            if (v.Expansion == CTT_GetExpansionNames()[CTT.db.profile.cttMenuOptions.xpacKey]
-                and v.RaidInstance == CTT_GetRaidNames(CTT.db.profile.cttMenuOptions.xpacKey)[CTT.db.profile.cttMenuOptions.raidKey]
-                and v.BossName == CTT_GetRaidBossNames(CTT.db.profile.cttMenuOptions.xpacKey, CTT.db.profile.cttMenuOptions.raidKey)[CTT.db.profile.cttMenuOptions.bossDropDownkey])
+            local seasonMatch = true
+            if seasonIDs then
+                seasonMatch = v.SeasonID ~= nil and v.SeasonID > 0 and seasonIDs[v.SeasonID] == true
+            end
+            if seasonMatch
+                and v.Expansion == state.expansionName
+                and v.RaidInstance == state.raidName
+                and v.BossName == state.bossName
             then
                 local label = CTT.AceGUI:Create("Label")
                 label:SetText(string.format(CTT.L["%s was killed on: %s, with a Kill Time of: %s, raid difficulty: %s, with %s players, and was killed successfully: %s"], v.BossName, v.LocalKillTime, v.KillTime, v.Difficulty, v.GroupSize, tostring(v.Success)))
@@ -1118,30 +1238,43 @@ local function Alerts(container)
     addAlertGroup:SetLayout("Flow")
     container:AddChild(addAlertGroup)
 
+    local opts = CTT.db.profile.cttMenuOptions
+    local state = GetRaidSelectionState()
+
     CreateDropdown(addAlertGroup, {
         label = CTT.L["Expansion"],
         list = CTT_GetExpansionNames(),
-        text = CTT_GetExpansionNames()[CTT.db.profile.cttMenuOptions.xpacKey],
-        value = CTT.db.profile.cttMenuOptions.xpacKey,
+        text = state.expansionName,
+        value = opts.xpacKey,
         width = 125,
         callback = CTT_ExpansionDropDown,
         name = "xpacDropdown"
+    })
+
+    CreateDropdown(addAlertGroup, {
+        label = CTT.L["Season"],
+        list = state.seasonList,
+        text = state.seasonName,
+        value = state.seasonKey,
+        width = 125,
+        callback = CTT_RaidSeasonDropDown,
+        name = "raidSeasonDropdown"
     })
 
     local timeInput = CTT.AceGUI:Create("EditBox")
     timeInput:SetLabel(CTT.L["Time(sec)"])
     timeInput:SetWidth(85)
     timeInput:ClearAllPoints()
-    if CTT.db.profile.cttMenuOptions.localStore ~= nil then timeInput:SetText(CTT.db.profile.cttMenuOptions.localStore) end
+    if opts.localStore ~= nil then timeInput:SetText(opts.localStore) end
     timeInput:SetCallback("OnEnterPressed", CTT_AlertTimeOnEnterPressed)
     addAlertGroup:AddChild(timeInput)
     container.timeInput = timeInput
 
     CreateDropdown(addAlertGroup, {
         label = CTT.L["Raid"],
-        list = CTT_GetRaidNames(CTT.db.profile.cttMenuOptions.xpacKey),
-        text = CTT_GetRaidNames(CTT.db.profile.cttMenuOptions.xpacKey)[CTT.db.profile.cttMenuOptions.raidKey],
-        value = CTT.db.profile.cttMenuOptions.raidKey,
+        list = state.raidList,
+        text = state.raidName,
+        value = state.raidPos,
         width = 225,
         callback = CTT_AlertRaidDropDown,
         name = "raidDropdown"
@@ -1149,9 +1282,9 @@ local function Alerts(container)
 
     CreateDropdown(addAlertGroup, {
         label = CTT.L["Boss"],
-        list = CTT_GetRaidBossNames(CTT.db.profile.cttMenuOptions.xpacKey, CTT.db.profile.cttMenuOptions.raidKey),
-        text = CTT_GetRaidBossNames(CTT.db.profile.cttMenuOptions.xpacKey, CTT.db.profile.cttMenuOptions.raidKey)[CTT.db.profile.cttMenuOptions.bossDropDownkey],
-        value = CTT.db.profile.cttMenuOptions.bossDropDownkey,
+        list = state.bossList,
+        text = state.bossName,
+        value = opts.bossDropDownkey,
         width = 250,
         callback = CTT_AlertBossDropDown,
         name = "bossDropdown"
@@ -1201,6 +1334,44 @@ local function Alerts(container)
     end
 end
 
+local function About(container)
+    local versionGroup = CTT.AceGUI:Create("InlineGroup")
+    versionGroup:SetTitle(CTT.L["About"])
+    versionGroup:SetFullWidth(true)
+    versionGroup:SetLayout("Flow")
+    container:AddChild(versionGroup)
+
+    local versionLabel = CTT.AceGUI:Create("Label")
+    versionLabel:SetText(string.format(CTT.L["Version %s"], CTT_GetDisplayVersion(CTT_GetAddonVersion())))
+    versionLabel:SetWidth(250)
+    versionGroup:AddChild(versionLabel)
+
+    CreateButton(versionGroup, {
+        text = CTT.L["What's New"],
+        width = 150,
+        callback = function() CTT_ToggleWhatsNew(true) end,
+        name = "whatsNewButton"
+    })
+
+    -- Same links as the What's New window header (CTT_ChangelogLinks, Changelog.lua)
+    local linkGroup = CTT.AceGUI:Create("InlineGroup")
+    linkGroup:SetTitle(CTT.L["Community & Support"])
+    linkGroup:SetFullWidth(true)
+    linkGroup:SetLayout("Flow")
+    container:AddChild(linkGroup)
+
+    for _, link in ipairs(CTT_ChangelogLinks) do
+        if link.url then
+            CreateButton(linkGroup, {
+                text = CTT.L[link.label] or link.label,
+                width = 150,
+                callback = function() CTT_ShowLinkPopup(CTT.L[link.title] or link.title, link.url) end,
+                name = link.key .. "LinkButton"
+            })
+        end
+    end
+end
+
 local scrollStatusTables = {}
 
 local function SelectGroup(container, event, group)
@@ -1230,6 +1401,8 @@ local function SelectGroup(container, event, group)
         Raids(scroll)
     elseif group == "alerts" then
         Alerts(scroll)
+    elseif group == "about" then
+        About(scroll)
     end
     scroll:DoLayout()
 end
